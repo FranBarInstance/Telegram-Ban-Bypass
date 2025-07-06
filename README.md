@@ -14,8 +14,8 @@ The tool bypasses restrictions by:
 
 ## Installation
 No installation required. You can:
-1. Use the live web version at the link above, or
-2. Download the single HTML file and open it in any browser:
+1. Use the **[live web version](https://franbar1966.github.io/Telegram-Ban-Bypass/public/)** at the link above, or
+2. Download the single HTML file and open it in any browser
 
 ## Usage
 1. Enter a Telegram channel name in any of these formats:
