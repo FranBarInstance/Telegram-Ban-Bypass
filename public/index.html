@@ -3,147 +3,609 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Telegram Ban Bypass">
+    <meta name="description" content="Telegram Ban Bypass - Improved Version">
     <meta name="author" content="github.com/FranBar1966">
-    <title>Telegram Ban Bypass</title>
+    <title>Telegram Ban Bypass - Enhanced</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            max-width: 500px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 600px;
             margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        h1 {
+            padding: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             color: #333;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            color: #2c3e50;
             text-align: center;
             margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 700;
         }
+
         .author {
             text-align: center;
             color: #666;
             font-style: italic;
             margin-bottom: 30px;
         }
+
+        .author a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .author a:hover {
+            text-decoration: underline;
+        }
+
         .channel-input-container {
             background: white;
             padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
         }
+
         .channel-input-container label {
             display: block;
             margin-bottom: 10px;
-            font-weight: bold;
-            color: #333;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1em;
         }
+
         .channel-input-container input {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
             font-size: 16px;
             box-sizing: border-box;
+            transition: border-color 0.3s ease;
         }
+
+        .channel-input-container input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
         .channel-input-container button {
             width: 100%;
-            padding: 10px;
+            padding: 8px;
             margin-top: 10px;
-            background-color: #0088cc;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 5px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .channel-input-container button:hover {
-            background-color: #006699;
+
+        .channel-input-container button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
+
         .channel-input-container button:disabled {
-            background-color: #ccc;
+            background: #ccc;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
+
+        .status-container {
+            margin-bottom: 15px;
+        }
+
+        .current-channel {
+            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8ff 100%);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            color: #2c3e50;
+            border: 1px solid #d4edda;
+            margin-bottom: 12px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+
         #widget-container {
             margin-top: 20px;
         }
+
         .widget-load-more-button {
             display: block;
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             margin: 20px 0;
-            background-color: #0088cc;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .widget-load-more-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 15px;
+            font-style: italic;
+            color: #666;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #667eea;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            color: #dc3545;
+            text-align: center;
+            padding: 12px;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .success {
+            color: #155724;
+            text-align: center;
+            padding: 12px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .post-info {
+            background: white;
+            padding: 12px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+        }
+
+        .retry-button {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: #28a745;
             color: white;
             border: none;
             border-radius: 5px;
-            font-size: 16px;
             cursor: pointer;
+            font-size: 14px;
+        }
+
+        .retry-button:hover {
+            background: #218838;
+        }
+
+        .proxy-status {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
             text-align: center;
         }
-        .widget-load-more-button:hover {
-            background-color: #006699;
+
+        .recent-channels {
+            margin-top: 15px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
         }
-        .loading {
-            text-align: center;
-            padding: 20px;
-            font-style: italic;
+
+        .recent-channels-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.9em;
             color: #666;
         }
-        .error {
-            color: red;
-            text-align: center;
-            padding: 20px;
+
+        .clear-history-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            max-width: 66%;
         }
-        .post-info {
+
+        .clear-history-btn:hover {
+            background: #c82333;
+        }
+
+        .recent-channels-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .recent-channel-item {
             background: white;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid #dee2e6;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
-        .current-channel {
-            background: #e8f4f8;
-            padding: 10px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            text-align: center;
-            color: #333;
+
+        .recent-channel-item:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .recent-channel-item .channel-name {
+            font-weight: 500;
+        }
+
+        .recent-channel-item .channel-date {
+            font-size: 0.75em;
+            opacity: 0.7;
+        }
+
+        .channel-input-container input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .tips {
+            background: #e3f2fd;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .tips h3 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+
+        .tips ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 0px;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 2em;
+                margin-bottom: 8px;
+            }
+
+            .author {
+                margin-bottom: 20px;
+            }
+
+            .channel-input-container {
+                padding: 15px;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .stat-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 4px 8px;
+            }
+
+            .stat-number {
+                font-size: 1.1em;
+                font-weight: bold;
+                color: #667eea;
+            }
+
+            .stat-label {
+                font-size: 0.85em;
+                color: #666;
+            }
+
+            .widget-load-more-button {
+                margin: 15px 0;
+            }
+
+            .tips {
+                padding: 10px;
+                margin-top: 12px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Telegram Ban Bypass</h1>
-    <div class="author">by <a href="https://github.com/FranBar1966/Telegram-Ban-Bypass" target="_blank">Fran Bar</a></div>
+    <div class="container">
+        <h1>Telegram Ban Bypass</h1>
+        <div class="author">Enhanced by <a href="https://github.com/FranBar1966/Telegram-Ban-Bypass" target="_blank">Fran Bar</a></div>
 
-    <div class="channel-input-container">
-        <label for="channel-input">Enter Telegram Channel:</label>
-        <input type="text" id="channel-input" placeholder="e.g., ORANGETERAPY or https://t.me/ORANGETERAPY/">
-        <button id="load-channel-btn">Load Channel</button>
+        <div class="channel-input-container">
+            <label for="channel-input">Enter Telegram Channel:</label>
+            <input type="text" id="channel-input" placeholder="e.g., ORANGETERAPY or https://t.me/ORANGETERAPY/">
+            <button id="load-channel-btn">Load Channel</button>
+            <div id="recent-channels" class="recent-channels" style="display: none;">
+                <div class="recent-channels-header">
+                    <span>📋 Recent Channels:</span>
+                    <button id="clear-history" class="clear-history-btn">Clear</button>
+                </div>
+                <div id="recent-channels-list" class="recent-channels-list"></div>
+            </div>
+            <div class="proxy-status" id="proxy-status"></div>
+        </div>
+
+        <div class="status-container">
+            <div id="current-channel" class="current-channel" style="display: none;"></div>
+            <div id="stats" class="stats" style="display: none;">
+                <div class="stat-item">
+                    <div class="stat-number" id="posts-loaded">0</div>
+                    <div class="stat-label">Posts Loaded</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="posts-hidden">0</div>
+                    <div class="stat-label">Posts Hidden</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="latest-post-id">0</div>
+                    <div class="stat-label">Latest Post ID</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="success" class="success" style="display: none;"></div>
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="loading" class="loading" style="display: none;">Loading latest post...</div>
+
+        <div id="widget-container" data-start="0" data-num="20"></div>
+        <button class="widget-load-more-button" style="display: none;">Load More Posts</button>
+
+        <div class="tips">
+            <h3>💡 Tips for Better Performance:</h3>
+            <ul>
+                <li>Use channel names without @ symbol (e.g., "ORANGETERAPY")</li>
+                <li>Full URLs are supported (e.g., "https://t.me/ORANGETERAPY")</li>
+                <li>Posts are automatically hidden if they're deleted</li>
+                <li>Data is cached for 1 minute to improve loading speed</li>
+                <li>If loading fails, multiple proxy servers are tried automatically</li>
+                <li>📋 Recent channels are saved automatically for quick access</li>
+                <li>💡 Click on any recent channel to reload it instantly</li>
+            </ul>
+        </div>
     </div>
 
-    <div id="current-channel" class="current-channel" style="display: none;"></div>
-
-    <div id="widget-container" data-start="0" data-num="20"></div>
-    <button class="widget-load-more-button" style="display: none;">Load More Posts</button>
-    <div id="loading" class="loading" style="display: none;">Loading latest post...</div>
-    <div id="error" class="error" style="display: none;"></div>
-
     <script>
-        // Global variables
+        // Enhanced global variables
         let countInterval = 0;
         let intervalId = null;
         let countPosts = 0;
+        let hiddenPosts = 0;
         let lastPostId = 0;
         let currentChannel = '';
+        let isLoading = false;
 
-        // Function to extract channel name from input
+        // Enhanced proxy configuration
+        const PROXY_SERVERS = [
+            'https://api.codetabs.com/v1/proxy?quest=',
+            'https://whateverorigin.org/get?url=',
+            'https://api.allorigins.win/get?url=',
+            'https://cors-anywhere.herokuapp.com/'
+        ];
+
+        let currentProxyIndex = 0;
+
+        // Enhanced cache system with fallback
+        class CacheManager {
+            constructor() {
+                this.memoryCache = new Map();
+                this.cacheTimeout = 60000; // 1 minute
+            }
+
+            set(key, data) {
+                const cacheEntry = {
+                    timestamp: Date.now(),
+                    data: data
+                };
+
+                // Always store in memory
+                this.memoryCache.set(key, cacheEntry);
+            }
+
+            get(key) {
+                const now = Date.now();
+                let cachedData = null;
+
+                // Get from memory cache
+                cachedData = this.memoryCache.get(key);
+
+                if (cachedData && (now - cachedData.timestamp < this.cacheTimeout)) {
+                    return cachedData.data;
+                }
+
+                return null;
+            }
+
+            clear() {
+                this.memoryCache.clear();
+            }
+        }
+
+        // Enhanced History Manager for recent channels
+        class HistoryManager {
+            constructor() {
+                this.maxItems = 10;
+                this.storageKey = 'telegram_recent_channels';
+                this.memoryHistory = [];
+            }
+
+            addChannel(channelName) {
+                const channelData = {
+                    name: channelName,
+                    timestamp: Date.now(),
+                    date: new Date().toLocaleDateString()
+                };
+
+                // Remove if already exists
+                this.removeChannel(channelName);
+
+                // Add to beginning
+                let history = this.getHistory();
+                history.unshift(channelData);
+
+                // Keep only max items
+                if (history.length > this.maxItems) {
+                    history = history.slice(0, this.maxItems);
+                }
+
+                // Save to storage
+                this.saveHistory(history);
+
+                // Update UI
+                this.updateRecentChannelsUI();
+            }
+
+            removeChannel(channelName) {
+                let history = this.getHistory();
+                history = history.filter(item => item.name !== channelName);
+                this.saveHistory(history);
+            }
+
+            getHistory() {
+                return this.memoryHistory;
+            }
+
+            saveHistory(history) {
+                this.memoryHistory = history;
+            }
+
+            clearHistory() {
+                this.memoryHistory = [];
+                this.updateRecentChannelsUI();
+            }
+
+            updateRecentChannelsUI() {
+                const recentChannelsContainer = document.getElementById('recent-channels');
+                const recentChannelsList = document.getElementById('recent-channels-list');
+                const history = this.getHistory();
+
+                if (history.length === 0) {
+                    recentChannelsContainer.style.display = 'none';
+                    return;
+                }
+
+                recentChannelsContainer.style.display = 'block';
+                recentChannelsList.innerHTML = '';
+
+                history.forEach(item => {
+                    const channelItem = document.createElement('div');
+                    channelItem.className = 'recent-channel-item';
+                    channelItem.innerHTML = `
+                        <span class="channel-name">@${item.name}</span>
+                        <span class="channel-date">${item.date}</span>
+                    `;
+
+                    channelItem.addEventListener('click', () => {
+                        const channelInput = document.getElementById('channel-input');
+                        channelInput.value = item.name;
+                        channelInput.focus();
+
+                        // Optional: Auto-load the channel
+                        setTimeout(() => {
+                            document.getElementById('load-channel-btn').click();
+                        }, 100);
+                    });
+
+                    recentChannelsList.appendChild(channelItem);
+                });
+            }
+        }
+
+        const cacheManager = new CacheManager();
+        const historyManager = new HistoryManager();
+
+        // Enhanced utility functions
         function extractChannelName(input) {
             const cleanInput = input.trim();
 
-            // If it's a full URL, extract the channel name
             if (cleanInput.includes('t.me/')) {
                 const parts = cleanInput.split('/');
-                // Get the last non-empty part (handles trailing slashes)
                 let channelName = parts[parts.length - 1];
                 if (!channelName && parts.length > 1) {
                     channelName = parts[parts.length - 2];
@@ -151,151 +613,211 @@
                 return channelName;
             }
 
-            // If it starts with @, remove it
             if (cleanInput.startsWith('@')) {
                 return cleanInput.substring(1);
             }
 
-            // Otherwise, return as is (handles plain channel names like "ORANGETERAPY")
             return cleanInput;
         }
 
-        async function fetchWithCache(url) {
-            const cacheKey = `cache_${url}`;
-            const now = new Date().getTime();
-            const cacheDuration = 60000; // 1 minuto en milisegundos
+        function updateStats() {
+            document.getElementById('posts-loaded').textContent = countPosts;
+            document.getElementById('posts-hidden').textContent = hiddenPosts;
+            document.getElementById('latest-post-id').textContent = lastPostId;
+        }
 
-            // Intentar obtener datos del caché
-            const cachedData = localStorage.getItem(cacheKey);
+        function showMessage(type, message, autoHide = false) {
+            const elements = {
+                success: document.getElementById('success'),
+                error: document.getElementById('error'),
+                loading: document.getElementById('loading')
+            };
+
+            // Hide all messages
+            Object.values(elements).forEach(el => el.style.display = 'none');
+
+            // Show the specific message
+            if (elements[type]) {
+                elements[type].textContent = message;
+                elements[type].style.display = 'block';
+
+                if (autoHide && type !== 'loading') {
+                    setTimeout(() => {
+                        elements[type].style.display = 'none';
+                    }, 3000);
+                }
+            }
+        }
+
+        function updateProxyStatus(message) {
+            document.getElementById('proxy-status').textContent = message;
+        }
+
+        // Enhanced fetch with multiple proxy support
+        async function fetchWithProxy(url, maxRetries = 3) {
+            const cacheKey = `cache_${url}`;
+
+            // Check cache first
+            const cachedData = cacheManager.get(cacheKey);
             if (cachedData) {
-                const { timestamp, data } = JSON.parse(cachedData);
-                if (now - timestamp < cacheDuration) {
-                    return data; // Devolver datos cacheados si no han expirado
+                return cachedData;
+            }
+
+            let lastError;
+
+            for (let attempt = 0; attempt < maxRetries; attempt++) {
+                const proxyUrl = PROXY_SERVERS[currentProxyIndex];
+                updateProxyStatus(`Trying proxy ${currentProxyIndex + 1}/${PROXY_SERVERS.length}...`);
+
+                try {
+                    const encodedUrl = encodeURIComponent(url);
+                    const fullUrl = proxyUrl + encodedUrl;
+
+                    const response = await fetch(fullUrl);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP Error: ${response.status}`);
+                    }
+
+                    const proxyData = await response.json();
+                    let actualData;
+
+                    // Handle different proxy response formats
+                    if (proxyData.contents) {
+                        actualData = JSON.parse(proxyData.contents);
+                    } else if (proxyData.data) {
+                        actualData = proxyData.data;
+                    } else {
+                        actualData = proxyData;
+                    }
+
+                    // Cache the successful response
+                    cacheManager.set(cacheKey, actualData);
+                    updateProxyStatus(`Connected via proxy ${currentProxyIndex + 1}`);
+
+                    return actualData;
+
+                } catch (error) {
+                    lastError = error;
+                    console.warn(`Proxy ${currentProxyIndex + 1} failed:`, error.message);
+
+                    // Try next proxy
+                    currentProxyIndex = (currentProxyIndex + 1) % PROXY_SERVERS.length;
                 }
             }
 
-            // Si no hay datos en caché o han expirado, hacer la solicitud
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`HTTP Error: ${response.status}`);
-            }
-            const freshData = await response.json();
-
-            // Almacenar en caché con marca de tiempo
-            localStorage.setItem(cacheKey, JSON.stringify({
-                timestamp: now,
-                data: freshData
-            }));
-
-            return freshData;
+            updateProxyStatus('All proxies failed');
+            throw lastError || new Error('All proxy attempts failed');
         }
 
-        // Function to fetch the latest post from a channel using CORS proxy
+        // Enhanced channel loading
         async function fetchLastPost(channelName) {
-            const loadingElement = document.getElementById('loading');
-            const errorElement = document.getElementById('error');
+            if (isLoading) return;
+            isLoading = true;
+
             const currentChannelElement = document.getElementById('current-channel');
+            const statsElement = document.getElementById('stats');
 
             try {
-                // Use api.allorigins.win proxy
-                const proxyUrl = 'https://whateverorigin.org/get?url=';
-                const encodedUrl = encodeURIComponent(`https://tg.i-c-a.su/json/${channelName}?limit=1`);
+                showMessage('loading', 'Loading latest post...');
 
-                loadingElement.textContent = 'Loading latest post...';
-                loadingElement.style.display = 'block';
-                errorElement.style.display = 'none';
-
-                const fullUrl = proxyUrl + encodedUrl;
-
-                loadingElement.textContent = 'Loading latest post...';
-                loadingElement.style.display = 'block';
-                errorElement.style.display = 'none';
-
-                // Usar la función con caché
-                const proxyData = await fetchWithCache(fullUrl);
-                const data = JSON.parse(proxyData.contents);
+                const apiUrl = `https://tg.i-c-a.su/json/${channelName}?limit=1`;
+                const data = await fetchWithProxy(apiUrl);
 
                 if (!data.messages || data.messages.length === 0) {
-                    throw new Error('No messages found in response');
+                    throw new Error('No messages found in channel');
                 }
 
                 lastPostId = data.messages[0].id;
                 currentChannel = channelName;
+                countPosts = 0;
+                hiddenPosts = 0;
+
+                // Add to history
+                historyManager.addChannel(channelName);
 
                 // Show current channel info
-                currentChannelElement.innerHTML = `Currently viewing: <strong>@${channelName}</strong> (Latest post ID: ${lastPostId})`;
+                currentChannelElement.innerHTML = `
+                    <strong>📢 Channel:</strong> @${channelName}<br>
+                    <strong>🆔 Latest Post ID:</strong> ${lastPostId}
+                `;
                 currentChannelElement.style.display = 'block';
+                statsElement.style.display = 'flex';
 
-                loadingElement.style.display = 'none';
+                updateStats();
 
-                // Configure the container with the latest post and how many to load
+                showMessage('success', `Successfully loaded channel @${channelName}`, true);
+
+                // Configure the container
                 const widgetContainer = document.getElementById('widget-container');
                 widgetContainer.dataset.start = lastPostId;
-                widgetContainer.dataset.num = 20; // Load 20 posts initially
-
-                // Clear previous content
+                widgetContainer.dataset.num = 20;
                 widgetContainer.innerHTML = '';
 
-                // Trigger the load event to start loading widgets
+                // Start loading widgets
                 window.dispatchEvent(new CustomEvent('telegramLoaded'));
 
             } catch (error) {
                 console.error('Error fetching latest post:', error);
-                loadingElement.style.display = 'none';
-                errorElement.textContent = `Error loading posts: ${error.message}`;
-                errorElement.style.display = 'block';
+                showMessage('error', `Error loading channel: ${error.message}`);
 
-                // Try alternative proxy if the first one fails
-                if (error.message.includes('Failed to fetch')) {
-                    setTimeout(() => fetchWithAlternativeProxy(channelName), 2000);
+                // Add retry button
+                const errorElement = document.getElementById('error');
+                if (!errorElement.querySelector('.retry-button')) {
+                    const retryBtn = document.createElement('button');
+                    retryBtn.className = 'retry-button';
+                    retryBtn.textContent = 'Retry';
+                    retryBtn.onclick = () => fetchLastPost(channelName);
+                    errorElement.appendChild(retryBtn);
                 }
+            } finally {
+                isLoading = false;
             }
         }
 
-        // Alternative function with another proxy
-        async function fetchWithAlternativeProxy(channelName) {
-            try {
-                const proxyUrl = 'https://api.allorigins.win/get?url=';
-                const encodedUrl = encodeURIComponent(`https://tg.i-c-a.su/json/${channelName}?limit=1`);
-
-                const response = await fetch(proxyUrl + encodedUrl);
-                const data = await response.json();
-
-                if (data.messages && data.messages.length > 0) {
-                    lastPostId = data.messages[0].id;
-                    document.getElementById('widget-container').dataset.start = lastPostId;
-                    window.dispatchEvent(new CustomEvent('telegramLoaded'));
-                }
-            } catch (fallbackError) {
-                console.error('Error with alternative proxy:', fallbackError);
-            }
-        }
-
-        // Function to load Telegram widgets
+        // Enhanced widget loading
         function loadTelegramWidgets(start, numPosts) {
             const container = document.getElementById('widget-container');
             const loadButton = document.querySelector('.widget-load-more-button');
             const end = start - numPosts + 1;
 
             if (!container) {
-                console.error('The container with ID "widget-container" was not found.');
+                console.error('Widget container not found');
                 return;
             }
 
             loadButton.style.display = 'block';
 
-            // Load widgets for the specified range
-            for (let n = start; n >= end; n--) {
+            // Add loading indicator
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading';
+            loadingDiv.textContent = 'Loading posts';
+            container.appendChild(loadingDiv);
+
+            // Load widgets with delay to prevent rate limiting
+            let loadedCount = 0;
+            const loadInterval = setInterval(() => {
+                if (loadedCount >= numPosts || (start - loadedCount) < 1) {
+                    clearInterval(loadInterval);
+                    loadingDiv.remove();
+                    updateStats();
+                    return;
+                }
+
+                const postId = start - loadedCount;
                 const script = document.createElement('script');
                 script.async = true;
                 script.src = 'https://telegram.org/js/telegram-widget.js?22';
-                script.setAttribute('data-telegram-post', `${currentChannel}/${n}`);
+                script.setAttribute('data-telegram-post', `${currentChannel}/${postId}`);
                 script.setAttribute('data-width', '100%');
                 container.appendChild(script);
-                countPosts++;
-            }
 
-            // Setup load more button if there are more posts
+                countPosts++;
+                loadedCount++;
+                updateStats();
+            }, 100); // 100ms delay between loads
+
+            // Setup load more button
             if (end > 1) {
                 const freshButton = document.querySelector('.widget-load-more-button');
                 freshButton.replaceWith(freshButton.cloneNode(true));
@@ -303,15 +825,18 @@
 
                 newButton.addEventListener('click', function() {
                     // Clear content if we've loaded too many posts
-                    if (countPosts > 100) {
+                    if (countPosts > 150) {
                         countPosts = 0;
+                        hiddenPosts = 0;
                         container.innerHTML = '';
-                        setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 100);
+                        updateStats();
+                        setTimeout(() => {
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }, 100);
                     }
 
                     const newStart = end - 1;
                     const numPostsToLoad = parseInt(container.dataset.num);
-
                     loadTelegramWidgets(newStart, numPostsToLoad);
                 });
             } else {
@@ -319,44 +844,50 @@
             }
         }
 
-        // Remove deleted posts by detecting the size of the iframe
+        // Enhanced iframe height checking
         function checkIframesHeight() {
             document.querySelectorAll('iframe[src*="t.me"]').forEach(iframe => {
                 const height = iframe.offsetHeight;
                 if (height < 60 && height > 0) {
-                    iframe.style.display = 'none';
+                    if (iframe.style.display !== 'none') {
+                        iframe.style.display = 'none';
+                        hiddenPosts++;
+                        updateStats();
+                    }
                 }
             });
 
             countInterval++;
-            if (intervalId && countInterval >= 25) {
+            if (intervalId && countInterval >= 30) {
                 clearInterval(intervalId);
+                intervalId = null;
                 countInterval = 0;
             }
         }
 
-        // Custom event listener to start loading widgets
+        // Event listeners
         window.addEventListener('telegramLoaded', function() {
             const widget = document.getElementById('widget-container');
             if (widget && lastPostId > 0) {
-                countPosts = 0;
-                start_post = parseInt(widget.dataset.start) + 5;
-                loadTelegramWidgets(start_post, parseInt(widget.dataset.num));
+                const startPost = parseInt(widget.dataset.start);
+                loadTelegramWidgets(startPost, parseInt(widget.dataset.num));
+
+                // Start iframe checking
+                if (intervalId) clearInterval(intervalId);
                 intervalId = setInterval(checkIframesHeight, 200);
             }
         });
 
-        // Event listener for the load channel button
         document.getElementById('load-channel-btn').addEventListener('click', function() {
             const channelInput = document.getElementById('channel-input');
             const channelName = extractChannelName(channelInput.value);
 
             if (!channelName) {
-                alert('Please enter a valid channel name');
+                showMessage('error', 'Please enter a valid channel name');
                 return;
             }
 
-            // Disable button during loading
+            // Visual feedback
             this.disabled = true;
             this.textContent = 'Loading...';
 
@@ -366,12 +897,44 @@
             });
         });
 
-        // Allow Enter key to trigger channel loading
         document.getElementById('channel-input').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 document.getElementById('load-channel-btn').click();
             }
         });
+
+        // Clear history button
+        document.getElementById('clear-history').addEventListener('click', function() {
+            if (confirm('¿Are you sure you want to clear the channel history?')) {
+                historyManager.clearHistory();
+            }
+        });
+
+        // Auto-complete functionality
+        document.getElementById('channel-input').addEventListener('input', function() {
+            const value = this.value.toLowerCase();
+            const history = historyManager.getHistory();
+
+            if (value.length > 0) {
+                const matches = history.filter(item =>
+                    item.name.toLowerCase().includes(value)
+                );
+
+                if (matches.length > 0) {
+                    // Simple auto-complete: show first match
+                    const firstMatch = matches[0];
+                    if (firstMatch.name.toLowerCase().startsWith(value)) {
+                        const currentPos = this.selectionStart;
+                        this.value = firstMatch.name;
+                        this.setSelectionRange(currentPos, firstMatch.name.length);
+                    }
+                }
+            }
+        });
+
+        // Initialize
+        updateProxyStatus('Ready to load channels');
+        historyManager.updateRecentChannelsUI();
     </script>
 </body>
 </html>
