@@ -168,8 +168,8 @@
 
             try {
                 // Use api.allorigins.win proxy
-                const proxyUrl = '';
-                const encodedUrl = encodeURIComponent(`https://tg.i-c-a.su/json/${channelName}?limit=1`);
+                const proxyUrl = 'https://tg.i-c-a.su/json/${channelName}?limit=1';
+                const encodedUrl = encodeURIComponent(``);
 
                 loadingElement.textContent = 'Loading latest post...';
                 loadingElement.style.display = 'block';
@@ -224,8 +224,8 @@
         // Alternative function with another proxy
         async function fetchWithAlternativeProxy(channelName) {
             try {
-                const proxyUrl = '';
-                const encodedUrl = encodeURIComponent(`https://tg.i-c-a.su/json/${channelName}?limit=1`);
+                const proxyUrl = 'https://tg.i-c-a.su/json/${channelName}?limit=1';
+                const encodedUrl = encodeURIComponent(``);
 
                 const response = await fetch(proxyUrl + encodedUrl);
                 const data = await response.json();
