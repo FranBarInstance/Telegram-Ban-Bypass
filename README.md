@@ -34,6 +34,7 @@ No installation required. You can:
 - Removes deleted posts automatically
 
 ## Technical Details
+- Fetching the latest posts using an API https://tg.i-c-a.su/json/
 - **Frontend:** Pure HTML/CSS/JavaScript
 - **Proxies Used:**
   - Primary: api.allorigins.win
