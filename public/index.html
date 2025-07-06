@@ -121,30 +121,6 @@
             margin-bottom: 12px;
         }
 
-        .stats {
-            display: flex;
-            justify-content: space-around;
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #667eea;
-        }
-
-        .stat-label {
-            font-size: 0.9em;
-            color: #666;
-        }
-
         #widget-container {
             margin-top: 20px;
         }
@@ -359,29 +335,6 @@
                 padding: 15px;
             }
 
-            .stats {
-                flex-direction: column;
-                gap: 8px;
-            }
-
-            .stat-item {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 4px 8px;
-            }
-
-            .stat-number {
-                font-size: 1.1em;
-                font-weight: bold;
-                color: #667eea;
-            }
-
-            .stat-label {
-                font-size: 0.85em;
-                color: #666;
-            }
-
             .widget-load-more-button {
                 margin: 15px 0;
             }
@@ -414,16 +367,6 @@
 
         <div class="status-container">
             <div id="current-channel" class="current-channel" style="display: none;"></div>
-            <div id="stats" class="stats" style="display: none;">
-                <div class="stat-item">
-                    <div class="stat-number" id="posts-loaded">0</div>
-                    <div class="stat-label">Posts Loaded</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="latest-post-id">0</div>
-                    <div class="stat-label">Latest Post ID</div>
-                </div>
-            </div>
         </div>
 
         <div id="success" class="success" style="display: none;"></div>
@@ -616,11 +559,6 @@
             return cleanInput;
         }
 
-        function updateStats() {
-            document.getElementById('posts-loaded').textContent = countPosts;
-            document.getElementById('latest-post-id').textContent = lastPostId;
-        }
-
         function showMessage(type, message, autoHide = false) {
             const elements = {
                 success: document.getElementById('success'),
@@ -721,7 +659,6 @@
             isLoading = true;
 
             const currentChannelElement = document.getElementById('current-channel');
-            const statsElement = document.getElementById('stats');
 
             try {
                 showMessage('loading', 'Loading latest post...');
@@ -747,9 +684,6 @@
                     <strong>🆔 Latest Post ID:</strong> ${lastPostId}
                 `;
                 currentChannelElement.style.display = 'block';
-                statsElement.style.display = 'flex';
-
-                updateStats();
 
                 showMessage('success', `Successfully loaded channel @${channelName}`, true);
 
@@ -805,7 +739,6 @@
                 if (loadedCount >= numPosts || (start - loadedCount) < 1) {
                     clearInterval(loadInterval);
                     loadingDiv.remove();
-                    updateStats();
                     return;
                 }
 
@@ -819,7 +752,6 @@
 
                 countPosts++;
                 loadedCount++;
-                updateStats();
             }, 50); // 50ms delay between loads
 
             // Setup load more button
@@ -834,7 +766,6 @@
                         countPosts = 0;
                         hiddenPosts = 0;
                         container.innerHTML = '';
-                        updateStats();
                         setTimeout(() => {
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                         }, 100);
@@ -857,7 +788,6 @@
                     if (iframe.style.display !== 'none') {
                         iframe.style.display = 'none';
                         hiddenPosts++;
-                        updateStats();
                     }
                 }
             });
