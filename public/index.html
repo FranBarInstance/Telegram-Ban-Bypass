@@ -160,6 +160,36 @@
             return cleanInput;
         }
 
+        async function fetchWithCache(url) {
+            const cacheKey = `cache_${url}`;
+            const now = new Date().getTime();
+            const cacheDuration = 60000; // 1 minuto en milisegundos
+
+            // Intentar obtener datos del caché
+            const cachedData = localStorage.getItem(cacheKey);
+            if (cachedData) {
+                const { timestamp, data } = JSON.parse(cachedData);
+                if (now - timestamp < cacheDuration) {
+                    return data; // Devolver datos cacheados si no han expirado
+                }
+            }
+
+            // Si no hay datos en caché o han expirado, hacer la solicitud
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.status}`);
+            }
+            const freshData = await response.json();
+
+            // Almacenar en caché con marca de tiempo
+            localStorage.setItem(cacheKey, JSON.stringify({
+                timestamp: now,
+                data: freshData
+            }));
+
+            return freshData;
+        }
+
         // Function to fetch the latest post from a channel using CORS proxy
         async function fetchLastPost(channelName) {
             const loadingElement = document.getElementById('loading');
@@ -175,14 +205,15 @@
                 loadingElement.style.display = 'block';
                 errorElement.style.display = 'none';
 
-                const response = await fetch(proxyUrl + encodedUrl);
+                const fullUrl = proxyUrl + encodedUrl;
 
-                if (!response.ok) {
-                    throw new Error(`HTTP Error: ${response.status}`);
-                }
+                loadingElement.textContent = 'Loading latest post...';
+                loadingElement.style.display = 'block';
+                errorElement.style.display = 'none';
 
-                const proxyData = await response.json();
-                const data = JSON.parse(proxyData.contents); // Parse the actual content
+                // Usar la función con caché
+                const proxyData = await fetchWithCache(fullUrl);
+                const data = JSON.parse(proxyData.contents);
 
                 if (!data.messages || data.messages.length === 0) {
                     throw new Error('No messages found in response');
