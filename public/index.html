@@ -456,7 +456,7 @@
         let countInterval = 0;
         let intervalId = null;
         let countPosts = 0;
-        let hiddenPosts = 0;
+        let hiddenPosts = -5;
         let lastPostId = 0;
         let currentChannel = '';
         let isLoading = false;
@@ -837,7 +837,7 @@
                     // Clear content if we've loaded too many posts
                     if (countPosts > 200) {
                         countPosts = 0;
-                        hiddenPosts = -5;
+                        hiddenPosts = 0;
                         container.innerHTML = '';
                         updateStats();
                         setTimeout(() => {
