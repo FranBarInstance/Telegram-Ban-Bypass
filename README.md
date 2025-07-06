@@ -37,8 +37,8 @@ No installation required. You can:
 - Fetching the latest posts using an API https://tg.i-c-a.su/json/
 - **Frontend:** Pure HTML/CSS/JavaScript
 - **Proxies Used:**
-  - Primary: api.allorigins.win
-  - Fallback: whateverorigin.org
+  - Primary: whateverorigin.org
+  - Fallback: api.allorigins.win
 - **API:** Telegram Widget API (v22)
 
 ## Limitations
