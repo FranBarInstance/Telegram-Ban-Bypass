@@ -654,71 +654,72 @@
         }
 
         // Enhanced fetch with multiple proxy support
-async function fetchWithProxy(url, maxRetries = 3) {
-    const cacheKey = `cache_${url}`;
+        async function fetchWithProxy(url, maxRetries = 3) {
+            const cacheKey = `cache_${url}`;
 
-    // Check cache first
-    const cachedData = cacheManager.get(cacheKey);
-    if (cachedData) {
-        updateProxyStatus(`Using cached data (proxy ${currentProxyIndex + 1} ready)`);
-        return cachedData;
-    }
-
-    let lastError;
-    let attempts = 0;
-    const totalProxies = PROXY_SERVERS.length;
-
-    while (attempts < maxRetries * totalProxies) {
-        const proxyUrl = PROXY_SERVERS[currentProxyIndex];
-        updateProxyStatus(`Trying proxy ${currentProxyIndex + 1}/${totalProxies} (attempt ${Math.floor(attempts/totalProxies) + 1}/${maxRetries})...`);
-
-        try {
-            const encodedUrl = encodeURIComponent(url);
-            const fullUrl = proxyUrl + encodedUrl;
-
-            const response = await fetch(fullUrl);
-
-            if (!response.ok) {
-                throw new Error(`HTTP Error: ${response.status}`);
+            // Check cache first
+            const cachedData = cacheManager.get(cacheKey);
+            if (cachedData) {
+                updateProxyStatus(`Using cached data (proxy ${currentProxyIndex + 1} ready)`);
+                return cachedData;
             }
 
-            const proxyData = await response.json();
-            let actualData;
+            let lastError;
+            let attempts = 0;
+            const totalProxies = PROXY_SERVERS.length;
 
-            // Handle different proxy response formats
-            if (proxyData.contents) {
-                actualData = JSON.parse(proxyData.contents);
-            } else if (proxyData.data) {
-                actualData = proxyData.data;
-            } else {
-                actualData = proxyData;
+            while (attempts < maxRetries * totalProxies) {
+                const proxyUrl = PROXY_SERVERS[currentProxyIndex];
+                updateProxyStatus(`Trying proxy ${currentProxyIndex + 1}/${totalProxies} (attempt ${Math.floor(attempts/totalProxies) + 1}/${maxRetries})...`);
+
+                try {
+                    const encodedUrl = encodeURIComponent(url);
+                    const fullUrl = proxyUrl + encodedUrl;
+
+                    const response = await fetch(fullUrl);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP Error: ${response.status}`);
+                    }
+
+                    const proxyData = await response.json();
+                    let actualData;
+
+                    // Handle different proxy response formats
+                    if (proxyData.contents) {
+                        actualData = JSON.parse(proxyData.contents);
+                    } else if (proxyData.data) {
+                        actualData = proxyData.data;
+                    } else {
+                        actualData = proxyData;
+                    }
+
+                    // Cache the successful response
+                    cacheManager.set(cacheKey, actualData);
+                    updateProxyStatus(`Success via proxy ${currentProxyIndex + 1}/${totalProxies}`);
+
+                    // Rotate to next proxy for next request
+                    currentProxyIndex = (currentProxyIndex + 1) % totalProxies;
+
+                    return actualData;
+
+                } catch (error) {
+                    lastError = error;
+                    console.warn(`Proxy ${currentProxyIndex + 1} failed:`, error.message);
+
+                    // Try next proxy
+                    currentProxyIndex = (currentProxyIndex + 1) % totalProxies;
+                    attempts++;
+
+                    // Small delay between attempts
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
             }
 
-            // Cache the successful response
-            cacheManager.set(cacheKey, actualData);
-            updateProxyStatus(`Success via proxy ${currentProxyIndex + 1}/${totalProxies}`);
-
-            // Rotate to next proxy for next request
-            currentProxyIndex = (currentProxyIndex + 1) % totalProxies;
-
-            return actualData;
-
-        } catch (error) {
-            lastError = error;
-            console.warn(`Proxy ${currentProxyIndex + 1} failed:`, error.message);
-
-            // Try next proxy
-            currentProxyIndex = (currentProxyIndex + 1) % totalProxies;
-            attempts++;
-
-            // Small delay between attempts
-            await new Promise(resolve => setTimeout(resolve, 500));
+            updateProxyStatus('All proxies failed');
+            throw lastError || new Error(`All proxy attempts failed (${maxRetries} retries × ${totalProxies} proxies)`);
         }
-    }
 
-    updateProxyStatus('All proxies failed');
-    throw lastError || new Error(`All proxy attempts failed (${maxRetries} retries × ${totalProxies} proxies)`);
-}
         // Enhanced channel loading
         async function fetchLastPost(channelName) {
             if (isLoading) return;
