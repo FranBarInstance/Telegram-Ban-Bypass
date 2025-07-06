@@ -38,7 +38,7 @@ No installation required. You can:
 - **Frontend:** Pure HTML/CSS/JavaScript
 - **Proxies Used:**
   - Primary: api.allorigins.win
-  - Fallback: cors-proxy.htmldriven.com
+  - Fallback: whateverorigin.org
 - **API:** Telegram Widget API (v22)
 
 ## Limitations

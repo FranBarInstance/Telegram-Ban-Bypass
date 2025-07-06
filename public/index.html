@@ -168,7 +168,7 @@
 
             try {
                 // Use api.allorigins.win proxy
-                const proxyUrl = 'https://api.allorigins.win/get?url=';
+                const proxyUrl = 'https://whateverorigin.org/get?url=';
                 const encodedUrl = encodeURIComponent(`https://tg.i-c-a.su/json/${channelName}?limit=1`);
 
                 loadingElement.textContent = 'Loading latest post...';
@@ -224,7 +224,7 @@
         // Alternative function with another proxy
         async function fetchWithAlternativeProxy(channelName) {
             try {
-                const proxyUrl = 'https://cors-proxy.htmldriven.com/?url=';
+                const proxyUrl = 'https://api.allorigins.win/get?url=';
                 const encodedUrl = encodeURIComponent(`https://tg.i-c-a.su/json/${channelName}?limit=1`);
 
                 const response = await fetch(proxyUrl + encodedUrl);
