@@ -377,6 +377,8 @@
         <div class="channel-input-container">
             <label for="channel-input">Enter Telegram Channel:</label>
             <input name="channel-input" type="text" id="channel-input" placeholder="e.g., ORANGETERAPY or https://t.me/ORANGETERAPY/">
+            <label for="proxy-input" style="margin-top:10px;display:block;font-weight:600;color:#2c3e50;font-size:1.1em;">CORS Proxy URL:</label>
+            <input name="proxy-input" type="text" id="proxy-input" placeholder="e.g., https://mi-proxy.com/fetch/" style="width:100%;padding:12px 15px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;box-sizing:border-box;margin-bottom:10px;">
             <button id="load-channel-btn">Load Channel</button>
             <div id="recent-channels" class="recent-channels">
                 <div class="recent-channels-header">
@@ -450,17 +452,49 @@
         let currentChannel = '';
         let isLoading = false;
 
+        // El proxy ahora lo introduce el usuario
+        let currentProxyUrl = '';
+
+        // Guardar y recuperar el proxy del usuario en localStorage
+        function saveProxyToStorage(proxyUrl) {
+            try {
+                localStorage.setItem('user_proxy_url', proxyUrl);
+            } catch (e) {}
+        }
+        function getProxyFromStorage() {
+            try {
+                return localStorage.getItem('user_proxy_url') || '';
+            } catch (e) { return ''; }
+        }
+
+        // Al cargar la página, poner el valor guardado en el input
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const channelParam = urlParams.get('channel');
+            if (channelParam) {
+                document.getElementById('channel-input').value = channelParam;
+            }
+            // Recuperar proxy guardado
+            const proxyInput = document.getElementById('proxy-input');
+            const savedProxy = getProxyFromStorage();
+            if (savedProxy) {
+                proxyInput.value = savedProxy;
+                currentProxyUrl = savedProxy;
+            }
+            proxyInput.addEventListener('input', function() {
+                currentProxyUrl = this.value.trim();
+                saveProxyToStorage(currentProxyUrl);
+            });
+        });
+
         // Enhanced proxy configuration
+        /*
         const PROXY_SERVERS = [
-            // 'https://api.codetabs.com/v1/proxy?quest=',
-            // 'https://whateverorigin.org/get?url=',
-            // 'https://thingproxy.freeboard.io/fetch/',
-            // 'https://api.allorigins.win/get?url=',
-            // 'https://cors-anywhere.herokuapp.com/'
             'disable'
         ];
 
         let currentProxyIndex = 0;
+        */
 
         // Enhanced cache system with fallback
         class CacheManager {
@@ -893,68 +927,52 @@
         // Enhanced fetch with multiple proxy support
         async function fetchWithProxy(url, maxRetries = 3) {
             const cacheKey = `cache_${url}`;
-
             // Check cache first
             const cachedData = cacheManager.get(cacheKey);
             if (cachedData) {
-                updateProxyStatus(`Using cached data (proxy ${currentProxyIndex + 1} ready)`);
+                updateProxyStatus(`Using cached data`);
                 return cachedData;
             }
-
             let lastError;
             let attempts = 0;
-            const totalProxies = PROXY_SERVERS.length;
-
-            while (attempts < maxRetries * totalProxies) {
-                const proxyUrl = PROXY_SERVERS[currentProxyIndex];
-                updateProxyStatus(`Trying proxy ${currentProxyIndex + 1}/${totalProxies} (attempt ${Math.floor(attempts/totalProxies) + 1}/${maxRetries})...`);
-
+            // Si el usuario no ha puesto proxy, petición directa
+            const proxyUrl = currentProxyUrl;
+            while (attempts < maxRetries) {
+                updateProxyStatus(proxyUrl ? `Usando proxy personalizado (intento ${attempts+1}/${maxRetries})...` : 'Sin proxy (petición directa)');
                 try {
-                    const encodedUrl = encodeURIComponent(url);
-                    const fullUrl = proxyUrl + encodedUrl;
-
+                    let fullUrl = url;
+                    if (proxyUrl) {
+                        const encodedUrl = encodeURIComponent(url);
+                        fullUrl = proxyUrl + encodedUrl;
+                    }
                     const response = await fetch(fullUrl);
-
                     if (!response.ok) {
                         throw new Error(`HTTP Error: ${response.status}`);
                     }
-
-                    const proxyData = await response.json();
                     let actualData;
-
-                    // Handle different proxy response formats
-                    if (proxyData.contents) {
-                        actualData = JSON.parse(proxyData.contents);
-                    } else if (proxyData.data) {
-                        actualData = proxyData.data;
+                    if (proxyUrl) {
+                        const proxyData = await response.json();
+                        if (proxyData.contents) {
+                            actualData = JSON.parse(proxyData.contents);
+                        } else if (proxyData.data) {
+                            actualData = proxyData.data;
+                        } else {
+                            actualData = proxyData;
+                        }
                     } else {
-                        actualData = proxyData;
+                        actualData = await response.json();
                     }
-
-                    // Cache the successful response
                     cacheManager.set(cacheKey, actualData);
-                    updateProxyStatus(`Success via proxy ${currentProxyIndex + 1}/${totalProxies}`);
-
-                    // Rotate to next proxy for next request
-                    currentProxyIndex = (currentProxyIndex + 1) % totalProxies;
-
+                    updateProxyStatus(proxyUrl ? 'Éxito usando proxy personalizado' : 'Éxito sin proxy');
                     return actualData;
-
                 } catch (error) {
                     lastError = error;
-                    console.warn(`Proxy ${currentProxyIndex + 1} failed:`, error.message);
-
-                    // Try next proxy
-                    currentProxyIndex = (currentProxyIndex + 1) % totalProxies;
                     attempts++;
-
-                    // Small delay between attempts
                     await new Promise(resolve => setTimeout(resolve, 500));
                 }
             }
-
-            updateProxyStatus('All proxies failed');
-            throw lastError || new Error(`All proxy attempts failed (${maxRetries} retries × ${totalProxies} proxies)`);
+            updateProxyStatus('Error al intentar con el proxy');
+            throw lastError || new Error(`Todos los intentos fallaron (${maxRetries})`);
         }
 
         // Enhanced channel loading
