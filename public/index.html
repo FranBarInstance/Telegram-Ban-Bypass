@@ -166,7 +166,7 @@
         async function fetchWithCache(url) {
             const cacheKey = `cache_${url}`;
             const now = new Date().getTime();
-            const cacheDuration = 60000; // 1 minute in milliseconds
+            const cacheDuration = 120000; // 2 minute in milliseconds
 
             // Try to get cached data
             const cachedData = localStorage.getItem(cacheKey);
