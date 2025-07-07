@@ -3,471 +3,355 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Allows you to skip the ban of any telegram channel or group. You can read the messages of a channel without appearing in the history, no one knows if you have read it.">
+    <meta name="description" content="Telegram Ban Bypass">
     <meta name="author" content="github.com/FranBar1966">
-    <title>Telegram Ban Bypass - Avoid blocking the Tetegram channel or group</title>
+    <title>Telegram Ban Bypass</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 600px;
+            font-family: Arial, sans-serif;
+            max-width: 500px;
             margin: 0 auto;
-            padding: 10px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-        }
-
-        .container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
             padding: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
+            background-color: #f5f5f5;
         }
-
         h1 {
-            color: #2c3e50;
+            color: #333;
             text-align: center;
             margin-bottom: 10px;
-            font-size: 2.5em;
-            font-weight: 700;
         }
-
         .author {
             text-align: center;
             color: #666;
             font-style: italic;
             margin-bottom: 30px;
         }
-
-        .author a {
-            color: #667eea;
-            text-decoration: none;
-        }
-
-        .author a:hover {
-            text-decoration: underline;
-        }
-
         .channel-input-container {
             background: white;
             padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-
         .channel-input-container label {
             display: block;
             margin-bottom: 10px;
-            font-weight: 600;
-            color: #2c3e50;
-            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
         }
-
         .channel-input-container input {
             width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
             font-size: 16px;
             box-sizing: border-box;
-            transition: border-color 0.3s ease;
+            margin-bottom: 10px;
         }
-
-        .channel-input-container input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
         .channel-input-container button {
             width: 100%;
-            padding: 8px;
+            padding: 10px;
             margin-top: 10px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .channel-input-container button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .channel-input-container button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .status-container {
-            margin-bottom: 15px;
-        }
-
-        .current-channel {
-            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8ff 100%);
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
-            color: #2c3e50;
-            border: 1px solid #d4edda;
-            margin-bottom: 12px;
-        }
-
-        #widget-container {
-            margin-top: 20px;
-        }
-
-        .widget-load-more-button {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            margin: 20px 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            text-align: center;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .widget-load-more-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .loading {
-            text-align: center;
-            padding: 15px;
-            font-style: italic;
-            color: #666;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
-        }
-
-        .loading::after {
-            content: '';
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #667eea;
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 1s linear infinite;
-            margin-left: 10px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .error {
-            color: #dc3545;
-            text-align: center;
-            padding: 12px;
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-
-        .success {
-            color: #155724;
-            text-align: center;
-            padding: 12px;
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-
-        .post-info {
-            background: white;
-            padding: 12px;
-            margin-bottom: 12px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            border: 1px solid #e0e0e0;
-        }
-
-        .retry-button {
-            margin-top: 10px;
-            padding: 8px 16px;
-            background: #28a745;
+            background-color: #0088cc;
             color: white;
             border: none;
             border-radius: 5px;
+            font-size: 16px;
             cursor: pointer;
-            font-size: 14px;
         }
-
-        .retry-button:hover {
-            background: #218838;
+        .channel-input-container button:hover {
+            background-color: #006699;
         }
-
-        .proxy-status {
-            font-size: 0.9em;
-            color: #666;
-            margin-top: 10px;
-            text-align: center;
+        .channel-input-container button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
         }
-
-        .recent-channels {
-            margin-top: 15px;
-            padding: 12px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
+        #widget-container {
+            margin-top: 20px;
         }
-
-        .recent-channels-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            font-size: 0.9em;
-            color: #666;
-        }
-
-        .clear-history-btn {
-            background: #dc3545;
+        .widget-load-more-button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 20px 0;
+            background-color: #0088cc;
             color: white;
             border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8em;
+            border-radius: 5px;
+            font-size: 16px;
             cursor: pointer;
-            transition: background 0.2s ease;
-            max-width: 44%;
+            text-align: center;
         }
-
-        .clear-history-btn:hover {
-            background: #c82333;
+        .widget-load-more-button:hover {
+            background-color: #006699;
         }
-
-        .recent-channels-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            color: #666;
         }
-
-        .recent-channel-item {
+        .error {
+            color: red;
+            text-align: center;
+            padding: 20px;
+        }
+        .post-info {
             background: white;
-            border: 1px solid #dee2e6;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 0.85em;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-
-        .recent-channel-item:hover {
-            background: #f8f9fa;
-            border-color: #667eea;
-        }
-
-        .channel-info {
-            transition: transform 0.2s ease;
-        }
-
-        .channel-info:hover {
-            transform: translateX(2px);
-        }
-
-        .recent-channel-item .channel-name {
-            font-weight: 500;
-            color: #667eea;
-        }
-
-        .fav-btn, .delete-btn {
-            transition: all 0.2s;
-            opacity: 0.6;
-        }
-
-        .recent-channel-item:hover .fav-btn,
-        .recent-channel-item:hover .delete-btn {
-            opacity: 1;
-        }
-
-        .fav-btn:hover {
-            background: #ffc107 !important;
-            border-color: #ffc107 !important;
-            color: white !important;
-        }
-
-        .delete-btn:hover {
-            background: #ffebee !important;
-            border-color: #d32f2f !important;
-        }
-
-        .channel-input-container input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .tips {
-            background: #e3f2fd;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 15px;
-            border-left: 4px solid #2196f3;
-        }
-
-        .tips h3 {
-            margin-top: 0;
-            color: #1976d2;
-        }
-
-        .tips ul {
-            margin: 10px 0;
-            padding-left: 20px;
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 0px;
-            }
-
-            .container {
-                padding: 10px;
-            }
-
-            h1 {
-                font-size: 1.8em;
-                margin-bottom: 8px;
-            }
-
-            .author {
-                margin-bottom: 20px;
-            }
-
-            .channel-input-container {
-                padding: 15px;
-            }
-
-            .widget-load-more-button {
-                margin: 15px 0;
-            }
-
-            .tips {
-                padding: 10px;
-                margin-top: 12px;
-            }
+        .current-channel {
+            background: #e8f4f8;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            text-align: center;
+            color: #333;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Telegram Ban Bypass</h1>
-        <div class="author">Enhanced by <a href="https://github.com/FranBar1966/Telegram-Ban-Bypass" target="_blank">Fran Bar</a></div>
+    <h1>Telegram Ban Bypass</h1>
+    <div class="author">by <a href="https://github.com/FranBar1966/Telegram-Ban-Bypass" target="_blank">Fran Bar</a></div>
 
-        <div class="channel-input-container">
-            <label for="channel-input">Enter Telegram Channel:</label>
-            <input name="channel-input" type="text" id="channel-input" placeholder="e.g., ORANGETERAPY or https://t.me/ORANGETERAPY/">
-            <label for="proxy-input" style="margin-top:10px;display:block;font-weight:600;color:#2c3e50;font-size:1.1em;">CORS Proxy URL:</label>
-            <input name="proxy-input" type="text" id="proxy-input" placeholder="e.g., https://mi-proxy.com/fetch/" style="width:100%;padding:12px 15px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;box-sizing:border-box;margin-bottom:10px;">
-            <button id="load-channel-btn">Load Channel</button>
-            <div id="recent-channels" class="recent-channels">
-                <div class="recent-channels-header">
-                    <span>📋 Recent Channels:</span>
-                    <button id="clear-history" class="clear-history-btn">Clear</button>
-                </div>
-                <div id="recent-channels-list" class="recent-channels-list"></div>
-            </div>
-            <div class="proxy-status" id="proxy-status"></div>
-        </div>
-
-        <div class="status-container">
-            <div id="current-channel" class="current-channel" style="display: none;"></div>
-            <a href="favorites.html" id="saved-posts-link" style="
-                display: inline-block;
-                margin-top: 10px;
-                color: #667eea;
-                text-decoration: none;
-                font-size: 14px;
-                padding: 6px 12px;
-                background: #f8f9fa;
-                border-radius: 6px;
-                border: 1px solid #e0e0e0;
-                transition: all 0.2s;
-            " onmouseover="this.style.background='#e9ecef'; this.style.borderColor='#667eea'"
-               onmouseout="this.style.background='#f8f9fa'; this.style.borderColor='#e0e0e0'">
-                ⭐ View Saved Posts
-            </a>
-        </div>
-
-        <div id="success" class="success" style="display: none;"></div>
-        <div id="error" class="error" style="display: none;"></div>
-        <div id="loading" class="loading" style="display: none;">Loading latest post...</div>
-
-        <div id="widget-container" data-start="0" data-num="20"></div>
-        <button class="widget-load-more-button" style="display: none;">Load More Posts</button>
-
-        <div class="tips">
-            <h3>💡 Tips for Better Performance:</h3>
-            <p>You can read the messages of a channel without appearing in the history, no one knows if you have read it, total privacy.</p>
-            <ul>
-                <li>No login required</li>
-                <li>Use channel names without @ symbol (e.g., "ORANGETERAPY")</li>
-                <li>Full URLs are supported (e.g., "https://t.me/ORANGETERAPY")</li>
-                <li>Use in the URL the “channel” parameter for the default channel: ?channel=channelname</li>
-                <li>Allows you to skip the ban of any telegram channel or group.</li>
-                <li>Data is cached for 1 minute to improve loading speed</li>
-                <li>If loading fails, multiple proxy servers are tried automatically</li>
-                <li>Recent channels are saved automatically for quick access</li>
-                <li>Click on any recent channel to reload it instantly</li>
-                <li>Alternatively you can download a HTML that works in any browser</li>
-            </ul>
-            <p>We use the service of <a href="https://tg.i-c-a.su" target="_blank">tg.i-c-a.su</a> to obtain information about channels. It has the following limits:</p>
-            <ul>
-                <li>Only public channels</li>
-                <li>RPM Limit: 15 requests per minute</li>
-                <li>Temporary ban on any error, for example: invalid channel name or private channel</li>
-                <li>Forbidden to use service for media hosting. For example, to show images or video to users at webpage. Please use nginx reverse proxy + nginx cache at backend</li>
-                <li>Forbidden to access same channels/media from many different clients. Please use nginx reverse proxy + nginx cache at your backend</li>
-            </ul>
-        </div>
+    <div class="channel-input-container">
+        <label for="channel-input">Enter Telegram Channel:</label>
+        <input type="text" id="channel-input" placeholder="e.g., ORANGETERAPY or https://t.me/ORANGETERAPY/">
+        <label for="proxy-input">Proxy CORS URL:</label>
+        <input type="text" id="proxy-input" placeholder="e.g., https://...">
+        <button id="load-channel-btn">Load Channel</button>
     </div>
 
+    <div id="current-channel" class="current-channel" style="display: none;"></div>
+
+    <div id="widget-container" data-start="0" data-num="20"></div>
+    <button class="widget-load-more-button" style="display: none;">Load More Posts</button>
+    <div id="loading" class="loading" style="display: none;">Loading latest post...</div>
+    <div id="error" class="error" style="display: none;"></div>
+
     <script>
-        // Enhanced global variables
+        // Global variables
         let countInterval = 0;
         let intervalId = null;
         let countPosts = 0;
-        let hiddenPosts = -5;
         let lastPostId = 0;
         let currentChannel = '';
-        let isLoading = false;
 
-        // El proxy ahora lo introduce el usuario
-        let currentProxyUrl = '';
+        // Function to extract channel name from input
+        function extractChannelName(input) {
+            const cleanInput = input.trim();
 
-        // Guardar y recuperar el proxy del usuario en localStorage
-        function saveProxyToStorage(proxyUrl) {
-            try {
-                localStorage.setItem('user_proxy_url', proxyUrl);
-            } catch (e) {}
+            // If it's a full URL, extract the channel name
+            if (cleanInput.includes('t.me/')) {
+                const parts = cleanInput.split('/');
+                // Get the last non-empty part (handles trailing slashes)
+                let channelName = parts[parts.length - 1];
+                if (!channelName && parts.length > 1) {
+                    channelName = parts[parts.length - 2];
+                }
+                return channelName;
+            }
+
+            // If it starts with @, remove it
+            if (cleanInput.startsWith('@')) {
+                return cleanInput.substring(1);
+            }
+
+            // Otherwise, return as is (handles plain channel names like "ORANGETERAPY")
+            return cleanInput;
         }
-        function getProxyFromStorage() {
-            try {
-                return localStorage.getItem('user_proxy_url') || '';
-            } catch (e) { return ''; }
+
+        async function fetchWithCache(url) {
+            const cacheKey = `cache_${url}`;
+            const now = new Date().getTime();
+            const cacheDuration = 60000; // 1 minute in milliseconds
+
+            // Try to get cached data
+            const cachedData = localStorage.getItem(cacheKey);
+            if (cachedData) {
+                const { timestamp, data } = JSON.parse(cachedData);
+                if (now - timestamp < cacheDuration) {
+                    return data; // Return cached data if not expired
+                }
+            }
+
+            // If no cached data or expired, make the request
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.status}`);
+            }
+            const freshData = await response.json();
+
+            // Store in cache with timestamp
+            localStorage.setItem(cacheKey, JSON.stringify({
+                timestamp: now,
+                data: freshData
+            }));
+
+            return freshData;
         }
 
-        // Al cargar la página, poner el valor guardado en el input
+        // Function to fetch the latest post from a channel using proxy
+        async function fetchLastPost(channelName) {
+            const loadingElement = document.getElementById('loading');
+            const errorElement = document.getElementById('error');
+            const currentChannelElement = document.getElementById('current-channel');
+            const proxyInput = document.getElementById('proxy-input');
+
+            try {
+                // Get proxy URL from input or use default
+                let proxyUrl = proxyInput.value.trim();
+                if (!proxyUrl) {
+                    proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=';
+                }
+
+                const encodedUrl = encodeURIComponent(`https://tg.i-c-a.su/json/${channelName}?limit=1`);
+                const fullUrl = proxyUrl + encodedUrl;
+
+                loadingElement.textContent = 'Loading latest post...';
+                loadingElement.style.display = 'block';
+                errorElement.style.display = 'none';
+
+                // Use the cached fetch function
+                const proxyData = await fetchWithCache(fullUrl);
+                const data = JSON.parse(proxyData.contents);
+
+                if (!data.messages || data.messages.length === 0) {
+                    throw new Error('No messages found in response');
+                }
+
+                lastPostId = data.messages[0].id;
+                currentChannel = channelName;
+
+                // Show current channel info
+                currentChannelElement.innerHTML = `Currently viewing: <strong>@${channelName}</strong> (Latest post ID: ${lastPostId})`;
+                currentChannelElement.style.display = 'block';
+
+                loadingElement.style.display = 'none';
+
+                // Configure the container with the latest post and how many to load
+                const widgetContainer = document.getElementById('widget-container');
+                widgetContainer.dataset.start = lastPostId;
+                widgetContainer.dataset.num = 20; // Load 20 posts initially
+
+                // Clear previous content
+                widgetContainer.innerHTML = '';
+
+                // Trigger the load event to start loading widgets
+                window.dispatchEvent(new CustomEvent('telegramLoaded'));
+
+            } catch (error) {
+                console.error('Error fetching latest post:', error);
+                loadingElement.style.display = 'none';
+                errorElement.textContent = `Error loading posts: ${error.message}`;
+                errorElement.style.display = 'block';
+            }
+        }
+
+        // Function to load Telegram widgets
+        function loadTelegramWidgets(start, numPosts) {
+            const container = document.getElementById('widget-container');
+            const loadButton = document.querySelector('.widget-load-more-button');
+            const end = start - numPosts + 1;
+
+            if (!container) {
+                console.error('The container with ID "widget-container" was not found.');
+                return;
+            }
+
+            loadButton.style.display = 'block';
+
+            // Load widgets for the specified range
+            for (let n = start; n >= end; n--) {
+                const script = document.createElement('script');
+                script.async = true;
+                script.src = 'https://telegram.org/js/telegram-widget.js?22';
+                script.setAttribute('data-telegram-post', `${currentChannel}/${n}`);
+                script.setAttribute('data-width', '100%');
+                container.appendChild(script);
+                countPosts++;
+            }
+
+            // Setup load more button if there are more posts
+            if (end > 1) {
+                const freshButton = document.querySelector('.widget-load-more-button');
+                freshButton.replaceWith(freshButton.cloneNode(true));
+                const newButton = document.querySelector('.widget-load-more-button');
+
+                newButton.addEventListener('click', function() {
+                    // Clear content if we've loaded too many posts
+                    if (countPosts > 100) {
+                        countPosts = 0;
+                        container.innerHTML = '';
+                        setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 100);
+                    }
+
+                    const newStart = end - 1;
+                    const numPostsToLoad = parseInt(container.dataset.num);
+
+                    loadTelegramWidgets(newStart, numPostsToLoad);
+                });
+            } else {
+                loadButton.style.display = 'none';
+            }
+        }
+
+        // Remove deleted posts by detecting the size of the iframe
+        function checkIframesHeight() {
+            document.querySelectorAll('iframe[src*="t.me"]').forEach(iframe => {
+                const height = iframe.offsetHeight;
+                if (height < 60 && height > 0) {
+                    iframe.style.display = 'none';
+                }
+            });
+
+            countInterval++;
+            if (intervalId && countInterval >= 25) {
+                clearInterval(intervalId);
+                countInterval = 0;
+            }
+        }
+
+        // Custom event listener to start loading widgets
+        window.addEventListener('telegramLoaded', function() {
+            const widget = document.getElementById('widget-container');
+            if (widget && lastPostId > 0) {
+                countPosts = 0;
+                start_post = parseInt(widget.dataset.start) + 5;
+                loadTelegramWidgets(start_post, parseInt(widget.dataset.num));
+                intervalId = setInterval(checkIframesHeight, 200);
+            }
+        });
+
+        // Event listener for the load channel button
+        document.getElementById('load-channel-btn').addEventListener('click', function() {
+            const channelInput = document.getElementById('channel-input');
+            const channelName = extractChannelName(channelInput.value);
+
+            if (!channelName) {
+                alert('Please enter a valid channel name');
+                return;
+            }
+
+            // Disable button during loading
+            this.disabled = true;
+            this.textContent = 'Loading...';
+
+            fetchLastPost(channelName).finally(() => {
+                this.disabled = false;
+                this.textContent = 'Load Channel';
+            });
+        });
+
+        // Allow Enter key to trigger channel loading
+        document.getElementById('channel-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('load-channel-btn').click();
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const channelParam = urlParams.get('channel');
@@ -478,1162 +362,7 @@
             if (proxyParam) {
                 document.getElementById('proxy-input').value = proxyParam;
             }
-
-            // Recuperar proxy guardado
-            const proxyInput = decodeURIComponent(document.getElementById('proxy-input'));
-            const savedProxy = getProxyFromStorage();
-            if (savedProxy) {
-                proxyInput.value = savedProxy;
-                currentProxyUrl = savedProxy;
-            }
-            proxyInput.addEventListener('input', function() {
-                currentProxyUrl = this.value.trim();
-                saveProxyToStorage(currentProxyUrl);
-            });
         });
-
-        // Enhanced proxy configuration
-        /*
-        const PROXY_SERVERS = [
-            'disable'
-        ];
-
-        let currentProxyIndex = 0;
-        */
-
-        // Enhanced cache system with fallback
-        class CacheManager {
-            constructor() {
-                this.memoryCache = new Map();
-                this.cacheTimeout = 60000; // 1 minute
-            }
-
-            set(key, data) {
-                const cacheEntry = {
-                    timestamp: Date.now(),
-                    data: data
-                };
-
-                // Always store in memory
-                this.memoryCache.set(key, cacheEntry);
-            }
-
-            get(key) {
-                const now = Date.now();
-                let cachedData = null;
-
-                // Get from memory cache
-                cachedData = this.memoryCache.get(key);
-
-                if (cachedData && (now - cachedData.timestamp < this.cacheTimeout)) {
-                    return cachedData.data;
-                }
-
-                return null;
-            }
-
-            clear() {
-                this.memoryCache.clear();
-            }
-        }
-
-        // Enhanced History Manager for recent channels with localStorage
-        class HistoryManager {
-            constructor() {
-                this.maxItems = 15;
-                this.storageKey = 'telegram_channel_history';
-                this.favoritesKey = 'telegram_channel_favorites';
-                this.isExpanded = false;
-                this.loadFromStorage();
-            }
-
-            loadFromStorage() {
-                try {
-                    const stored = localStorage.getItem(this.storageKey);
-                    this.history = stored ? JSON.parse(stored) : {};
-
-                    const favorites = localStorage.getItem(this.favoritesKey);
-                    this.favorites = favorites ? JSON.parse(favorites) : [];
-                } catch (error) {
-                    console.error('Error loading history from localStorage:', error);
-                    this.history = {};
-                    this.favorites = [];
-                }
-            }
-
-            saveToStorage() {
-                try {
-                    localStorage.setItem(this.storageKey, JSON.stringify(this.history));
-                    localStorage.setItem(this.favoritesKey, JSON.stringify(this.favorites));
-                } catch (error) {
-                    console.error('Error saving to localStorage:', error);
-                }
-            }
-
-            addChannel(channelName, metadata = {}) {
-                const now = Date.now();
-
-                if (!this.history[channelName]) {
-                    this.history[channelName] = {
-                        name: channelName,
-                        firstVisit: now,
-                        lastVisit: now,
-                        visitCount: 1,
-                        totalPosts: metadata.totalPosts || 0,
-                        channelTitle: metadata.title || channelName
-                    };
-                } else {
-                    this.history[channelName].lastVisit = now;
-                    this.history[channelName].visitCount++;
-                    if (metadata.totalPosts) {
-                        this.history[channelName].totalPosts = metadata.totalPosts;
-                    }
-                    if (metadata.title) {
-                        this.history[channelName].channelTitle = metadata.title;
-                    }
-                }
-
-                this.saveToStorage();
-                this.updateRecentChannelsUI();
-            }
-
-            toggleFavorite(channelName) {
-                const index = this.favorites.indexOf(channelName);
-                if (index === -1) {
-                    this.favorites.push(channelName);
-                } else {
-                    this.favorites.splice(index, 1);
-                }
-                this.saveToStorage();
-                this.updateRecentChannelsUI();
-            }
-
-            isFavorite(channelName) {
-                return this.favorites.includes(channelName);
-            }
-
-            removeChannel(channelName) {
-                delete this.history[channelName];
-                const favIndex = this.favorites.indexOf(channelName);
-                if (favIndex !== -1) {
-                    this.favorites.splice(favIndex, 1);
-                }
-                this.saveToStorage();
-                this.updateRecentChannelsUI();
-            }
-
-            getHistory(sortBy = 'recent') {
-                const channels = Object.values(this.history);
-
-                if (sortBy === 'recent') {
-                    channels.sort((a, b) => b.lastVisit - a.lastVisit);
-                } else if (sortBy === 'frequent') {
-                    channels.sort((a, b) => b.visitCount - a.visitCount);
-                } else if (sortBy === 'alphabetical') {
-                    channels.sort((a, b) => a.name.localeCompare(b.name));
-                }
-
-                // Put favorites first
-                const favoriteChannels = channels.filter(ch => this.isFavorite(ch.name));
-                const regularChannels = channels.filter(ch => !this.isFavorite(ch.name));
-
-                return [...favoriteChannels, ...regularChannels].slice(0, this.maxItems);
-            }
-
-            clearHistory() {
-                this.history = {};
-                // Keep favorites
-                this.saveToStorage();
-                this.updateRecentChannelsUI();
-            }
-
-            updateRecentChannelsUI() {
-                const recentChannelsContainer = document.getElementById('recent-channels');
-                const recentChannelsList = document.getElementById('recent-channels-list');
-                const history = this.getHistory();
-
-                // Always show the container if there are saved posts (even if no recent channels)
-                const hasSavedPosts = postNotesManager && (
-                    postNotesManager.getAllFavorites().length > 0 ||
-                    postNotesManager.getAllNotes().length > 0
-                );
-
-                if (history.length === 0 && !hasSavedPosts) {
-                    recentChannelsContainer.style.display = 'none';
-                    return;
-                }
-
-                recentChannelsContainer.style.display = 'block';
-                recentChannelsList.innerHTML = '';
-
-                // Check if we need to show "View More" button
-                const showLimit = this.isExpanded ? history.length : 3;
-                const needsExpander = history.length > 3;
-
-                history.slice(0, showLimit).forEach(item => {
-                    const channelItem = document.createElement('div');
-                    channelItem.className = 'recent-channel-item';
-
-                    const isFav = this.isFavorite(item.name);
-                    const timeAgo = this.getTimeAgo(item.lastVisit);
-
-                    channelItem.innerHTML = `
-                        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                            <div style="flex: 1; cursor: pointer;" class="channel-info">
-                                <span class="channel-name">
-                                    ${isFav ? '⭐ ' : ''}@${item.name}
-                                </span>
-                                <span style="font-size: 11px; color: #999; margin-left: 8px;">
-                                    ${item.visitCount}x • ${timeAgo}
-                                </span>
-                            </div>
-                            <div style="display: flex; gap: 5px;">
-                                <button class="fav-btn" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}" style="padding: 2px 6px; font-size: 16px; background: ${isFav ? '#ffc107' : 'white'}; border: 1px solid ${isFav ? '#ffc107' : '#e0e0e0'}; border-radius: 4px; cursor: pointer; color: ${isFav ? 'white' : '#666'};">
-                                    ${isFav ? '★' : '☆'}
-                                </button>
-                                <button class="delete-btn" title="Remove from history" style="padding: 2px 6px; font-size: 12px; background: none; border: 1px solid #e0e0e0; border-radius: 4px; cursor: pointer; color: #d32f2f;">
-                                    ✕
-                                </button>
-                            </div>
-                        </div>
-                    `;
-
-                    // Click on channel info to load
-                    channelItem.querySelector('.channel-info').addEventListener('click', () => {
-                        const channelInput = document.getElementById('channel-input');
-                        channelInput.value = item.name;
-                        channelInput.focus();
-
-                        // Auto-load the channel
-                        setTimeout(() => {
-                            document.getElementById('load-channel-btn').click();
-                        }, 100);
-                    });
-
-                    // Favorite button
-                    channelItem.querySelector('.fav-btn').addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        this.toggleFavorite(item.name);
-                    });
-
-                    // Delete button
-                    channelItem.querySelector('.delete-btn').addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        if (confirm(`Remove @${item.name} from history?`)) {
-                            this.removeChannel(item.name);
-                        }
-                    });
-
-                    recentChannelsList.appendChild(channelItem);
-                });
-
-                // Add "View More/Less" button if needed
-                if (needsExpander) {
-                    const expanderBtn = document.createElement('button');
-                    expanderBtn.className = 'view-more-btn';
-                    expanderBtn.innerHTML = this.isExpanded
-                        ? `▲ Show less`
-                        : `▼ View ${history.length - 3} more`;
-                    expanderBtn.style.cssText = `
-                        width: 100%;
-                        padding: 6px;
-                        margin-top: 8px;
-                        background: #f8f9fa;
-                        border: 1px solid #dee2e6;
-                        border-radius: 6px;
-                        color: #666;
-                        cursor: pointer;
-                        font-size: 0.85em;
-                        transition: all 0.2s;
-                    `;
-
-                    expanderBtn.addEventListener('click', () => {
-                        this.isExpanded = !this.isExpanded;
-                        this.updateRecentChannelsUI();
-                    });
-
-                    expanderBtn.addEventListener('mouseover', () => {
-                        expanderBtn.style.background = '#e9ecef';
-                        expanderBtn.style.borderColor = '#667eea';
-                    });
-
-                    expanderBtn.addEventListener('mouseout', () => {
-                        expanderBtn.style.background = '#f8f9fa';
-                        expanderBtn.style.borderColor = '#dee2e6';
-                    });
-
-                    recentChannelsList.appendChild(expanderBtn);
-                }
-            }
-
-            getTimeAgo(timestamp) {
-                const now = Date.now();
-                const diff = now - timestamp;
-                const minutes = Math.floor(diff / 60000);
-                const hours = Math.floor(minutes / 60);
-                const days = Math.floor(hours / 24);
-
-                if (days > 0) return `${days}d ago`;
-                if (hours > 0) return `${hours}h ago`;
-                if (minutes > 0) return `${minutes}m ago`;
-                return 'just now';
-            }
-        }
-
-        // Post Notes and Favorites Manager
-        class PostNotesManager {
-            constructor() {
-                this.storageKey = 'telegram_post_notes';
-                this.favoritesKey = 'telegram_post_favorites';
-                this.loadFromStorage();
-            }
-
-            loadFromStorage() {
-                try {
-                    const notes = localStorage.getItem(this.storageKey);
-                    this.notes = notes ? JSON.parse(notes) : {};
-
-                    const favorites = localStorage.getItem(this.favoritesKey);
-                    this.favorites = favorites ? JSON.parse(favorites) : {};
-                } catch (error) {
-                    console.error('Error loading post notes from localStorage:', error);
-                    this.notes = {};
-                    this.favorites = {};
-                }
-            }
-
-            saveToStorage() {
-                try {
-                    localStorage.setItem(this.storageKey, JSON.stringify(this.notes));
-                    localStorage.setItem(this.favoritesKey, JSON.stringify(this.favorites));
-                } catch (error) {
-                    console.error('Error saving post notes to localStorage:', error);
-                }
-            }
-
-            getPostId(channel, postNumber) {
-                return `${channel}_${postNumber}`;
-            }
-
-            // Notes methods
-            setNote(channel, postNumber, note) {
-                const postId = this.getPostId(channel, postNumber);
-                if (note && note.trim()) {
-                    this.notes[postId] = {
-                        text: note.trim(),
-                        timestamp: Date.now(),
-                        channel: channel,
-                        postNumber: postNumber
-                    };
-                } else {
-                    delete this.notes[postId];
-                }
-                this.saveToStorage();
-            }
-
-            getNote(channel, postNumber) {
-                const postId = this.getPostId(channel, postNumber);
-                return this.notes[postId] || null;
-            }
-
-            hasNote(channel, postNumber) {
-                const postId = this.getPostId(channel, postNumber);
-                return !!this.notes[postId];
-            }
-
-            // Favorites methods
-            toggleFavorite(channel, postNumber, postContent = '') {
-                const postId = this.getPostId(channel, postNumber);
-                if (this.favorites[postId]) {
-                    delete this.favorites[postId];
-                } else {
-                    this.favorites[postId] = {
-                        timestamp: Date.now(),
-                        channel: channel,
-                        postNumber: postNumber,
-                        preview: postContent.substring(0, 100) + (postContent.length > 100 ? '...' : '')
-                    };
-                }
-                this.saveToStorage();
-                return this.isFavorite(channel, postNumber);
-            }
-
-            isFavorite(channel, postNumber) {
-                const postId = this.getPostId(channel, postNumber);
-                return !!this.favorites[postId];
-            }
-
-            // Get all favorites sorted by date
-            getAllFavorites() {
-                return Object.entries(this.favorites)
-                    .map(([postId, data]) => ({ postId, ...data }))
-                    .sort((a, b) => b.timestamp - a.timestamp);
-            }
-
-            // Get all notes sorted by date
-            getAllNotes() {
-                return Object.entries(this.notes)
-                    .map(([postId, data]) => ({ postId, ...data }))
-                    .sort((a, b) => b.timestamp - a.timestamp);
-            }
-        }
-
-        const cacheManager = new CacheManager();
-        const postNotesManager = new PostNotesManager();
-        const historyManager = new HistoryManager();
-
-        // Enhanced utility functions
-        function extractChannelName(input) {
-            const cleanInput = input.trim();
-
-            if (cleanInput.includes('t.me/')) {
-                const parts = cleanInput.split('/');
-                let channelName = parts[parts.length - 1];
-                if (!channelName && parts.length > 1) {
-                    channelName = parts[parts.length - 2];
-                }
-                return channelName;
-            }
-
-            if (cleanInput.startsWith('@')) {
-                return cleanInput.substring(1);
-            }
-
-            return cleanInput;
-        }
-
-        function showMessage(type, message, autoHide = false) {
-            const elements = {
-                success: document.getElementById('success'),
-                error: document.getElementById('error'),
-                loading: document.getElementById('loading')
-            };
-
-            // Hide all messages
-            Object.values(elements).forEach(el => el.style.display = 'none');
-
-            // Show the specific message
-            if (elements[type]) {
-                elements[type].textContent = message;
-                elements[type].style.display = 'block';
-
-                if (autoHide && type !== 'loading') {
-                    setTimeout(() => {
-                        elements[type].style.display = 'none';
-                    }, 3000);
-                }
-            }
-        }
-
-        function updateProxyStatus(message) {
-            document.getElementById('proxy-status').textContent = message;
-        }
-
-        // Enhanced fetch with multiple proxy support
-        async function fetchWithProxy(url, maxRetries = 3) {
-            const cacheKey = `cache_${url}`;
-            // Check cache first
-            const cachedData = cacheManager.get(cacheKey);
-            if (cachedData) {
-                updateProxyStatus(`Using cached data`);
-                return cachedData;
-            }
-            let lastError;
-            let attempts = 0;
-            // Si el usuario no ha puesto proxy, petición directa
-            const proxyUrl = currentProxyUrl;
-            while (attempts < maxRetries) {
-                updateProxyStatus(proxyUrl ? `Usando proxy personalizado (intento ${attempts+1}/${maxRetries})...` : 'Sin proxy (petición directa)');
-                try {
-                    let fullUrl = url;
-                    if (proxyUrl) {
-                        const encodedUrl = encodeURIComponent(url);
-                        fullUrl = proxyUrl + encodedUrl;
-                    }
-                    const response = await fetch(fullUrl);
-                    if (!response.ok) {
-                        throw new Error(`HTTP Error: ${response.status}`);
-                    }
-                    let actualData;
-                    if (proxyUrl) {
-                        const proxyData = await response.json();
-                        if (proxyData.contents) {
-                            actualData = JSON.parse(proxyData.contents);
-                        } else if (proxyData.data) {
-                            actualData = proxyData.data;
-                        } else {
-                            actualData = proxyData;
-                        }
-                    } else {
-                        actualData = await response.json();
-                    }
-                    cacheManager.set(cacheKey, actualData);
-                    updateProxyStatus(proxyUrl ? 'Éxito usando proxy personalizado' : 'Éxito sin proxy');
-                    return actualData;
-                } catch (error) {
-                    lastError = error;
-                    attempts++;
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                }
-            }
-            updateProxyStatus('Error al intentar con el proxy');
-            throw lastError || new Error(`Todos los intentos fallaron (${maxRetries})`);
-        }
-
-        // Enhanced channel loading
-        async function fetchLastPost(channelName) {
-            if (isLoading) return;
-            isLoading = true;
-
-            const currentChannelElement = document.getElementById('current-channel');
-
-            try {
-                showMessage('loading', 'Loading latest post...');
-
-                const apiUrl = `https://tg.i-c-a.su/json/${channelName}?limit=1`;
-                const data = await fetchWithProxy(apiUrl);
-
-                if (!data.messages || data.messages.length === 0) {
-                    throw new Error('No messages found in channel');
-                }
-
-                lastPostId = data.messages[0].id;
-                currentChannel = channelName;
-                countPosts = 0;
-                hiddenPosts = -5;
-
-                // Prepare metadata for history
-                const metadata = {
-                    totalPosts: data.count || 0
-                };
-
-                // Try to get channel title from chats data
-                if (data.chats && data.chats.length > 0) {
-                    metadata.title = data.chats[0].title || channelName;
-                }
-
-                // Add to history with metadata
-                historyManager.addChannel(channelName, metadata);
-
-                // Show current channel info
-                currentChannelElement.innerHTML = `
-                    <strong>📢 Channel:</strong> @${channelName}<br>
-                    <strong>🆔 Latest Post ID:</strong> ${lastPostId}
-                `;
-                currentChannelElement.style.display = 'block';
-
-                showMessage('success', `Successfully loaded channel @${channelName}`, true);
-
-                // Configure the container
-                const widgetContainer = document.getElementById('widget-container');
-                widgetContainer.dataset.start = lastPostId + 5;
-                widgetContainer.dataset.num = 20;
-                widgetContainer.innerHTML = '';
-
-                // Start loading widgets
-                window.dispatchEvent(new CustomEvent('telegramLoaded'));
-
-            } catch (error) {
-                console.error('Error fetching latest post:', error);
-                showMessage('error', `Error loading channel: ${error.message}`);
-
-                // Add retry button
-                const errorElement = document.getElementById('error');
-                if (!errorElement.querySelector('.retry-button')) {
-                    const retryBtn = document.createElement('button');
-                    retryBtn.className = 'retry-button';
-                    retryBtn.textContent = 'Retry';
-                    retryBtn.onclick = () => fetchLastPost(channelName);
-                    errorElement.appendChild(retryBtn);
-                }
-            } finally {
-                isLoading = false;
-            }
-        }
-
-        // Enhanced widget loading
-        function loadTelegramWidgets(start, numPosts) {
-            const container = document.getElementById('widget-container');
-            const loadButton = document.querySelector('.widget-load-more-button');
-            const end = start - numPosts + 1;
-
-            if (!container) {
-                console.error('Widget container not found');
-                return;
-            }
-
-            loadButton.style.display = 'block';
-
-            // Add loading indicator
-            const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'loading';
-            loadingDiv.textContent = 'Loading posts';
-            container.appendChild(loadingDiv);
-
-            // Load widgets with delay to prevent rate limiting
-            let loadedCount = 0;
-            const loadInterval = setInterval(() => {
-                if (loadedCount >= numPosts || (start - loadedCount) < 1) {
-                    clearInterval(loadInterval);
-                    loadingDiv.remove();
-                    return;
-                }
-
-                const postId = start - loadedCount;
-                const script = document.createElement('script');
-                script.async = true;
-                script.src = 'https://telegram.org/js/telegram-widget.js?22';
-                script.setAttribute('data-telegram-post', `${currentChannel}/${postId}`);
-                script.setAttribute('data-width', '100%');
-                container.appendChild(script);
-
-                countPosts++;
-                loadedCount++;
-            }, 50); // 50ms delay between loads
-
-            // Setup load more button
-            if (end > 1) {
-                const freshButton = document.querySelector('.widget-load-more-button');
-                freshButton.replaceWith(freshButton.cloneNode(true));
-                const newButton = document.querySelector('.widget-load-more-button');
-
-                newButton.addEventListener('click', function() {
-                    // Clear content if we've loaded too many posts
-                    if (countPosts > 200) {
-                        countPosts = 0;
-                        hiddenPosts = 0;
-                        container.innerHTML = '';
-                        setTimeout(() => {
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }, 100);
-                    }
-
-                    const newStart = end - 1;
-                    const numPostsToLoad = parseInt(container.dataset.num);
-                    loadTelegramWidgets(newStart, numPostsToLoad);
-                });
-            } else {
-                loadButton.style.display = 'none';
-            }
-        }
-
-        // Enhanced iframe height checking
-        function checkIframesHeight() {
-            document.querySelectorAll('iframe[src*="t.me"]').forEach(iframe => {
-                const height = iframe.offsetHeight;
-                if (height < 60 && height > 0) {
-                    if (iframe.style.display !== 'none') {
-                        iframe.style.display = 'none';
-                        hiddenPosts++;
-                    }
-                }
-            });
-
-            countInterval++;
-            if (intervalId && countInterval >= 30) {
-                clearInterval(intervalId);
-                intervalId = null;
-                countInterval = 0;
-            }
-        }
-
-        // Event listeners
-        window.addEventListener('telegramLoaded', function() {
-            const widget = document.getElementById('widget-container');
-            if (widget && lastPostId > 0) {
-                const startPost = parseInt(widget.dataset.start);
-                loadTelegramWidgets(startPost, parseInt(widget.dataset.num));
-
-                // Start iframe checking
-                if (intervalId) clearInterval(intervalId);
-                intervalId = setInterval(checkIframesHeight, 200);
-            }
-        });
-
-        document.getElementById('load-channel-btn').addEventListener('click', function() {
-            const channelInput = document.getElementById('channel-input');
-            const channelName = extractChannelName(channelInput.value);
-
-            if (!channelName) {
-                showMessage('error', 'Please enter a valid channel name');
-                return;
-            }
-
-            // Visual feedback
-            this.disabled = true;
-            this.textContent = 'Loading...';
-
-            fetchLastPost(channelName).finally(() => {
-                this.disabled = false;
-                this.textContent = 'Load Channel';
-            });
-        });
-
-        document.getElementById('channel-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                document.getElementById('load-channel-btn').click();
-            }
-        });
-
-        // Clear history button
-        document.getElementById('clear-history').addEventListener('click', function() {
-            if (confirm('¿Are you sure you want to clear the channel history?')) {
-                historyManager.clearHistory();
-            }
-        });
-
-        // Auto-complete functionality
-        document.getElementById('channel-input').addEventListener('input', function() {
-            const value = this.value.toLowerCase();
-            const history = historyManager.getHistory();
-
-            if (value.length > 0) {
-                const matches = history.filter(item =>
-                    item.name.toLowerCase().includes(value)
-                );
-
-                if (matches.length > 0) {
-                    // Simple auto-complete: show first match
-                    const firstMatch = matches[0];
-                    if (firstMatch.name.toLowerCase().startsWith(value)) {
-                        const currentPos = this.selectionStart;
-                        this.value = firstMatch.name;
-                        this.setSelectionRange(currentPos, firstMatch.name.length);
-                    }
-                }
-            }
-        });
-
-        // Removed showFavorites function - now using favorites.html
-        /*
-        function showFavorites() {
-            const favorites = postNotesManager.getAllFavorites();
-            const notes = postNotesManager.getAllNotes();
-
-            if (favorites.length === 0 && notes.length === 0) {
-                showMessage('error', 'No favorites or notes saved yet!', true);
-                return;
-            }
-
-            // Remove existing modal if any
-            const existingModal = document.getElementById('favorites-modal');
-            if (existingModal) existingModal.remove();
-
-            // Create modal
-            const modal = document.createElement('div');
-            modal.id = 'favorites-modal';
-            modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.5);
-                display: flex;
-                align-items: flex-start;
-                justify-content: center;
-                z-index: 10000;
-                padding: 20px;
-                overflow-y: auto;
-            `;
-
-            const modalContent = document.createElement('div');
-            modalContent.style.cssText = `
-                background: white;
-                padding: 20px;
-                border-radius: 12px;
-                max-width: 800px;
-                width: 100%;
-                margin: 20px 0;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            `;
-
-            let content = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2 style="margin: 0; color: #333;">⭐ Favorites & Notes</h2>
-                    <button id="close-favorites" style="
-                        background: none;
-                        border: 1px solid #dee2e6;
-                        padding: 6px 12px;
-                        border-radius: 6px;
-                        cursor: pointer;
-                        font-size: 14px;
-                    ">✕ Close</button>
-                </div>
-            `;
-
-            if (favorites.length > 0) {
-                content += `
-                    <div style="margin-bottom: 30px;">
-                        <h3 style="color: #ffc107; margin-bottom: 15px;">★ Favorite Posts (${favorites.length})</h3>
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                `;
-
-                favorites.forEach(fav => {
-                    const note = postNotesManager.getNote(fav.channel, fav.postNumber);
-                    content += `
-                        <div style="
-                            padding: 12px;
-                            background: #fffcf5;
-                            border: 1px solid #ffc107;
-                            border-radius: 8px;
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                        ">
-                            <div style="flex: 1;">
-                                <a href="https://t.me/${fav.channel}/${fav.postNumber}" target="_blank" style="
-                                    color: #667eea;
-                                    text-decoration: none;
-                                    font-weight: 500;
-                                ">@${fav.channel}/${fav.postNumber}</a>
-                                ${note ? `<div style="margin-top: 5px; color: #666; font-size: 13px;">📝 ${note.text}</div>` : ''}
-                                <div style="font-size: 11px; color: #999; margin-top: 5px;">
-                                    Saved ${new Date(fav.timestamp).toLocaleDateString()}
-                                </div>
-                            </div>
-                            <button onclick="
-                                postNotesManager.toggleFavorite('${fav.channel}', '${fav.postNumber}');
-                                showFavorites();
-                            " style="
-                                padding: 4px 8px;
-                                background: #ffc107;
-                                color: white;
-                                border: none;
-                                border-radius: 4px;
-                                cursor: pointer;
-                                font-size: 12px;
-                            ">Remove</button>
-                        </div>
-                    `;
-                });
-
-                content += `</div></div>`;
-            }
-
-            if (notes.length > 0) {
-                content += `
-                    <div>
-                        <h3 style="color: #28a745; margin-bottom: 15px;">📝 Posts with Notes (${notes.length})</h3>
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                `;
-
-                notes.forEach(note => {
-                    const isFav = postNotesManager.isFavorite(note.channel, note.postNumber);
-                    content += `
-                        <div style="
-                            padding: 12px;
-                            background: #f0fff4;
-                            border: 1px solid #28a745;
-                            border-radius: 8px;
-                        ">
-                            <div style="display: flex; justify-content: space-between; align-items: start;">
-                                <div style="flex: 1;">
-                                    <a href="https://t.me/${note.channel}/${note.postNumber}" target="_blank" style="
-                                        color: #667eea;
-                                        text-decoration: none;
-                                        font-weight: 500;
-                                    ">${isFav ? '★ ' : ''}@${note.channel}/${note.postNumber}</a>
-                                    <div style="margin-top: 5px; color: #333; font-size: 14px;">${note.text}</div>
-                                    <div style="font-size: 11px; color: #999; margin-top: 5px;">
-                                        Added ${new Date(note.timestamp).toLocaleDateString()}
-                                    </div>
-                                </div>
-                                <button onclick="
-                                    if(confirm('Delete this note?')) {
-                                        postNotesManager.setNote('${note.channel}', '${note.postNumber}', '');
-                                        showFavorites();
-                                    }
-                                " style="
-                                    padding: 4px 8px;
-                                    background: #dc3545;
-                                    color: white;
-                                    border: none;
-                                    border-radius: 4px;
-                                    cursor: pointer;
-                                    font-size: 12px;
-                                ">Delete</button>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                content += `</div></div>`;
-            }
-
-            modalContent.innerHTML = content;
-            modal.appendChild(modalContent);
-            document.body.appendChild(modal);
-
-            // Event handlers
-            document.getElementById('close-favorites').addEventListener('click', () => {
-                modal.remove();
-            });
-
-            // Click outside to close
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.remove();
-                }
-            });
-        }
-        */
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const channelParam = urlParams.get('channel');
-            if (channelParam) {
-                document.getElementById('channel-input').value = channelParam;
-            }
-        });
-
-        // Modal for notes
-        function showNoteModal(channel, postNumber, noteBtn) {
-            // Remove existing modal if any
-            const existingModal = document.getElementById('note-modal');
-            if (existingModal) existingModal.remove();
-
-            // Create modal
-            const modal = document.createElement('div');
-            modal.id = 'note-modal';
-            modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.5);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 10000;
-            `;
-
-            const modalContent = document.createElement('div');
-            modalContent.style.cssText = `
-                background: white;
-                padding: 20px;
-                border-radius: 12px;
-                max-width: 500px;
-                width: 90%;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            `;
-
-            const existingNote = postNotesManager.getNote(channel, postNumber);
-
-            modalContent.innerHTML = `
-                <h3 style="margin: 0 0 15px 0; color: #333;">
-                    📝 Note for @${channel}/${postNumber}
-                </h3>
-                <textarea id="note-textarea" placeholder="Write your note here..." style="
-                    width: 100%;
-                    min-height: 100px;
-                    padding: 10px;
-                    border: 1px solid #ddd;
-                    border-radius: 6px;
-                    font-size: 14px;
-                    font-family: inherit;
-                    resize: vertical;
-                ">${existingNote ? existingNote.text : ''}</textarea>
-                <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
-                    <button id="note-cancel" style="
-                        padding: 8px 16px;
-                        background: #6c757d;
-                        color: white;
-                        border: none;
-                        border-radius: 6px;
-                        cursor: pointer;
-                        font-size: 14px;
-                    ">Cancel</button>
-                    ${existingNote ? `<button id="note-delete" style="
-                        padding: 8px 16px;
-                        background: #dc3545;
-                        color: white;
-                        border: none;
-                        border-radius: 6px;
-                        cursor: pointer;
-                        font-size: 14px;
-                    ">Delete Note</button>` : ''}
-                    <button id="note-save" style="
-                        padding: 8px 16px;
-                        background: #28a745;
-                        color: white;
-                        border: none;
-                        border-radius: 6px;
-                        cursor: pointer;
-                        font-size: 14px;
-                    ">Save</button>
-                </div>
-            `;
-
-            modal.appendChild(modalContent);
-            document.body.appendChild(modal);
-
-            // Focus textarea
-            const textarea = document.getElementById('note-textarea');
-            textarea.focus();
-
-            // Event handlers
-            document.getElementById('note-cancel').addEventListener('click', () => {
-                modal.remove();
-            });
-
-            document.getElementById('note-save').addEventListener('click', () => {
-                const noteText = textarea.value.trim();
-                postNotesManager.setNote(channel, postNumber, noteText);
-
-                // Update button state
-                const hasNote = noteText.length > 0;
-                noteBtn.innerHTML = hasNote ? '▪' : '+';
-                noteBtn.style.background = hasNote ? '#28a745' : 'white';
-                noteBtn.style.fontSize = hasNote ? '20px' : '18px';
-                noteBtn.style.fontWeight = hasNote ? 'bold' : 'normal';
-
-                showMessage('success', hasNote ? 'Note saved!' : 'Note removed', true);
-                modal.remove();
-            });
-
-            const deleteBtn = document.getElementById('note-delete');
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', () => {
-                    postNotesManager.setNote(channel, postNumber, '');
-
-                    // Update button state
-                    noteBtn.innerHTML = '+';
-                    noteBtn.style.background = 'white';
-                    noteBtn.style.fontSize = '18px';
-                    noteBtn.style.fontWeight = 'normal';
-
-                    showMessage('success', 'Note deleted', true);
-                    modal.remove();
-                });
-            }
-
-            // Click outside to close
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.remove();
-                }
-            });
-
-            // ESC to close
-            modal.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    modal.remove();
-                }
-            });
-        }
-
-        // Function to add control buttons to Telegram posts
-        function addPostControls() {
-            // Find all telegram post iframes that don't have controls yet
-            document.querySelectorAll('iframe[src*="t.me"]:not([data-controls-added])').forEach(iframe => {
-                // Extract post info from iframe src
-                const srcMatch = iframe.src.match(/\/([^\/]+)\/(\d+)/);
-                if (!srcMatch) return;
-
-                const channel = srcMatch[1];
-                const postNumber = parseInt(srcMatch[2]);
-
-                // Mark as processed
-                iframe.setAttribute('data-controls-added', 'true');
-
-                // Don't add controls for posts that don't exist (ID > lastPostId)
-                if (lastPostId && postNumber > lastPostId) {
-                    return;
-                }
-
-                // Check if post has note or is favorite
-                const hasNote = postNotesManager.hasNote(channel, postNumber);
-                const isFav = postNotesManager.isFavorite(channel, postNumber);
-
-                // Create wrapper div
-                const wrapper = document.createElement('div');
-                wrapper.style.cssText = `
-                    position: relative;
-                    margin-bottom: 15px;
-                `;
-
-                // Create controls container
-                const controlsDiv = document.createElement('div');
-                controlsDiv.style.cssText = `
-                    position: absolute;
-                    bottom: 10px;
-                    right: 10px;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 6px;
-                    z-index: 10;
-                `;
-
-                // Favorite button
-                const favBtn = document.createElement('button');
-                favBtn.innerHTML = isFav ? '★' : '☆';
-                favBtn.title = isFav ? 'Remove from favorites' : 'Add to favorites';
-                favBtn.style.cssText = `
-                    width: 32px;
-                    height: 32px;
-                    border-radius: 6px;
-                    border: 1px solid #e0e0e0;
-                    background: ${isFav ? '#ffc107' : 'white'};
-                    color: ${isFav ? 'white' : '#999'};
-                    cursor: pointer;
-                    font-size: 16px;
-                    transition: all 0.2s;
-                `;
-                favBtn.addEventListener('click', () => {
-                    const newState = postNotesManager.toggleFavorite(channel, postNumber);
-                    favBtn.innerHTML = newState ? '★' : '☆';
-                    favBtn.style.background = newState ? '#ffc107' : 'white';
-                    favBtn.style.color = newState ? 'white' : '#999';
-                    showMessage('success', newState ? 'Added to favorites!' : 'Removed from favorites', true);
-                });
-
-                // Note button
-                const noteBtn = document.createElement('button');
-                noteBtn.innerHTML = hasNote ? '▪' : '+';
-                noteBtn.title = hasNote ? 'Edit note' : 'Add note';
-                noteBtn.style.cssText = `
-                    width: 32px;
-                    height: 32px;
-                    border-radius: 6px;
-                    border: 1px solid #e0e0e0;
-                    background: ${hasNote ? '#28a745' : 'white'};
-                    cursor: pointer;
-                    font-size: ${hasNote ? '20px' : '18px'};
-                    font-weight: ${hasNote ? 'bold' : 'normal'};
-                    transition: all 0.2s;
-                `;
-                noteBtn.addEventListener('click', () => {
-                    showNoteModal(channel, postNumber, noteBtn);
-                });
-
-                controlsDiv.appendChild(favBtn);
-                controlsDiv.appendChild(noteBtn);
-
-                // Insert iframe in wrapper
-                iframe.parentNode.insertBefore(wrapper, iframe);
-                wrapper.appendChild(iframe);
-                wrapper.appendChild(controlsDiv);
-            });
-        }
-
-        // Observe DOM changes to add controls to new posts
-        const observer = new MutationObserver(() => {
-            addPostControls();
-        });
-
-        observer.observe(document.getElementById('widget-container'), {
-            childList: true,
-            subtree: true
-        });
-
-        // Check for iframe height changes and add controls
-        setInterval(addPostControls, 1000);
-
-        // Initialize
-        updateProxyStatus('Ready to load channels');
-        historyManager.updateRecentChannelsUI();
     </script>
 </body>
 </html>
