@@ -353,7 +353,7 @@
 
         <div class="channel-input-container">
             <label for="channel-input">Enter Telegram Channel:</label>
-            <input type="text" id="channel-input" placeholder="e.g., ORANGETERAPY or https://t.me/ORANGETERAPY/">
+            <input name="channel-input" type="text" id="channel-input" placeholder="e.g., ORANGETERAPY or https://t.me/ORANGETERAPY/">
             <button id="load-channel-btn">Load Channel</button>
             <div id="recent-channels" class="recent-channels" style="display: none;">
                 <div class="recent-channels-header">
@@ -864,6 +864,14 @@
                         this.setSelectionRange(currentPos, firstMatch.name.length);
                     }
                 }
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const channelParam = urlParams.get('channel');
+            if (channelParam) {
+                document.getElementById('channel-input').value = channelParam;
             }
         });
 
