@@ -285,11 +285,6 @@
             font-weight: 500;
         }
 
-        .recent-channel-item .channel-date {
-            font-size: 0.75em;
-            opacity: 0.7;
-        }
-
         .channel-input-container input:focus {
             outline: none;
             border-color: #667eea;
@@ -515,10 +510,7 @@
                 history.forEach(item => {
                     const channelItem = document.createElement('div');
                     channelItem.className = 'recent-channel-item';
-                    channelItem.innerHTML = `
-                        <span class="channel-name">@${item.name}</span>
-                        <span class="channel-date">${item.date}</span>
-                    `;
+                    channelItem.innerHTML = `<span class="channel-name">@${item.name}</span>`;
 
                     channelItem.addEventListener('click', () => {
                         const channelInput = document.getElementById('channel-input');
