@@ -5,7 +5,7 @@ An enhanced client-side web tool that allows users to view content from any publ
 
 **Live Demo:** [DEMO](https://franbar1966.github.io/Telegram-Ban-Bypass/public/)
 
-## Key Improvements in v2.0
+## Key Improvements
 - 🚀 **Faster loading** with enhanced proxy rotation system
 - 📋 **Recent channels history** for quick access
 - 💾 **Smart caching** (1 minute cache duration)
