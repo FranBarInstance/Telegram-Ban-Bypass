@@ -201,10 +201,13 @@
             const proxyInput = document.getElementById('proxy-input');
 
             try {
-                // Get proxy URL from input or use default
+                // Obtener proxy URL del input, mostrar error si está vacío
                 let proxyUrl = proxyInput.value.trim();
                 if (!proxyUrl) {
-                    proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=';
+                    errorElement.textContent = 'Please enter a valid CORS proxy URL.';
+                    errorElement.style.display = 'block';
+                    loadingElement.style.display = 'none';
+                    return;
                 }
 
                 const encodedUrl = encodeURIComponent(`https://tg.i-c-a.su/json/${channelName}?limit=1`);
