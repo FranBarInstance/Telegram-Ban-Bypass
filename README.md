@@ -5,6 +5,11 @@ An enhanced client-side web tool that allows users to view content from any publ
 
 **Live Demo:** [DEMO](https://franbar1966.github.io/Telegram-Ban-Bypass/public/)
 
+## Installation
+No installation required. You can:
+1. Use the **[live web version](https://franbar1966.github.io/Telegram-Ban-Bypass/public/)**, or
+2. Download the [single HTML file](https://github.com/FranBar1966/Telegram-Ban-Bypass/blob/master/public/index.html) and open it in any browser
+
 ## Key Improvements
 - 🚀 **Faster loading** with enhanced proxy rotation system
 - 📋 **Recent channels history** for quick access
@@ -21,11 +26,6 @@ The tool bypasses restrictions by:
 - Dynamically loading posts in reverse chronological order
 - Automatically detecting and removing deleted posts
 - Caching responses to improve performance
-
-## Installation
-No installation required. You can:
-1. Use the **[live web version](https://franbar1966.github.io/Telegram-Ban-Bypass/public/)**, or
-2. Download the [single HTML file](https://github.com/FranBar1966/Telegram-Ban-Bypass/blob/master/public/index.html) and open it in any browser
 
 ## Usage
 1. Enter a Telegram channel name in any format:
