@@ -278,11 +278,11 @@
             background: #f8f9fa;
             border-color: #667eea;
         }
-        
+
         .channel-info {
             transition: transform 0.2s ease;
         }
-        
+
         .channel-info:hover {
             transform: translateX(2px);
         }
@@ -291,23 +291,23 @@
             font-weight: 500;
             color: #667eea;
         }
-        
+
         .fav-btn, .delete-btn {
             transition: all 0.2s;
             opacity: 0.6;
         }
-        
+
         .recent-channel-item:hover .fav-btn,
         .recent-channel-item:hover .delete-btn {
             opacity: 1;
         }
-        
+
         .fav-btn:hover {
             background: #ffc107 !important;
             border-color: #ffc107 !important;
             color: white !important;
         }
-        
+
         .delete-btn:hover {
             background: #ffebee !important;
             border-color: #d32f2f !important;
@@ -401,7 +401,7 @@
                 border-radius: 6px;
                 border: 1px solid #e0e0e0;
                 transition: all 0.2s;
-            " onmouseover="this.style.background='#e9ecef'; this.style.borderColor='#667eea'" 
+            " onmouseover="this.style.background='#e9ecef'; this.style.borderColor='#667eea'"
                onmouseout="this.style.background='#f8f9fa'; this.style.borderColor='#e0e0e0'">
                 ⭐ View Saved Posts
             </a>
@@ -444,11 +444,12 @@
 
         // Enhanced proxy configuration
         const PROXY_SERVERS = [
-            'https://api.codetabs.com/v1/proxy?quest=',
+            // 'https://api.codetabs.com/v1/proxy?quest=',
             // 'https://whateverorigin.org/get?url=',
             // 'https://thingproxy.freeboard.io/fetch/',
             // 'https://api.allorigins.win/get?url=',
-            'https://cors-anywhere.herokuapp.com/'
+            // 'https://cors-anywhere.herokuapp.com/'
+            'disable'
         ];
 
         let currentProxyIndex = 0;
@@ -503,7 +504,7 @@
                 try {
                     const stored = localStorage.getItem(this.storageKey);
                     this.history = stored ? JSON.parse(stored) : {};
-                    
+
                     const favorites = localStorage.getItem(this.favoritesKey);
                     this.favorites = favorites ? JSON.parse(favorites) : [];
                 } catch (error) {
@@ -524,7 +525,7 @@
 
             addChannel(channelName, metadata = {}) {
                 const now = Date.now();
-                
+
                 if (!this.history[channelName]) {
                     this.history[channelName] = {
                         name: channelName,
@@ -576,7 +577,7 @@
 
             getHistory(sortBy = 'recent') {
                 const channels = Object.values(this.history);
-                
+
                 if (sortBy === 'recent') {
                     channels.sort((a, b) => b.lastVisit - a.lastVisit);
                 } else if (sortBy === 'frequent') {
@@ -584,11 +585,11 @@
                 } else if (sortBy === 'alphabetical') {
                     channels.sort((a, b) => a.name.localeCompare(b.name));
                 }
-                
+
                 // Put favorites first
                 const favoriteChannels = channels.filter(ch => this.isFavorite(ch.name));
                 const regularChannels = channels.filter(ch => !this.isFavorite(ch.name));
-                
+
                 return [...favoriteChannels, ...regularChannels].slice(0, this.maxItems);
             }
 
@@ -606,7 +607,7 @@
 
                 // Always show the container if there are saved posts (even if no recent channels)
                 const hasSavedPosts = postNotesManager && (
-                    postNotesManager.getAllFavorites().length > 0 || 
+                    postNotesManager.getAllFavorites().length > 0 ||
                     postNotesManager.getAllNotes().length > 0
                 );
 
@@ -617,7 +618,7 @@
 
                 recentChannelsContainer.style.display = 'block';
                 recentChannelsList.innerHTML = '';
-                
+
                 // Check if we need to show "View More" button
                 const showLimit = this.isExpanded ? history.length : 3;
                 const needsExpander = history.length > 3;
@@ -625,10 +626,10 @@
                 history.slice(0, showLimit).forEach(item => {
                     const channelItem = document.createElement('div');
                     channelItem.className = 'recent-channel-item';
-                    
+
                     const isFav = this.isFavorite(item.name);
                     const timeAgo = this.getTimeAgo(item.lastVisit);
-                    
+
                     channelItem.innerHTML = `
                         <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
                             <div style="flex: 1; cursor: pointer;" class="channel-info">
@@ -661,13 +662,13 @@
                             document.getElementById('load-channel-btn').click();
                         }, 100);
                     });
-                    
+
                     // Favorite button
                     channelItem.querySelector('.fav-btn').addEventListener('click', (e) => {
                         e.stopPropagation();
                         this.toggleFavorite(item.name);
                     });
-                    
+
                     // Delete button
                     channelItem.querySelector('.delete-btn').addEventListener('click', (e) => {
                         e.stopPropagation();
@@ -678,13 +679,13 @@
 
                     recentChannelsList.appendChild(channelItem);
                 });
-                
+
                 // Add "View More/Less" button if needed
                 if (needsExpander) {
                     const expanderBtn = document.createElement('button');
                     expanderBtn.className = 'view-more-btn';
-                    expanderBtn.innerHTML = this.isExpanded 
-                        ? `▲ Show less` 
+                    expanderBtn.innerHTML = this.isExpanded
+                        ? `▲ Show less`
                         : `▼ View ${history.length - 3} more`;
                     expanderBtn.style.cssText = `
                         width: 100%;
@@ -698,33 +699,33 @@
                         font-size: 0.85em;
                         transition: all 0.2s;
                     `;
-                    
+
                     expanderBtn.addEventListener('click', () => {
                         this.isExpanded = !this.isExpanded;
                         this.updateRecentChannelsUI();
                     });
-                    
+
                     expanderBtn.addEventListener('mouseover', () => {
                         expanderBtn.style.background = '#e9ecef';
                         expanderBtn.style.borderColor = '#667eea';
                     });
-                    
+
                     expanderBtn.addEventListener('mouseout', () => {
                         expanderBtn.style.background = '#f8f9fa';
                         expanderBtn.style.borderColor = '#dee2e6';
                     });
-                    
+
                     recentChannelsList.appendChild(expanderBtn);
                 }
             }
-            
+
             getTimeAgo(timestamp) {
                 const now = Date.now();
                 const diff = now - timestamp;
                 const minutes = Math.floor(diff / 60000);
                 const hours = Math.floor(minutes / 60);
                 const days = Math.floor(hours / 24);
-                
+
                 if (days > 0) return `${days}d ago`;
                 if (hours > 0) return `${hours}h ago`;
                 if (minutes > 0) return `${minutes}m ago`;
@@ -739,12 +740,12 @@
                 this.favoritesKey = 'telegram_post_favorites';
                 this.loadFromStorage();
             }
-            
+
             loadFromStorage() {
                 try {
                     const notes = localStorage.getItem(this.storageKey);
                     this.notes = notes ? JSON.parse(notes) : {};
-                    
+
                     const favorites = localStorage.getItem(this.favoritesKey);
                     this.favorites = favorites ? JSON.parse(favorites) : {};
                 } catch (error) {
@@ -753,7 +754,7 @@
                     this.favorites = {};
                 }
             }
-            
+
             saveToStorage() {
                 try {
                     localStorage.setItem(this.storageKey, JSON.stringify(this.notes));
@@ -762,11 +763,11 @@
                     console.error('Error saving post notes to localStorage:', error);
                 }
             }
-            
+
             getPostId(channel, postNumber) {
                 return `${channel}_${postNumber}`;
             }
-            
+
             // Notes methods
             setNote(channel, postNumber, note) {
                 const postId = this.getPostId(channel, postNumber);
@@ -782,17 +783,17 @@
                 }
                 this.saveToStorage();
             }
-            
+
             getNote(channel, postNumber) {
                 const postId = this.getPostId(channel, postNumber);
                 return this.notes[postId] || null;
             }
-            
+
             hasNote(channel, postNumber) {
                 const postId = this.getPostId(channel, postNumber);
                 return !!this.notes[postId];
             }
-            
+
             // Favorites methods
             toggleFavorite(channel, postNumber, postContent = '') {
                 const postId = this.getPostId(channel, postNumber);
@@ -809,19 +810,19 @@
                 this.saveToStorage();
                 return this.isFavorite(channel, postNumber);
             }
-            
+
             isFavorite(channel, postNumber) {
                 const postId = this.getPostId(channel, postNumber);
                 return !!this.favorites[postId];
             }
-            
+
             // Get all favorites sorted by date
             getAllFavorites() {
                 return Object.entries(this.favorites)
                     .map(([postId, data]) => ({ postId, ...data }))
                     .sort((a, b) => b.timestamp - a.timestamp);
             }
-            
+
             // Get all notes sorted by date
             getAllNotes() {
                 return Object.entries(this.notes)
@@ -829,7 +830,7 @@
                     .sort((a, b) => b.timestamp - a.timestamp);
             }
         }
-        
+
         const cacheManager = new CacheManager();
         const postNotesManager = new PostNotesManager();
         const historyManager = new HistoryManager();
@@ -974,12 +975,12 @@
                 const metadata = {
                     totalPosts: data.count || 0
                 };
-                
+
                 // Try to get channel title from chats data
                 if (data.chats && data.chats.length > 0) {
                     metadata.title = data.chats[0].title || channelName;
                 }
-                
+
                 // Add to history with metadata
                 historyManager.addChannel(channelName, metadata);
 
@@ -1177,16 +1178,16 @@
         function showFavorites() {
             const favorites = postNotesManager.getAllFavorites();
             const notes = postNotesManager.getAllNotes();
-            
+
             if (favorites.length === 0 && notes.length === 0) {
                 showMessage('error', 'No favorites or notes saved yet!', true);
                 return;
             }
-            
+
             // Remove existing modal if any
             const existingModal = document.getElementById('favorites-modal');
             if (existingModal) existingModal.remove();
-            
+
             // Create modal
             const modal = document.createElement('div');
             modal.id = 'favorites-modal';
@@ -1204,7 +1205,7 @@
                 padding: 20px;
                 overflow-y: auto;
             `;
-            
+
             const modalContent = document.createElement('div');
             modalContent.style.cssText = `
                 background: white;
@@ -1215,7 +1216,7 @@
                 margin: 20px 0;
                 box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
             `;
-            
+
             let content = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h2 style="margin: 0; color: #333;">⭐ Favorites & Notes</h2>
@@ -1229,14 +1230,14 @@
                     ">✕ Close</button>
                 </div>
             `;
-            
+
             if (favorites.length > 0) {
                 content += `
                     <div style="margin-bottom: 30px;">
                         <h3 style="color: #ffc107; margin-bottom: 15px;">★ Favorite Posts (${favorites.length})</h3>
                         <div style="display: flex; flex-direction: column; gap: 10px;">
                 `;
-                
+
                 favorites.forEach(fav => {
                     const note = postNotesManager.getNote(fav.channel, fav.postNumber);
                     content += `
@@ -1275,17 +1276,17 @@
                         </div>
                     `;
                 });
-                
+
                 content += `</div></div>`;
             }
-            
+
             if (notes.length > 0) {
                 content += `
                     <div>
                         <h3 style="color: #28a745; margin-bottom: 15px;">📝 Posts with Notes (${notes.length})</h3>
                         <div style="display: flex; flex-direction: column; gap: 10px;">
                 `;
-                
+
                 notes.forEach(note => {
                     const isFav = postNotesManager.isFavorite(note.channel, note.postNumber);
                     content += `
@@ -1325,19 +1326,19 @@
                         </div>
                     `;
                 });
-                
+
                 content += `</div></div>`;
             }
-            
+
             modalContent.innerHTML = content;
             modal.appendChild(modalContent);
             document.body.appendChild(modal);
-            
+
             // Event handlers
             document.getElementById('close-favorites').addEventListener('click', () => {
                 modal.remove();
             });
-            
+
             // Click outside to close
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
@@ -1346,7 +1347,7 @@
             });
         }
         */
-        
+
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const channelParam = urlParams.get('channel');
@@ -1360,7 +1361,7 @@
             // Remove existing modal if any
             const existingModal = document.getElementById('note-modal');
             if (existingModal) existingModal.remove();
-            
+
             // Create modal
             const modal = document.createElement('div');
             modal.id = 'note-modal';
@@ -1376,7 +1377,7 @@
                 justify-content: center;
                 z-index: 10000;
             `;
-            
+
             const modalContent = document.createElement('div');
             modalContent.style.cssText = `
                 background: white;
@@ -1386,9 +1387,9 @@
                 width: 90%;
                 box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
             `;
-            
+
             const existingNote = postNotesManager.getNote(channel, postNumber);
-            
+
             modalContent.innerHTML = `
                 <h3 style="margin: 0 0 15px 0; color: #333;">
                     📝 Note for @${channel}/${postNumber}
@@ -1433,57 +1434,57 @@
                     ">Save</button>
                 </div>
             `;
-            
+
             modal.appendChild(modalContent);
             document.body.appendChild(modal);
-            
+
             // Focus textarea
             const textarea = document.getElementById('note-textarea');
             textarea.focus();
-            
+
             // Event handlers
             document.getElementById('note-cancel').addEventListener('click', () => {
                 modal.remove();
             });
-            
+
             document.getElementById('note-save').addEventListener('click', () => {
                 const noteText = textarea.value.trim();
                 postNotesManager.setNote(channel, postNumber, noteText);
-                
+
                 // Update button state
                 const hasNote = noteText.length > 0;
                 noteBtn.innerHTML = hasNote ? '▪' : '+';
                 noteBtn.style.background = hasNote ? '#28a745' : 'white';
                 noteBtn.style.fontSize = hasNote ? '20px' : '18px';
                 noteBtn.style.fontWeight = hasNote ? 'bold' : 'normal';
-                
+
                 showMessage('success', hasNote ? 'Note saved!' : 'Note removed', true);
                 modal.remove();
             });
-            
+
             const deleteBtn = document.getElementById('note-delete');
             if (deleteBtn) {
                 deleteBtn.addEventListener('click', () => {
                     postNotesManager.setNote(channel, postNumber, '');
-                    
+
                     // Update button state
                     noteBtn.innerHTML = '+';
                     noteBtn.style.background = 'white';
                     noteBtn.style.fontSize = '18px';
                     noteBtn.style.fontWeight = 'normal';
-                    
+
                     showMessage('success', 'Note deleted', true);
                     modal.remove();
                 });
             }
-            
+
             // Click outside to close
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
                     modal.remove();
                 }
             });
-            
+
             // ESC to close
             modal.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
@@ -1491,7 +1492,7 @@
                 }
             });
         }
-        
+
         // Function to add control buttons to Telegram posts
         function addPostControls() {
             // Find all telegram post iframes that don't have controls yet
@@ -1499,29 +1500,29 @@
                 // Extract post info from iframe src
                 const srcMatch = iframe.src.match(/\/([^\/]+)\/(\d+)/);
                 if (!srcMatch) return;
-                
+
                 const channel = srcMatch[1];
                 const postNumber = parseInt(srcMatch[2]);
-                
+
                 // Mark as processed
                 iframe.setAttribute('data-controls-added', 'true');
-                
+
                 // Don't add controls for posts that don't exist (ID > lastPostId)
                 if (lastPostId && postNumber > lastPostId) {
                     return;
                 }
-                
+
                 // Check if post has note or is favorite
                 const hasNote = postNotesManager.hasNote(channel, postNumber);
                 const isFav = postNotesManager.isFavorite(channel, postNumber);
-                
+
                 // Create wrapper div
                 const wrapper = document.createElement('div');
                 wrapper.style.cssText = `
                     position: relative;
                     margin-bottom: 15px;
                 `;
-                
+
                 // Create controls container
                 const controlsDiv = document.createElement('div');
                 controlsDiv.style.cssText = `
@@ -1533,7 +1534,7 @@
                     gap: 6px;
                     z-index: 10;
                 `;
-                
+
                 // Favorite button
                 const favBtn = document.createElement('button');
                 favBtn.innerHTML = isFav ? '★' : '☆';
@@ -1556,7 +1557,7 @@
                     favBtn.style.color = newState ? 'white' : '#999';
                     showMessage('success', newState ? 'Added to favorites!' : 'Removed from favorites', true);
                 });
-                
+
                 // Note button
                 const noteBtn = document.createElement('button');
                 noteBtn.innerHTML = hasNote ? '▪' : '+';
@@ -1575,30 +1576,30 @@
                 noteBtn.addEventListener('click', () => {
                     showNoteModal(channel, postNumber, noteBtn);
                 });
-                
+
                 controlsDiv.appendChild(favBtn);
                 controlsDiv.appendChild(noteBtn);
-                
+
                 // Insert iframe in wrapper
                 iframe.parentNode.insertBefore(wrapper, iframe);
                 wrapper.appendChild(iframe);
                 wrapper.appendChild(controlsDiv);
             });
         }
-        
+
         // Observe DOM changes to add controls to new posts
         const observer = new MutationObserver(() => {
             addPostControls();
         });
-        
+
         observer.observe(document.getElementById('widget-container'), {
             childList: true,
             subtree: true
         });
-        
+
         // Check for iframe height changes and add controls
         setInterval(addPostControls, 1000);
-        
+
         // Initialize
         updateProxyStatus('Ready to load channels');
         historyManager.updateRecentChannelsUI();
