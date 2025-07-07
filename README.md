@@ -44,7 +44,7 @@ The tool bypasses restrictions by:
 - **Performance**: Optimized loading with delays between requests
 
 ## Technical Details
-- **Convert telegram posts to RSS or json**: `https://github.com/xtrime-ru/TelegramRSS'
+- **Convert telegram posts to RSS or json**: `https://github.com/xtrime-ru/TelegramRSS`
 - **API Endpoint**: `https://tg.i-c-a.su/json/`
 - **Frontend**: Pure HTML5, CSS3, and JavaScript (ES6)
 - **Proxy Servers**:
