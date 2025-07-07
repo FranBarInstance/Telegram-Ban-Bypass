@@ -480,7 +480,7 @@
             }
 
             // Recuperar proxy guardado
-            const proxyInput = document.getElementById('proxy-input');
+            const proxyInput = decodeURIComponent(document.getElementById('proxy-input'));
             const savedProxy = getProxyFromStorage();
             if (savedProxy) {
                 proxyInput.value = savedProxy;
