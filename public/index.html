@@ -378,7 +378,7 @@
             <label for="channel-input">Enter Telegram Channel:</label>
             <input name="channel-input" type="text" id="channel-input" placeholder="e.g., ORANGETERAPY or https://t.me/ORANGETERAPY/">
             <button id="load-channel-btn">Load Channel</button>
-            <div id="recent-channels" class="recent-channels" style="display: none;">
+            <div id="recent-channels" class="recent-channels">
                 <div class="recent-channels-header">
                     <span>📋 Recent Channels:</span>
                     <button id="clear-history" class="clear-history-btn">Clear</button>
@@ -390,6 +390,21 @@
 
         <div class="status-container">
             <div id="current-channel" class="current-channel" style="display: none;"></div>
+            <a href="favorites.html" id="saved-posts-link" style="
+                display: inline-block;
+                margin-top: 10px;
+                color: #667eea;
+                text-decoration: none;
+                font-size: 14px;
+                padding: 6px 12px;
+                background: #f8f9fa;
+                border-radius: 6px;
+                border: 1px solid #e0e0e0;
+                transition: all 0.2s;
+            " onmouseover="this.style.background='#e9ecef'; this.style.borderColor='#667eea'" 
+               onmouseout="this.style.background='#f8f9fa'; this.style.borderColor='#e0e0e0'">
+                ⭐ View Saved Posts
+            </a>
         </div>
 
         <div id="success" class="success" style="display: none;"></div>
@@ -589,7 +604,13 @@
                 const recentChannelsList = document.getElementById('recent-channels-list');
                 const history = this.getHistory();
 
-                if (history.length === 0) {
+                // Always show the container if there are saved posts (even if no recent channels)
+                const hasSavedPosts = postNotesManager && (
+                    postNotesManager.getAllFavorites().length > 0 || 
+                    postNotesManager.getAllNotes().length > 0
+                );
+
+                if (history.length === 0 && !hasSavedPosts) {
                     recentChannelsContainer.style.display = 'none';
                     return;
                 }
@@ -711,7 +732,106 @@
             }
         }
 
+        // Post Notes and Favorites Manager
+        class PostNotesManager {
+            constructor() {
+                this.storageKey = 'telegram_post_notes';
+                this.favoritesKey = 'telegram_post_favorites';
+                this.loadFromStorage();
+            }
+            
+            loadFromStorage() {
+                try {
+                    const notes = localStorage.getItem(this.storageKey);
+                    this.notes = notes ? JSON.parse(notes) : {};
+                    
+                    const favorites = localStorage.getItem(this.favoritesKey);
+                    this.favorites = favorites ? JSON.parse(favorites) : {};
+                } catch (error) {
+                    console.error('Error loading post notes from localStorage:', error);
+                    this.notes = {};
+                    this.favorites = {};
+                }
+            }
+            
+            saveToStorage() {
+                try {
+                    localStorage.setItem(this.storageKey, JSON.stringify(this.notes));
+                    localStorage.setItem(this.favoritesKey, JSON.stringify(this.favorites));
+                } catch (error) {
+                    console.error('Error saving post notes to localStorage:', error);
+                }
+            }
+            
+            getPostId(channel, postNumber) {
+                return `${channel}_${postNumber}`;
+            }
+            
+            // Notes methods
+            setNote(channel, postNumber, note) {
+                const postId = this.getPostId(channel, postNumber);
+                if (note && note.trim()) {
+                    this.notes[postId] = {
+                        text: note.trim(),
+                        timestamp: Date.now(),
+                        channel: channel,
+                        postNumber: postNumber
+                    };
+                } else {
+                    delete this.notes[postId];
+                }
+                this.saveToStorage();
+            }
+            
+            getNote(channel, postNumber) {
+                const postId = this.getPostId(channel, postNumber);
+                return this.notes[postId] || null;
+            }
+            
+            hasNote(channel, postNumber) {
+                const postId = this.getPostId(channel, postNumber);
+                return !!this.notes[postId];
+            }
+            
+            // Favorites methods
+            toggleFavorite(channel, postNumber, postContent = '') {
+                const postId = this.getPostId(channel, postNumber);
+                if (this.favorites[postId]) {
+                    delete this.favorites[postId];
+                } else {
+                    this.favorites[postId] = {
+                        timestamp: Date.now(),
+                        channel: channel,
+                        postNumber: postNumber,
+                        preview: postContent.substring(0, 100) + (postContent.length > 100 ? '...' : '')
+                    };
+                }
+                this.saveToStorage();
+                return this.isFavorite(channel, postNumber);
+            }
+            
+            isFavorite(channel, postNumber) {
+                const postId = this.getPostId(channel, postNumber);
+                return !!this.favorites[postId];
+            }
+            
+            // Get all favorites sorted by date
+            getAllFavorites() {
+                return Object.entries(this.favorites)
+                    .map(([postId, data]) => ({ postId, ...data }))
+                    .sort((a, b) => b.timestamp - a.timestamp);
+            }
+            
+            // Get all notes sorted by date
+            getAllNotes() {
+                return Object.entries(this.notes)
+                    .map(([postId, data]) => ({ postId, ...data }))
+                    .sort((a, b) => b.timestamp - a.timestamp);
+            }
+        }
+        
         const cacheManager = new CacheManager();
+        const postNotesManager = new PostNotesManager();
         const historyManager = new HistoryManager();
 
         // Enhanced utility functions
@@ -1052,6 +1172,181 @@
             }
         });
 
+        // Removed showFavorites function - now using favorites.html
+        /*
+        function showFavorites() {
+            const favorites = postNotesManager.getAllFavorites();
+            const notes = postNotesManager.getAllNotes();
+            
+            if (favorites.length === 0 && notes.length === 0) {
+                showMessage('error', 'No favorites or notes saved yet!', true);
+                return;
+            }
+            
+            // Remove existing modal if any
+            const existingModal = document.getElementById('favorites-modal');
+            if (existingModal) existingModal.remove();
+            
+            // Create modal
+            const modal = document.createElement('div');
+            modal.id = 'favorites-modal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: flex-start;
+                justify-content: center;
+                z-index: 10000;
+                padding: 20px;
+                overflow-y: auto;
+            `;
+            
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: white;
+                padding: 20px;
+                border-radius: 12px;
+                max-width: 800px;
+                width: 100%;
+                margin: 20px 0;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            `;
+            
+            let content = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0; color: #333;">⭐ Favorites & Notes</h2>
+                    <button id="close-favorites" style="
+                        background: none;
+                        border: 1px solid #dee2e6;
+                        padding: 6px 12px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 14px;
+                    ">✕ Close</button>
+                </div>
+            `;
+            
+            if (favorites.length > 0) {
+                content += `
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="color: #ffc107; margin-bottom: 15px;">★ Favorite Posts (${favorites.length})</h3>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                `;
+                
+                favorites.forEach(fav => {
+                    const note = postNotesManager.getNote(fav.channel, fav.postNumber);
+                    content += `
+                        <div style="
+                            padding: 12px;
+                            background: #fffcf5;
+                            border: 1px solid #ffc107;
+                            border-radius: 8px;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                        ">
+                            <div style="flex: 1;">
+                                <a href="https://t.me/${fav.channel}/${fav.postNumber}" target="_blank" style="
+                                    color: #667eea;
+                                    text-decoration: none;
+                                    font-weight: 500;
+                                ">@${fav.channel}/${fav.postNumber}</a>
+                                ${note ? `<div style="margin-top: 5px; color: #666; font-size: 13px;">📝 ${note.text}</div>` : ''}
+                                <div style="font-size: 11px; color: #999; margin-top: 5px;">
+                                    Saved ${new Date(fav.timestamp).toLocaleDateString()}
+                                </div>
+                            </div>
+                            <button onclick="
+                                postNotesManager.toggleFavorite('${fav.channel}', '${fav.postNumber}');
+                                showFavorites();
+                            " style="
+                                padding: 4px 8px;
+                                background: #ffc107;
+                                color: white;
+                                border: none;
+                                border-radius: 4px;
+                                cursor: pointer;
+                                font-size: 12px;
+                            ">Remove</button>
+                        </div>
+                    `;
+                });
+                
+                content += `</div></div>`;
+            }
+            
+            if (notes.length > 0) {
+                content += `
+                    <div>
+                        <h3 style="color: #28a745; margin-bottom: 15px;">📝 Posts with Notes (${notes.length})</h3>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                `;
+                
+                notes.forEach(note => {
+                    const isFav = postNotesManager.isFavorite(note.channel, note.postNumber);
+                    content += `
+                        <div style="
+                            padding: 12px;
+                            background: #f0fff4;
+                            border: 1px solid #28a745;
+                            border-radius: 8px;
+                        ">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <a href="https://t.me/${note.channel}/${note.postNumber}" target="_blank" style="
+                                        color: #667eea;
+                                        text-decoration: none;
+                                        font-weight: 500;
+                                    ">${isFav ? '★ ' : ''}@${note.channel}/${note.postNumber}</a>
+                                    <div style="margin-top: 5px; color: #333; font-size: 14px;">${note.text}</div>
+                                    <div style="font-size: 11px; color: #999; margin-top: 5px;">
+                                        Added ${new Date(note.timestamp).toLocaleDateString()}
+                                    </div>
+                                </div>
+                                <button onclick="
+                                    if(confirm('Delete this note?')) {
+                                        postNotesManager.setNote('${note.channel}', '${note.postNumber}', '');
+                                        showFavorites();
+                                    }
+                                " style="
+                                    padding: 4px 8px;
+                                    background: #dc3545;
+                                    color: white;
+                                    border: none;
+                                    border-radius: 4px;
+                                    cursor: pointer;
+                                    font-size: 12px;
+                                ">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                content += `</div></div>`;
+            }
+            
+            modalContent.innerHTML = content;
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+            
+            // Event handlers
+            document.getElementById('close-favorites').addEventListener('click', () => {
+                modal.remove();
+            });
+            
+            // Click outside to close
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+        */
+        
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const channelParam = urlParams.get('channel');
@@ -1060,6 +1355,250 @@
             }
         });
 
+        // Modal for notes
+        function showNoteModal(channel, postNumber, noteBtn) {
+            // Remove existing modal if any
+            const existingModal = document.getElementById('note-modal');
+            if (existingModal) existingModal.remove();
+            
+            // Create modal
+            const modal = document.createElement('div');
+            modal.id = 'note-modal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+            `;
+            
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: white;
+                padding: 20px;
+                border-radius: 12px;
+                max-width: 500px;
+                width: 90%;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            `;
+            
+            const existingNote = postNotesManager.getNote(channel, postNumber);
+            
+            modalContent.innerHTML = `
+                <h3 style="margin: 0 0 15px 0; color: #333;">
+                    📝 Note for @${channel}/${postNumber}
+                </h3>
+                <textarea id="note-textarea" placeholder="Write your note here..." style="
+                    width: 100%;
+                    min-height: 100px;
+                    padding: 10px;
+                    border: 1px solid #ddd;
+                    border-radius: 6px;
+                    font-size: 14px;
+                    font-family: inherit;
+                    resize: vertical;
+                ">${existingNote ? existingNote.text : ''}</textarea>
+                <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+                    <button id="note-cancel" style="
+                        padding: 8px 16px;
+                        background: #6c757d;
+                        color: white;
+                        border: none;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 14px;
+                    ">Cancel</button>
+                    ${existingNote ? `<button id="note-delete" style="
+                        padding: 8px 16px;
+                        background: #dc3545;
+                        color: white;
+                        border: none;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 14px;
+                    ">Delete Note</button>` : ''}
+                    <button id="note-save" style="
+                        padding: 8px 16px;
+                        background: #28a745;
+                        color: white;
+                        border: none;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 14px;
+                    ">Save</button>
+                </div>
+            `;
+            
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+            
+            // Focus textarea
+            const textarea = document.getElementById('note-textarea');
+            textarea.focus();
+            
+            // Event handlers
+            document.getElementById('note-cancel').addEventListener('click', () => {
+                modal.remove();
+            });
+            
+            document.getElementById('note-save').addEventListener('click', () => {
+                const noteText = textarea.value.trim();
+                postNotesManager.setNote(channel, postNumber, noteText);
+                
+                // Update button state
+                const hasNote = noteText.length > 0;
+                noteBtn.innerHTML = hasNote ? '▪' : '+';
+                noteBtn.style.background = hasNote ? '#28a745' : 'white';
+                noteBtn.style.fontSize = hasNote ? '20px' : '18px';
+                noteBtn.style.fontWeight = hasNote ? 'bold' : 'normal';
+                
+                showMessage('success', hasNote ? 'Note saved!' : 'Note removed', true);
+                modal.remove();
+            });
+            
+            const deleteBtn = document.getElementById('note-delete');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', () => {
+                    postNotesManager.setNote(channel, postNumber, '');
+                    
+                    // Update button state
+                    noteBtn.innerHTML = '+';
+                    noteBtn.style.background = 'white';
+                    noteBtn.style.fontSize = '18px';
+                    noteBtn.style.fontWeight = 'normal';
+                    
+                    showMessage('success', 'Note deleted', true);
+                    modal.remove();
+                });
+            }
+            
+            // Click outside to close
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+            
+            // ESC to close
+            modal.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    modal.remove();
+                }
+            });
+        }
+        
+        // Function to add control buttons to Telegram posts
+        function addPostControls() {
+            // Find all telegram post iframes that don't have controls yet
+            document.querySelectorAll('iframe[src*="t.me"]:not([data-controls-added])').forEach(iframe => {
+                // Extract post info from iframe src
+                const srcMatch = iframe.src.match(/\/([^\/]+)\/(\d+)/);
+                if (!srcMatch) return;
+                
+                const channel = srcMatch[1];
+                const postNumber = parseInt(srcMatch[2]);
+                
+                // Mark as processed
+                iframe.setAttribute('data-controls-added', 'true');
+                
+                // Don't add controls for posts that don't exist (ID > lastPostId)
+                if (lastPostId && postNumber > lastPostId) {
+                    return;
+                }
+                
+                // Check if post has note or is favorite
+                const hasNote = postNotesManager.hasNote(channel, postNumber);
+                const isFav = postNotesManager.isFavorite(channel, postNumber);
+                
+                // Create wrapper div
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = `
+                    position: relative;
+                    margin-bottom: 15px;
+                `;
+                
+                // Create controls container
+                const controlsDiv = document.createElement('div');
+                controlsDiv.style.cssText = `
+                    position: absolute;
+                    bottom: 10px;
+                    right: 10px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
+                    z-index: 10;
+                `;
+                
+                // Favorite button
+                const favBtn = document.createElement('button');
+                favBtn.innerHTML = isFav ? '★' : '☆';
+                favBtn.title = isFav ? 'Remove from favorites' : 'Add to favorites';
+                favBtn.style.cssText = `
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 6px;
+                    border: 1px solid #e0e0e0;
+                    background: ${isFav ? '#ffc107' : 'white'};
+                    color: ${isFav ? 'white' : '#999'};
+                    cursor: pointer;
+                    font-size: 16px;
+                    transition: all 0.2s;
+                `;
+                favBtn.addEventListener('click', () => {
+                    const newState = postNotesManager.toggleFavorite(channel, postNumber);
+                    favBtn.innerHTML = newState ? '★' : '☆';
+                    favBtn.style.background = newState ? '#ffc107' : 'white';
+                    favBtn.style.color = newState ? 'white' : '#999';
+                    showMessage('success', newState ? 'Added to favorites!' : 'Removed from favorites', true);
+                });
+                
+                // Note button
+                const noteBtn = document.createElement('button');
+                noteBtn.innerHTML = hasNote ? '▪' : '+';
+                noteBtn.title = hasNote ? 'Edit note' : 'Add note';
+                noteBtn.style.cssText = `
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 6px;
+                    border: 1px solid #e0e0e0;
+                    background: ${hasNote ? '#28a745' : 'white'};
+                    cursor: pointer;
+                    font-size: ${hasNote ? '20px' : '18px'};
+                    font-weight: ${hasNote ? 'bold' : 'normal'};
+                    transition: all 0.2s;
+                `;
+                noteBtn.addEventListener('click', () => {
+                    showNoteModal(channel, postNumber, noteBtn);
+                });
+                
+                controlsDiv.appendChild(favBtn);
+                controlsDiv.appendChild(noteBtn);
+                
+                // Insert iframe in wrapper
+                iframe.parentNode.insertBefore(wrapper, iframe);
+                wrapper.appendChild(iframe);
+                wrapper.appendChild(controlsDiv);
+            });
+        }
+        
+        // Observe DOM changes to add controls to new posts
+        const observer = new MutationObserver(() => {
+            addPostControls();
+        });
+        
+        observer.observe(document.getElementById('widget-container'), {
+            childList: true,
+            subtree: true
+        });
+        
+        // Check for iframe height changes and add controls
+        setInterval(addPostControls, 1000);
+        
         // Initialize
         updateProxyStatus('Ready to load channels');
         historyManager.updateRecentChannelsUI();
