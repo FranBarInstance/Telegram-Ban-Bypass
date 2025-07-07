@@ -21,7 +21,7 @@ No installation required. You can:
 
 ## How It Works
 The tool bypasses restrictions by:
-- Using Telegram's public widget API which isn't subject to regional bans
+- Using Telegram's public widget API which isn't subject bans
 - Employing multiple CORS proxies with automatic fallback
 - Dynamically loading posts in reverse chronological order
 - Automatically detecting and removing deleted posts
