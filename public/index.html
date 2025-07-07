@@ -471,9 +471,14 @@
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const channelParam = urlParams.get('channel');
+            const proxyParam = urlParams.get('proxy');
             if (channelParam) {
                 document.getElementById('channel-input').value = channelParam;
             }
+            if (proxyParam) {
+                document.getElementById('proxy-input').value = proxyParam;
+            }
+
             // Recuperar proxy guardado
             const proxyInput = document.getElementById('proxy-input');
             const savedProxy = getProxyFromStorage();
