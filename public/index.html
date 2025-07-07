@@ -1259,10 +1259,10 @@
                 
                 // Update button state
                 const hasNote = noteText.length > 0;
-                noteBtn.innerHTML = hasNote ? '📝 Edit Note' : '📝 Add Note';
+                noteBtn.innerHTML = hasNote ? '▪' : '+';
                 noteBtn.style.background = hasNote ? '#28a745' : 'white';
-                noteBtn.style.color = hasNote ? 'white' : '#666';
-                noteBtn.style.borderColor = hasNote ? '#28a745' : '#dee2e6';
+                noteBtn.style.fontSize = hasNote ? '20px' : '18px';
+                noteBtn.style.fontWeight = hasNote ? 'bold' : 'normal';
                 
                 showMessage('success', hasNote ? 'Note saved!' : 'Note removed', true);
                 modal.remove();
@@ -1274,10 +1274,10 @@
                     postNotesManager.setNote(channel, postNumber, '');
                     
                     // Update button state
-                    noteBtn.innerHTML = '📝 Add Note';
+                    noteBtn.innerHTML = '+';
                     noteBtn.style.background = 'white';
-                    noteBtn.style.color = '#666';
-                    noteBtn.style.borderColor = '#dee2e6';
+                    noteBtn.style.fontSize = '18px';
+                    noteBtn.style.fontWeight = 'normal';
                     
                     showMessage('success', 'Note deleted', true);
                     modal.remove();
@@ -1308,69 +1308,88 @@
                 if (!srcMatch) return;
                 
                 const channel = srcMatch[1];
-                const postNumber = srcMatch[2];
+                const postNumber = parseInt(srcMatch[2]);
                 
                 // Mark as processed
                 iframe.setAttribute('data-controls-added', 'true');
                 
-                // Only add controls if post has note or is favorite
+                // Don't add controls for posts that don't exist (ID > lastPostId)
+                if (lastPostId && postNumber > lastPostId) {
+                    return;
+                }
+                
+                // Check if post has note or is favorite
                 const hasNote = postNotesManager.hasNote(channel, postNumber);
                 const isFav = postNotesManager.isFavorite(channel, postNumber);
                 
-                if (!hasNote && !isFav) return; // Skip if no note or favorite
+                // Create wrapper div
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = `
+                    position: relative;
+                    margin-bottom: 15px;
+                `;
                 
                 // Create controls container
                 const controlsDiv = document.createElement('div');
-                controlsDiv.className = 'post-controls';
                 controlsDiv.style.cssText = `
                     position: absolute;
-                    top: 10px;
+                    bottom: 10px;
                     right: 10px;
                     display: flex;
-                    gap: 4px;
-                    background: rgba(255, 255, 255, 0.9);
-                    padding: 4px;
-                    border-radius: 6px;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    flex-direction: column;
+                    gap: 6px;
+                    z-index: 10;
                 `;
                 
-                // Show indicators only - minimal UI
-                if (isFav) {
-                    const favIndicator = document.createElement('span');
-                    favIndicator.innerHTML = '★';
-                    favIndicator.title = 'Favorited';
-                    favIndicator.style.cssText = `
-                        color: #ffc107;
-                        font-size: 14px;
-                        cursor: pointer;
-                        padding: 2px 4px;
-                    `;
-                    favIndicator.addEventListener('click', () => {
-                        window.location.href = 'favorites.html';
-                    });
-                    controlsDiv.appendChild(favIndicator);
-                }
+                // Favorite button
+                const favBtn = document.createElement('button');
+                favBtn.innerHTML = isFav ? '★' : '☆';
+                favBtn.title = isFav ? 'Remove from favorites' : 'Add to favorites';
+                favBtn.style.cssText = `
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 6px;
+                    border: 1px solid #e0e0e0;
+                    background: ${isFav ? '#ffc107' : 'white'};
+                    color: ${isFav ? 'white' : '#999'};
+                    cursor: pointer;
+                    font-size: 16px;
+                    transition: all 0.2s;
+                `;
+                favBtn.addEventListener('click', () => {
+                    const newState = postNotesManager.toggleFavorite(channel, postNumber);
+                    favBtn.innerHTML = newState ? '★' : '☆';
+                    favBtn.style.background = newState ? '#ffc107' : 'white';
+                    favBtn.style.color = newState ? 'white' : '#999';
+                    showMessage('success', newState ? 'Added to favorites!' : 'Removed from favorites', true);
+                });
                 
-                if (hasNote) {
-                    const noteIndicator = document.createElement('span');
-                    noteIndicator.innerHTML = '📝';
-                    noteIndicator.title = 'Has note';
-                    noteIndicator.style.cssText = `
-                        font-size: 12px;
-                        cursor: pointer;
-                        padding: 2px 4px;
-                    `;
-                    noteIndicator.addEventListener('click', () => {
-                        window.location.href = 'favorites.html';
-                    });
-                    controlsDiv.appendChild(noteIndicator);
-                }
+                // Note button
+                const noteBtn = document.createElement('button');
+                noteBtn.innerHTML = hasNote ? '▪' : '+';
+                noteBtn.title = hasNote ? 'Edit note' : 'Add note';
+                noteBtn.style.cssText = `
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 6px;
+                    border: 1px solid #e0e0e0;
+                    background: ${hasNote ? '#28a745' : 'white'};
+                    cursor: pointer;
+                    font-size: ${hasNote ? '20px' : '18px'};
+                    font-weight: ${hasNote ? 'bold' : 'normal'};
+                    transition: all 0.2s;
+                `;
+                noteBtn.addEventListener('click', () => {
+                    showNoteModal(channel, postNumber, noteBtn);
+                });
                 
-                // Make iframe container relative for absolute positioning
-                iframe.parentNode.style.position = 'relative';
+                controlsDiv.appendChild(favBtn);
+                controlsDiv.appendChild(noteBtn);
                 
-                // Insert controls inside the iframe's parent
-                iframe.parentNode.appendChild(controlsDiv);
+                // Insert iframe in wrapper
+                iframe.parentNode.insertBefore(wrapper, iframe);
+                wrapper.appendChild(iframe);
+                wrapper.appendChild(controlsDiv);
             });
         }
         
