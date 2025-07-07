@@ -119,8 +119,6 @@
     <div class="channel-input-container">
         <label for="channel-input">Enter Telegram Channel:</label>
         <input type="text" id="channel-input" placeholder="e.g., ORANGETERAPY or https://t.me/ORANGETERAPY/">
-        <label for="proxy-input">Proxy CORS URL:</label>
-        <input type="text" id="proxy-input" placeholder="e.g., https://...">
         <button id="load-channel-btn">Load Channel</button>
     </div>
 
@@ -166,7 +164,7 @@
         async function fetchWithCache(url) {
             const cacheKey = `cache_${url}`;
             const now = new Date().getTime();
-            const cacheDuration = 120000; // 2 minute in milliseconds
+            const cacheDuration = 30000; // 30 seconds in milliseconds
 
             // Try to get cached data
             const cachedData = localStorage.getItem(cacheKey);
@@ -198,34 +196,24 @@
             const loadingElement = document.getElementById('loading');
             const errorElement = document.getElementById('error');
             const currentChannelElement = document.getElementById('current-channel');
-            const proxyInput = document.getElementById('proxy-input');
 
             try {
-                // Obtener proxy URL del input, mostrar error si está vacío
-                let proxyUrl = proxyInput.value.trim();
-                if (!proxyUrl) {
-                    errorElement.textContent = 'Please enter a valid CORS proxy URL.';
-                    errorElement.style.display = 'block';
-                    loadingElement.style.display = 'none';
-                    return;
-                }
-
-                const encodedUrl = encodeURIComponent(`https://tg.i-c-a.su/json/${channelName}?limit=1`);
-                const fullUrl = proxyUrl + encodedUrl;
-
                 loadingElement.textContent = 'Loading latest post...';
                 loadingElement.style.display = 'block';
                 errorElement.style.display = 'none';
 
-                // Use the cached fetch function
-                const proxyData = await fetchWithCache(fullUrl);
-                const data = JSON.parse(proxyData.contents);
+                const url = `https://api-telegram.repostea.com/api/telegram/last-message?channel=${channelName}`;
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+                const data = await response.json();
 
-                if (!data.messages || data.messages.length === 0) {
+                if (!data.success || !data.last_message_id) {
                     throw new Error('No messages found in response');
                 }
 
-                lastPostId = data.messages[0].id;
+                lastPostId = data.last_message_id;
                 currentChannel = channelName;
 
                 // Show current channel info
@@ -285,7 +273,7 @@
 
                 newButton.addEventListener('click', function() {
                     // Clear content if we've loaded too many posts
-                    if (countPosts > 100) {
+                    if (countPosts > 200) {
                         countPosts = 0;
                         container.innerHTML = '';
                         setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 100);
@@ -322,7 +310,7 @@
             const widget = document.getElementById('widget-container');
             if (widget && lastPostId > 0) {
                 countPosts = 0;
-                start_post = parseInt(widget.dataset.start) + 5;
+                start_post = parseInt(widget.dataset.start) + 8;
                 loadTelegramWidgets(start_post, parseInt(widget.dataset.num));
                 intervalId = setInterval(checkIframesHeight, 200);
             }
@@ -358,12 +346,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const channelParam = urlParams.get('channel');
-            const proxyParam = urlParams.get('proxy');
             if (channelParam) {
                 document.getElementById('channel-input').value = channelParam;
-            }
-            if (proxyParam) {
-                document.getElementById('proxy-input').value = proxyParam;
             }
         });
     </script>
