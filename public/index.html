@@ -258,17 +258,16 @@
 
         .recent-channels-list {
             display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .recent-channel-item {
             background: white;
             border: 1px solid #dee2e6;
-            padding: 6px 10px;
-            border-radius: 20px;
+            padding: 8px 12px;
+            border-radius: 8px;
             font-size: 0.85em;
-            cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
@@ -276,13 +275,42 @@
         }
 
         .recent-channel-item:hover {
-            background: #667eea;
-            color: white;
-            transform: translateY(-1px);
+            background: #f8f9fa;
+            border-color: #667eea;
+        }
+        
+        .channel-info {
+            transition: transform 0.2s ease;
+        }
+        
+        .channel-info:hover {
+            transform: translateX(2px);
         }
 
         .recent-channel-item .channel-name {
             font-weight: 500;
+            color: #667eea;
+        }
+        
+        .fav-btn, .delete-btn {
+            transition: all 0.2s;
+            opacity: 0.6;
+        }
+        
+        .recent-channel-item:hover .fav-btn,
+        .recent-channel-item:hover .delete-btn {
+            opacity: 1;
+        }
+        
+        .fav-btn:hover {
+            background: #ffc107 !important;
+            border-color: #ffc107 !important;
+            color: white !important;
+        }
+        
+        .delete-btn:hover {
+            background: #ffebee !important;
+            border-color: #d32f2f !important;
         }
 
         .channel-input-container input:focus {
@@ -441,56 +469,113 @@
             }
         }
 
-        // Enhanced History Manager for recent channels
+        // Enhanced History Manager for recent channels with localStorage
         class HistoryManager {
             constructor() {
-                this.maxItems = 10;
-                this.storageKey = 'telegram_recent_channels';
-                this.memoryHistory = [];
+                this.maxItems = 15;
+                this.storageKey = 'telegram_channel_history';
+                this.favoritesKey = 'telegram_channel_favorites';
+                this.isExpanded = false;
+                this.loadFromStorage();
             }
 
-            addChannel(channelName) {
-                const channelData = {
-                    name: channelName,
-                    timestamp: Date.now(),
-                    date: new Date().toLocaleDateString()
-                };
+            loadFromStorage() {
+                try {
+                    const stored = localStorage.getItem(this.storageKey);
+                    this.history = stored ? JSON.parse(stored) : {};
+                    
+                    const favorites = localStorage.getItem(this.favoritesKey);
+                    this.favorites = favorites ? JSON.parse(favorites) : [];
+                } catch (error) {
+                    console.error('Error loading history from localStorage:', error);
+                    this.history = {};
+                    this.favorites = [];
+                }
+            }
 
-                // Remove if already exists
-                this.removeChannel(channelName);
+            saveToStorage() {
+                try {
+                    localStorage.setItem(this.storageKey, JSON.stringify(this.history));
+                    localStorage.setItem(this.favoritesKey, JSON.stringify(this.favorites));
+                } catch (error) {
+                    console.error('Error saving to localStorage:', error);
+                }
+            }
 
-                // Add to beginning
-                let history = this.getHistory();
-                history.unshift(channelData);
-
-                // Keep only max items
-                if (history.length > this.maxItems) {
-                    history = history.slice(0, this.maxItems);
+            addChannel(channelName, metadata = {}) {
+                const now = Date.now();
+                
+                if (!this.history[channelName]) {
+                    this.history[channelName] = {
+                        name: channelName,
+                        firstVisit: now,
+                        lastVisit: now,
+                        visitCount: 1,
+                        totalPosts: metadata.totalPosts || 0,
+                        channelTitle: metadata.title || channelName
+                    };
+                } else {
+                    this.history[channelName].lastVisit = now;
+                    this.history[channelName].visitCount++;
+                    if (metadata.totalPosts) {
+                        this.history[channelName].totalPosts = metadata.totalPosts;
+                    }
+                    if (metadata.title) {
+                        this.history[channelName].channelTitle = metadata.title;
+                    }
                 }
 
-                // Save to storage
-                this.saveHistory(history);
-
-                // Update UI
+                this.saveToStorage();
                 this.updateRecentChannelsUI();
             }
 
+            toggleFavorite(channelName) {
+                const index = this.favorites.indexOf(channelName);
+                if (index === -1) {
+                    this.favorites.push(channelName);
+                } else {
+                    this.favorites.splice(index, 1);
+                }
+                this.saveToStorage();
+                this.updateRecentChannelsUI();
+            }
+
+            isFavorite(channelName) {
+                return this.favorites.includes(channelName);
+            }
+
             removeChannel(channelName) {
-                let history = this.getHistory();
-                history = history.filter(item => item.name !== channelName);
-                this.saveHistory(history);
+                delete this.history[channelName];
+                const favIndex = this.favorites.indexOf(channelName);
+                if (favIndex !== -1) {
+                    this.favorites.splice(favIndex, 1);
+                }
+                this.saveToStorage();
+                this.updateRecentChannelsUI();
             }
 
-            getHistory() {
-                return this.memoryHistory;
-            }
-
-            saveHistory(history) {
-                this.memoryHistory = history;
+            getHistory(sortBy = 'recent') {
+                const channels = Object.values(this.history);
+                
+                if (sortBy === 'recent') {
+                    channels.sort((a, b) => b.lastVisit - a.lastVisit);
+                } else if (sortBy === 'frequent') {
+                    channels.sort((a, b) => b.visitCount - a.visitCount);
+                } else if (sortBy === 'alphabetical') {
+                    channels.sort((a, b) => a.name.localeCompare(b.name));
+                }
+                
+                // Put favorites first
+                const favoriteChannels = channels.filter(ch => this.isFavorite(ch.name));
+                const regularChannels = channels.filter(ch => !this.isFavorite(ch.name));
+                
+                return [...favoriteChannels, ...regularChannels].slice(0, this.maxItems);
             }
 
             clearHistory() {
-                this.memoryHistory = [];
+                this.history = {};
+                // Keep favorites
+                this.saveToStorage();
                 this.updateRecentChannelsUI();
             }
 
@@ -506,25 +591,118 @@
 
                 recentChannelsContainer.style.display = 'block';
                 recentChannelsList.innerHTML = '';
+                
+                // Check if we need to show "View More" button
+                const showLimit = this.isExpanded ? history.length : 3;
+                const needsExpander = history.length > 3;
 
-                history.forEach(item => {
+                history.slice(0, showLimit).forEach(item => {
                     const channelItem = document.createElement('div');
                     channelItem.className = 'recent-channel-item';
-                    channelItem.innerHTML = `<span class="channel-name">@${item.name}</span>`;
+                    
+                    const isFav = this.isFavorite(item.name);
+                    const timeAgo = this.getTimeAgo(item.lastVisit);
+                    
+                    channelItem.innerHTML = `
+                        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                            <div style="flex: 1; cursor: pointer;" class="channel-info">
+                                <span class="channel-name">
+                                    ${isFav ? '⭐ ' : ''}@${item.name}
+                                </span>
+                                <span style="font-size: 11px; color: #999; margin-left: 8px;">
+                                    ${item.visitCount}x • ${timeAgo}
+                                </span>
+                            </div>
+                            <div style="display: flex; gap: 5px;">
+                                <button class="fav-btn" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}" style="padding: 2px 6px; font-size: 16px; background: ${isFav ? '#ffc107' : 'white'}; border: 1px solid ${isFav ? '#ffc107' : '#e0e0e0'}; border-radius: 4px; cursor: pointer; color: ${isFav ? 'white' : '#666'};">
+                                    ${isFav ? '★' : '☆'}
+                                </button>
+                                <button class="delete-btn" title="Remove from history" style="padding: 2px 6px; font-size: 12px; background: none; border: 1px solid #e0e0e0; border-radius: 4px; cursor: pointer; color: #d32f2f;">
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+                    `;
 
-                    channelItem.addEventListener('click', () => {
+                    // Click on channel info to load
+                    channelItem.querySelector('.channel-info').addEventListener('click', () => {
                         const channelInput = document.getElementById('channel-input');
                         channelInput.value = item.name;
                         channelInput.focus();
 
-                        // Optional: Auto-load the channel
+                        // Auto-load the channel
                         setTimeout(() => {
                             document.getElementById('load-channel-btn').click();
                         }, 100);
                     });
+                    
+                    // Favorite button
+                    channelItem.querySelector('.fav-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.toggleFavorite(item.name);
+                    });
+                    
+                    // Delete button
+                    channelItem.querySelector('.delete-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (confirm(`Remove @${item.name} from history?`)) {
+                            this.removeChannel(item.name);
+                        }
+                    });
 
                     recentChannelsList.appendChild(channelItem);
                 });
+                
+                // Add "View More/Less" button if needed
+                if (needsExpander) {
+                    const expanderBtn = document.createElement('button');
+                    expanderBtn.className = 'view-more-btn';
+                    expanderBtn.innerHTML = this.isExpanded 
+                        ? `▲ Show less` 
+                        : `▼ View ${history.length - 3} more`;
+                    expanderBtn.style.cssText = `
+                        width: 100%;
+                        padding: 6px;
+                        margin-top: 8px;
+                        background: #f8f9fa;
+                        border: 1px solid #dee2e6;
+                        border-radius: 6px;
+                        color: #666;
+                        cursor: pointer;
+                        font-size: 0.85em;
+                        transition: all 0.2s;
+                    `;
+                    
+                    expanderBtn.addEventListener('click', () => {
+                        this.isExpanded = !this.isExpanded;
+                        this.updateRecentChannelsUI();
+                    });
+                    
+                    expanderBtn.addEventListener('mouseover', () => {
+                        expanderBtn.style.background = '#e9ecef';
+                        expanderBtn.style.borderColor = '#667eea';
+                    });
+                    
+                    expanderBtn.addEventListener('mouseout', () => {
+                        expanderBtn.style.background = '#f8f9fa';
+                        expanderBtn.style.borderColor = '#dee2e6';
+                    });
+                    
+                    recentChannelsList.appendChild(expanderBtn);
+                }
+            }
+            
+            getTimeAgo(timestamp) {
+                const now = Date.now();
+                const diff = now - timestamp;
+                const minutes = Math.floor(diff / 60000);
+                const hours = Math.floor(minutes / 60);
+                const days = Math.floor(hours / 24);
+                
+                if (days > 0) return `${days}d ago`;
+                if (hours > 0) return `${hours}h ago`;
+                if (minutes > 0) return `${minutes}m ago`;
+                return 'just now';
             }
         }
 
@@ -667,8 +845,18 @@
                 countPosts = 0;
                 hiddenPosts = -5;
 
-                // Add to history
-                historyManager.addChannel(channelName);
+                // Prepare metadata for history
+                const metadata = {
+                    totalPosts: data.count || 0
+                };
+                
+                // Try to get channel title from chats data
+                if (data.chats && data.chats.length > 0) {
+                    metadata.title = data.chats[0].title || channelName;
+                }
+                
+                // Add to history with metadata
+                historyManager.addChannel(channelName, metadata);
 
                 // Show current channel info
                 currentChannelElement.innerHTML = `
