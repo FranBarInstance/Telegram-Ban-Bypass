@@ -5,6 +5,10 @@ An enhanced client-side web tool that allows users to view content from any publ
 
 **Live Demo:** [DEMO](https://franbar1966.github.io/Telegram-Ban-Bypass/public/)
 
+# * Important Notice
+It appears that due to the heavy use of CORS proxies, they are being banned. As a result, the demo has been temporarily disabled until a solution is found.
+
+
 ## Installation
 No installation required. You can:
 1. Use the **[live web version](https://franbar1966.github.io/Telegram-Ban-Bypass/public/)**, or
