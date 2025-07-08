@@ -148,10 +148,10 @@
     </div>
     <div class="method-selection" style="margin: 10px;">
         <input type="radio" id="method-api" name="method" value="api">
-        <label for="method-binary">Get last ID by API</label>
-
+        <label for="method-binary">By API</label>
+        &nbsp;&nbsp;
         <input type="radio" id="method-binary" name="method" value="binary" checked>
-        <label for="method-binary">Get last ID by Binary Search</label>
+        <label for="method-binary">By Binary Search</label>
     </div>
 
     <div id="current-channel" class="current-channel" style="display: none;"></div>
@@ -258,7 +258,7 @@
                     const iframe = testContainer.querySelector('iframe');
                     if (iframe) {
                         iframe.onload = verifyIframe;
-                        setTimeout(verifyIframe, 600);
+                        setTimeout(verifyIframe, 800);
                     } else {
                         cleanup();
                         resolve(false);
