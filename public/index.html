@@ -137,6 +137,147 @@
         let lastPostId = 0;
         let currentChannel = '';
 
+        async function findLastPostId(channelName) {
+            const MAX_ATTEMPTS = 50;
+            let attempts = 0;
+            let lowerBound = 1;
+            let upperBound = null;
+            let lastValidId = 0;
+
+            // Fase 1: Búsqueda exponencial ×10
+            let jump = 100;
+            while (attempts < MAX_ATTEMPTS) {
+                attempts++;
+                const exists = await checkPostExists(channelName, jump);
+                console.log(`Checking ${jump}: ${exists ? 'Exists' : 'Not exists'}`);
+
+                if (exists) {
+                    lastValidId = jump;
+                    jump *= 10;
+                } else {
+                    upperBound = jump;
+                    lowerBound = lastValidId;
+                    break;
+                }
+            }
+
+            // Fase 2: Búsqueda ×2 si se encontró un upperBound
+            if (upperBound !== null) {
+                jump = lowerBound * 2;
+                while (attempts < MAX_ATTEMPTS && jump < upperBound) {
+                    attempts++;
+                    const exists = await checkPostExists(channelName, jump);
+                    console.log(`Checking ${jump}: ${exists ? 'Exists' : 'Not exists'}`);
+
+                    if (exists) {
+                        lastValidId = jump;
+                        jump *= 2;
+                    } else {
+                        upperBound = jump;
+                        break;
+                    }
+                }
+            }
+
+            // Fase 3: Búsqueda binaria
+            let left = lastValidId;
+            let right = upperBound !== null ? upperBound : lastValidId * 2;
+            while (attempts < MAX_ATTEMPTS && left <= right) {
+                attempts++;
+                const mid = Math.floor((left + right) / 2);
+                const exists = await checkPostExists(channelName, mid);
+                console.log(`Binary checking ${mid}: ${exists ? 'Exists' : 'Not exists'}`);
+
+                if (exists) {
+                    lastValidId = mid;
+                    left = mid + 1;
+                } else {
+                    right = mid - 1;
+                }
+            }
+
+            return lastValidId;
+        }
+
+        // Función mejorada para verificar la existencia de un post
+        async function checkPostExists(channelName, postId) {
+            return new Promise((resolve) => {
+                const container = document.createElement('div');
+                container.id = `temp-container-${postId}`;
+                container.style.position = 'absolute';
+                container.style.left = '-9999px';
+                document.body.appendChild(container);
+
+                const script = document.createElement('script');
+                script.async = true;
+                script.src = 'https://telegram.org/js/telegram-widget.js?22';
+                script.setAttribute('data-telegram-post', `${channelName}/${postId}`);
+                script.setAttribute('data-width', '100%');
+
+                let checkAttempts = 0;
+                const maxCheckAttempts = 5;
+                const checkInterval = 50; // 500ms entre verificaciones
+
+                const checkIframe = () => {
+                    checkAttempts++;
+                    const iframe = container.querySelector('iframe');
+
+                    if (iframe) {
+                        const height = iframe.offsetHeight;
+                        console.log(`Post ${postId} iframe height: ${height}px`);
+                        document.body.removeChild(container);
+                        resolve(height >= 60);
+                    } else if (checkAttempts >= maxCheckAttempts) {
+                        document.body.removeChild(container);
+                        resolve(false);
+                    } else {
+                        setTimeout(checkIframe, checkInterval);
+                    }
+                };
+
+                script.onload = () => setTimeout(checkIframe, 300);
+                script.onerror = () => {
+                    document.body.removeChild(container);
+                    resolve(false);
+                };
+
+                container.appendChild(script);
+            });
+        }
+
+        async function fetchLastPost(channelName) {
+            const loadingElement = document.getElementById('loading');
+            const errorElement = document.getElementById('error');
+            const currentChannelElement = document.getElementById('current-channel');
+
+            loadingElement.textContent = 'Finding last post...';
+            loadingElement.style.display = 'block';
+            errorElement.style.display = 'none';
+
+            try {
+                lastPostId = await findLastPostId(channelName);
+                currentChannel = channelName;
+
+                // Actualiza la UI
+                currentChannelElement.innerHTML = `Currently viewing: <strong>@${channelName}</strong> (Latest post ID: ${lastPostId})`;
+                currentChannelElement.style.display = 'block';
+
+                // Configura el contenedor para cargar mensajes
+                const widgetContainer = document.getElementById('widget-container');
+                widgetContainer.dataset.start = lastPostId;
+                widgetContainer.dataset.num = 20;
+                widgetContainer.innerHTML = '';
+
+                window.dispatchEvent(new CustomEvent('telegramLoaded'));
+            } catch (error) {
+                errorElement.textContent = `Error: ${error.message}`;
+                errorElement.style.display = 'block';
+            } finally {
+                loadingElement.style.display = 'none';
+            }
+        }
+
+
         // Function to extract channel name from input
         function extractChannelName(input) {
             const cleanInput = input.trim();
@@ -192,7 +333,7 @@
         }
 
         // Function to fetch the latest post from a channel using proxy
-        async function fetchLastPost(channelName) {
+        async function fetchLastPostNO(channelName) {
             const loadingElement = document.getElementById('loading');
             const errorElement = document.getElementById('error');
             const currentChannelElement = document.getElementById('current-channel');
@@ -202,7 +343,7 @@
                 loadingElement.style.display = 'block';
                 errorElement.style.display = 'none';
 
-                const url = `https://api-telegram-2.repostea.com/api/telegram/last-message?channel=${channelName}`;
+                const url = `https://api-telegram.repostea.com/api/telegram/last-message?channel=${channelName}`;
                 const response = await fetch(url);
                 if (!response.ok) {
                     throw new Error(`HTTP Error: ${response.status}`);
