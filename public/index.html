@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Telegram Ban Bypass">
     <meta name="author" content="github.com/FranBar1966">
-    <link rel="preload" href=" https://telegram.org/js/telegram-widget.js?22" as="script">
+    <link rel="preload" href="https://telegram.org/js/telegram-widget.js?22" as="script">
     <title>Telegram Ban Bypass</title>
     <style>
         body {
@@ -93,13 +93,6 @@
             text-align: center;
             padding: 20px;
         }
-        .post-info {
-            background: white;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
         .current-channel {
             background: #e8f4f8;
             padding: 10px;
@@ -116,24 +109,6 @@
             color: #856404;
             font-size: 14px;
         }
-        #search-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        #search-iframe {
-            width: 1px;
-            height: 1px;
-            border: none;
-            opacity: 0;
-        }
     </style>
 </head>
 <body>
@@ -143,9 +118,9 @@
     <div class="channel-input-container">
         <label for="channel-input">Enter Telegram Channel:</label>
         <input type="text" id="channel-input" placeholder="e.g., ORANGETERAPY or https://t.me/ORANGETERAPY/">
-
         <button type="button" id="load-channel-btn">Load Channel</button>
     </div>
+
     <div class="method-selection" style="margin: 10px;">
         <input type="radio" id="method-api" name="method" value="api">
         <label for="method-api">By API</label>
@@ -162,162 +137,245 @@
     <div id="loading" class="loading" style="display: none;">Loading latest post...</div>
     <div id="error" class="error" style="display: none;"></div>
 
-    <div id="search-container">
-        <iframe id="search-iframe"></iframe>
-    </div>
 
-    <div id="to-load-in-the-cache" style="display: none;">
-        <script async src="https://telegram.org/js/telegram-widget.js?22" data-telegram-post="telegram/395" data-width="100%"></script>
-    </div>
+
+
+
 
     <script>
-        // Global variables
-        let countInterval = 0;
-        let intervalId = null;
-        let countPosts = 0;
-        let lastPostId = 0;
-        let currentChannel = '';
+        // Configuration and constants
+        const CONFIG = {
+            CACHE_DURATION: 120000, // 2 minutes
+            TIMEOUT_DURATION: 5000, // 5 seconds
+            MIN_IFRAME_HEIGHT: 60,
+            MAX_POSTS_BEFORE_CLEAR: 200,
+            INTERVAL_CHECKS: 25,
+            LOAD_MORE_POST: 8,
+            WIDGET_SCRIPT_URL: 'https://telegram.org/js/telegram-widget.js?22',
+            API_URL: 'https://api-telegram-2.repostea.com/api/telegram/last-message',
+            LOAD_MORE_DELAY: 900
+        };
 
-        // Cache object
-        const postCache = {
-            data: {},
-            get(channel) {
-                const cached = this.data[channel];
-                if (cached && Date.now() - cached.timestamp < 120000) { // 2 minute cache
-                    return cached.value;
+        // Optimized global variables
+        const state = {
+            countInterval: 0,
+            intervalId: null,
+            countPosts: 0,
+            lastPostId: 0,
+            currentChannel: '',
+            isLoading: false
+        };
+
+        // Cached DOM elements
+        const elements = {
+            loading: document.getElementById('loading'),
+            error: document.getElementById('error'),
+            currentChannel: document.getElementById('current-channel'),
+            binarySearchInfo: document.getElementById('binary-search-info'),
+            widgetContainer: document.getElementById('widget-container'),
+            loadMoreButton: document.querySelector('.widget-load-more-button'),
+            channelInput: document.getElementById('channel-input'),
+            loadChannelBtn: document.getElementById('load-channel-btn')
+        };
+
+        // Optimized cache with Map
+        const postCache = new Map();
+
+        // Utilities
+        const utils = {
+            // Extract channel name from different formats
+            extractChannelName(input) {
+                const cleanInput = input.trim();
+
+                if (cleanInput.includes('t.me/')) {
+                    const parts = cleanInput.split('/');
+                    return parts[parts.length - 1] || parts[parts.length - 2];
                 }
-                return null;
+
+                return cleanInput.startsWith('@') ? cleanInput.substring(1) : cleanInput;
             },
-            set(channel, value) {
-                this.data[channel] = {
-                    value: value,
-                    timestamp: Date.now()
-                };
+
+            // Update loading state
+            setLoadingState(isLoading, message = 'Loading...') {
+                state.isLoading = isLoading;
+                elements.loading.textContent = message;
+                elements.loading.style.display = isLoading ? 'block' : 'none';
+                elements.error.style.display = 'none';
+            },
+
+            // Show error
+            showError(message) {
+                elements.error.textContent = message;
+                elements.error.style.display = 'block';
+                elements.loading.style.display = 'none';
+            },
+
+            // Clear container
+            clearContainer() {
+                elements.widgetContainer.innerHTML = '';
+                elements.loadMoreButton.style.display = 'none';
+                elements.currentChannel.style.display = 'none';
+                elements.binarySearchInfo.style.display = 'none';
+            },
+
+            // Create test element to verify messages
+            createTestElement() {
+                const testContainer = document.createElement('div');
+                Object.assign(testContainer.style, {
+                    position: 'absolute',
+                    left: '-9999px',
+                    visibility: 'hidden'
+                });
+                document.body.appendChild(testContainer);
+                return testContainer;
             }
         };
 
-        // Function to extract channel name from input
-        function extractChannelName(input) {
-            const cleanInput = input.trim();
-
-            if (cleanInput.includes('t.me/')) {
-                const parts = cleanInput.split('/');
-                let channelName = parts[parts.length - 1];
-                if (!channelName && parts.length > 1) {
-                    channelName = parts[parts.length - 2];
+        // Optimized cache management
+        const cache = {
+            get(channel) {
+                const cached = postCache.get(channel);
+                if (cached && Date.now() - cached.timestamp < CONFIG.CACHE_DURATION) {
+                    return cached.value;
                 }
-                return channelName;
+                postCache.delete(channel);
+                return null;
+            },
+
+            set(channel, value) {
+                postCache.set(channel, {
+                    value,
+                    timestamp: Date.now()
+                });
             }
+        };
 
-            if (cleanInput.startsWith('@')) {
-                return cleanInput.substring(1);
+        // Optimized message verification
+        const messageChecker = {
+            // Check if a message exists
+            async checkExists(channelName, messageId) {
+                return new Promise((resolve) => {
+                    const testContainer = utils.createTestElement();
+                    let isResolved = false;
+
+                    const cleanup = () => {
+                        if (!isResolved) {
+                            isResolved = true;
+                            testContainer.remove();
+                        }
+                    };
+
+                    const resolveWith = (result) => {
+                        if (!isResolved) {
+                            cleanup();
+                            resolve(result);
+                        }
+                    };
+
+                    const timeout = setTimeout(() => resolveWith(false), CONFIG.TIMEOUT_DURATION);
+
+                    const script = document.createElement('script');
+                    script.async = true;
+                    script.src = CONFIG.WIDGET_SCRIPT_URL;
+                    script.setAttribute('data-telegram-post', `${channelName}/${messageId}`);
+                    script.setAttribute('data-width', '100%');
+
+                    const verifyIframe = () => {
+                        const iframe = testContainer.querySelector('iframe');
+                        const exists = iframe && iframe.offsetHeight >= CONFIG.MIN_IFRAME_HEIGHT;
+                        clearTimeout(timeout);
+                        resolveWith(exists);
+                    };
+
+                    script.onload = () => {
+                        const iframe = testContainer.querySelector('iframe');
+                        if (iframe) {
+                            iframe.onload = verifyIframe;
+                            setTimeout(verifyIframe, CONFIG.LOAD_MORE_DELAY);
+                        } else {
+                            resolveWith(false);
+                        }
+                    };
+
+                    script.onerror = () => resolveWith(false);
+                    testContainer.appendChild(script);
+                });
             }
+        };
 
-            return cleanInput;
-        }
+        // Optimized binary search
+        const binarySearch = {
+            // Optimized test values
+            testValues: [
+                1000020, 1000000, 999980,
+                500020, 500000, 499980,
+                100020, 100000, 99980,
+                80020, 80000, 79980,
+                60020, 60000, 59980,
+                40020, 40000, 39980,
+                20020, 20000, 19980,
+                10020, 10000, 9980,
+                1020, 1000, 980,
+                120, 100, 80
+            ],
+            // Update search info
+            updateInfo(message) {
+                elements.binarySearchInfo.innerHTML = message;
+                elements.binarySearchInfo.style.display = 'block';
+            },
 
-        // Function to check if a message exists by loading it in an iframe
-        function checkMessageExists(channelName, messageId) {
-            return new Promise((resolve) => {
-                const testContainer = document.createElement('div');
-                testContainer.style.position = 'absolute';
-                testContainer.style.left = '-9999px';
-                testContainer.style.visibility = 'hidden';
-                document.body.appendChild(testContainer);
+            // Find last post using binary search
+            async findLastPost(channelName) {
+                // Check cache first
+                const cachedResult = cache.get(channelName);
+                if (cachedResult) {
+                    binarySearch.displayResult(channelName, cachedResult);
+                    return;
+                }
 
-                const script = document.createElement('script');
-                script.async = true;
-                script.src = 'https://telegram.org/js/telegram-widget.js?22';
-                script.setAttribute('data-telegram-post', `${channelName}/${messageId}`);
-                script.setAttribute('data-width', '100%');
+                try {
+                    utils.setLoadingState(true, 'Starting binary search...');
+                    binarySearch.updateInfo('Searching initial range...');
 
-                const timeout = setTimeout(() => {
-                    cleanup();
-                    resolve(false);
-                }, 5000);
+                    const { lower, upper } = await binarySearch.findInitialRange(channelName);
 
-                const cleanup = () => {
-                    clearTimeout(timeout);
-                    if (testContainer.parentNode) {
-                        document.body.removeChild(testContainer);
+                    binarySearch.updateInfo(`Range found: ${lower} - ${upper}. Starting binary search...`);
+
+                    const lastPostId = await binarySearch.performBinarySearch(channelName, lower, upper);
+
+                    // Final verification
+                    binarySearch.updateInfo(`Verifying last message: ${lastPostId}`);
+                    const finalExists = await messageChecker.checkExists(channelName, lastPostId);
+
+                    if (!finalExists) {
+                        throw new Error('No valid messages found');
                     }
-                };
 
-                const verifyIframe = () => {
-                    const iframe = testContainer.querySelector('iframe');
-                    if (!iframe || iframe.offsetHeight < 60) {
-                        cleanup();
-                        resolve(false);
-                    } else {
-                        cleanup();
-                        resolve(true);
-                    }
-                };
+                    cache.set(channelName, lastPostId);
+                    binarySearch.displayResult(channelName, lastPostId);
 
-                script.onload = () => {
-                    const iframe = testContainer.querySelector('iframe');
-                    if (iframe) {
-                        iframe.onload = verifyIframe;
-                        setTimeout(verifyIframe, 800);
-                    } else {
-                        cleanup();
-                        resolve(false);
-                    }
-                };
+                } catch (error) {
+                    console.error('Error in binary search:', error);
+                    utils.showError(`Error in binary search: ${error.message}`);
+                    elements.binarySearchInfo.style.display = 'none';
 
-                script.onerror = () => {
-                    cleanup();
-                    resolve(false);
-                };
+                    // Asegurarse de rehabilitar el botón en caso de error
+                    elements.loadChannelBtn.disabled = false;
+                    elements.loadChannelBtn.textContent = 'Load Channel';
+                    utils.setLoadingState(false);
+                }
+            },
 
-                testContainer.appendChild(script);
-            });
-        }
-
-        // Binary search function to find the last message
-        async function findLastPostBinary(channelName) {
-            const loadingElement = document.getElementById('loading');
-            const errorElement = document.getElementById('error');
-            const currentChannelElement = document.getElementById('current-channel');
-            const binarySearchInfo = document.getElementById('binary-search-info');
-
-            // Check cache first
-            const cachedResult = postCache.get(channelName);
-            if (cachedResult) {
-                lastPostId = cachedResult;
-                currentChannel = channelName;
-
-                currentChannelElement.innerHTML = `Currently viewing: <strong>@${channelName}</strong> (Latest post ID: ${lastPostId})`;
-                currentChannelElement.style.display = 'block';
-                loadingElement.style.display = 'none';
-
-                const widgetContainer = document.getElementById('widget-container');
-                widgetContainer.dataset.start = lastPostId;
-                widgetContainer.dataset.num = 20;
-                widgetContainer.innerHTML = '';
-
-                window.dispatchEvent(new CustomEvent('telegramLoaded'));
-                return;
-            }
-
-            try {
-                loadingElement.textContent = 'Starting binary search...';
-                loadingElement.style.display = 'block';
-                errorElement.style.display = 'none';
-                binarySearchInfo.style.display = 'block';
-
-                // Initial exponential search to find upper bound
-                const testValues = [100020, 100010, 100000, 99990, 99980, 60020, 60010, 60000, 59990, 59980, 40020, 40010, 40000, 39990, 39980, 20020, 20010, 20000, 19990, 19980, 10020, 10010, 10000, 9990, 9980, 1020, 1010, 1000, 990, 980, 120, 110, 100, 90, 80];
+            // Find initial range
+            async findInitialRange(channelName) {
                 let lower = 1;
                 let upper = 1;
                 let foundAny = false;
 
-                binarySearchInfo.innerHTML = `Searching initial range...`;
-
-                // Find upper bound
-                for (let testValue of testValues) {
-                    binarySearchInfo.innerHTML = `Testing message ${testValue}...`;
-                    const exists = await checkMessageExists(channelName, testValue);
+                // Search for upper bound
+                for (const testValue of binarySearch.testValues) {
+                    binarySearch.updateInfo(`Testing message ${testValue}...`);
+                    const exists = await messageChecker.checkExists(channelName, testValue);
 
                     if (exists) {
                         lower = testValue;
@@ -328,29 +386,30 @@
                     }
                 }
 
-                // If no messages found in test values
                 if (!foundAny) {
                     throw new Error('No messages found - channel may not exist or have no public messages');
                 }
 
-                // If all test values exist, continue exponentially
-                if (lower === testValues[testValues.length - 1]) {
+                // Expand if necessary
+                if (lower === binarySearch.testValues[binarySearch.testValues.length - 1]) {
                     upper = lower * 2;
-                    while (await checkMessageExists(channelName, upper)) {
+                    while (await messageChecker.checkExists(channelName, upper)) {
                         lower = upper;
-                        upper = upper * 2;
-                        binarySearchInfo.innerHTML = `Expanding search: testing ${upper}...`;
+                        upper *= 2;
+                        binarySearch.updateInfo(`Expanding search: testing ${upper}...`);
                     }
                 }
 
-                binarySearchInfo.innerHTML = `Range found: ${lower} - ${upper}. Starting binary search...`;
+                return { lower, upper };
+            },
 
-                // Binary search
+            // Perform binary search
+            async performBinarySearch(channelName, lower, upper) {
                 while (lower < upper - 1) {
                     const mid = Math.floor((lower + upper) / 2);
-                    binarySearchInfo.innerHTML = `Binary search: testing ${mid} (range: ${lower}-${upper})`;
+                    binarySearch.updateInfo(`Binary search: testing ${mid} (range: ${lower}-${upper})`);
 
-                    const exists = await checkMessageExists(channelName, mid);
+                    const exists = await messageChecker.checkExists(channelName, mid);
 
                     if (exists) {
                         lower = mid;
@@ -359,211 +418,228 @@
                     }
                 }
 
-                // Final verification
-                binarySearchInfo.innerHTML = `Verifying last message: ${lower}`;
-                const finalExists = await checkMessageExists(channelName, lower);
+                return lower;
+            },
 
-                if (!finalExists) {
-                    throw new Error('No valid messages found');
-                }
+            // Display result
+            displayResult(channelName, lastPostId) {
+                state.lastPostId = lastPostId;
+                state.currentChannel = channelName;
 
-                lastPostId = lower;
-                currentChannel = channelName;
+                elements.currentChannel.innerHTML = `Currently viewing: <strong>@${channelName}</strong> (Latest post ID: ${lastPostId})`;
+                elements.currentChannel.style.display = 'block';
 
-                // Store in cache
-                postCache.set(channelName, lastPostId);
-
-                // Show results
-                currentChannelElement.innerHTML = `Currently viewing: <strong>@${channelName}</strong> (Latest post ID: ${lastPostId})`;
-                currentChannelElement.style.display = 'block';
-
-                binarySearchInfo.innerHTML = `✅ Search completed. Last message: ${lastPostId}`;
-                binarySearchInfo.style.backgroundColor = '#d4edda';
-                binarySearchInfo.style.color = '#155724';
+                binarySearch.updateInfo(`✅ Search completed. Last message: ${lastPostId}`);
+                elements.binarySearchInfo.style.backgroundColor = '#d4edda';
+                elements.binarySearchInfo.style.color = '#155724';
 
                 setTimeout(() => {
-                    binarySearchInfo.style.display = 'none';
+                    elements.binarySearchInfo.style.display = 'none';
                 }, 1000);
 
-                loadingElement.style.display = 'none';
+                utils.setLoadingState(false);
 
-                // Configure the container
-                const widgetContainer = document.getElementById('widget-container');
-                widgetContainer.dataset.start = lastPostId;
-                widgetContainer.dataset.num = 20;
-                widgetContainer.innerHTML = '';
+                elements.widgetContainer.dataset.start = lastPostId;
+                elements.widgetContainer.dataset.num = 20;
+                elements.widgetContainer.innerHTML = '';
 
-                // Trigger load event
-                window.dispatchEvent(new CustomEvent('telegramLoaded'));
-
-            } catch (error) {
-                console.error('Error in binary search:', error);
-                loadingElement.style.display = 'none';
-                errorElement.textContent = `Error in binary search: ${error.message}`;
-                errorElement.style.display = 'block';
-                binarySearchInfo.style.display = 'none';
-            }
-        }
-
-        // Original API function
-        async function fetchLastPost(channelName) {
-            const loadingElement = document.getElementById('loading');
-            const errorElement = document.getElementById('error');
-            const currentChannelElement = document.getElementById('current-channel');
-            const binarySearchInfo = document.getElementById('binary-search-info');
-
-            try {
-                loadingElement.textContent = 'Loading latest post...';
-                loadingElement.style.display = 'block';
-                errorElement.style.display = 'none';
-                binarySearchInfo.style.display = 'none';
-
-                const url = `https://api-telegram-2.repostea.com/api/telegram/last-message?channel=${channelName}`;
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(`HTTP Error: ${response.status}`);
-                }
-                const data = await response.json();
-
-                if (!data.success || !data.last_message_id) {
-                    throw new Error('No messages found in response');
-                }
-
-                lastPostId = data.last_message_id;
-                currentChannel = channelName;
-
-                currentChannelElement.innerHTML = `Currently viewing: <strong>@${channelName}</strong> (Latest post ID: ${lastPostId})`;
-                currentChannelElement.style.display = 'block';
-
-                loadingElement.style.display = 'none';
-
-                const widgetContainer = document.getElementById('widget-container');
-                widgetContainer.dataset.start = lastPostId;
-                widgetContainer.dataset.num = 20;
-                widgetContainer.innerHTML = '';
+                // Asegurarse de que el botón esté habilitado
+                elements.loadChannelBtn.disabled = false;
+                elements.loadChannelBtn.textContent = 'Load Channel';
 
                 window.dispatchEvent(new CustomEvent('telegramLoaded'));
-
-            } catch (error) {
-                console.error('Error fetching latest post:', error);
-                loadingElement.style.display = 'none';
-                errorElement.textContent = `Error loading posts: ${error.message}`;
-                errorElement.style.display = 'block';
             }
-        }
+        };
 
-        // Function to load Telegram widgets
-        function loadTelegramWidgets(start, numPosts) {
-            const container = document.getElementById('widget-container');
-            const loadButton = document.querySelector('.widget-load-more-button');
-            const end = start - numPosts + 1;
+        // Optimized API
+        const api = {
+            async fetchLastPost(channelName) {
+                try {
+                    utils.setLoadingState(true, 'Loading latest post...');
+                    elements.binarySearchInfo.style.display = 'none';
 
-            if (!container) {
-                console.error('The container with ID "widget-container" was not found.');
-                return;
+                    const response = await fetch(`${CONFIG.API_URL}?channel=${channelName}`);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP Error: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    if (!data.success || !data.last_message_id) {
+                        throw new Error('No messages found in response');
+                    }
+
+                    binarySearch.displayResult(channelName, data.last_message_id);
+
+                } catch (error) {
+                    console.error('Error fetching latest post:', error);
+                    utils.showError(`Error loading posts: ${error.message}`);
+
+                    // Asegurarse de rehabilitar el botón en caso de error
+                    elements.loadChannelBtn.disabled = false;
+                    elements.loadChannelBtn.textContent = 'Load Channel';
+                    utils.setLoadingState(false);
+                }
             }
+        };
 
-            loadButton.style.display = 'block';
+        // Optimized widget loader
+        const widgetLoader = {
+            // Load Telegram widgets
+            load(start, numPosts) {
+                if (!elements.widgetContainer) {
+                    console.error('Container with ID "widget-container" not found.');
+                    return;
+                }
 
-            for (let n = start; n >= end; n--) {
-                const script = document.createElement('script');
-                script.async = true;
-                script.src = 'https://telegram.org/js/telegram-widget.js?22';
-                script.setAttribute('data-telegram-post', `${currentChannel}/${n}`);
-                script.setAttribute('data-width', '100%');
-                container.appendChild(script);
-                countPosts++;
-            }
+                elements.loadMoreButton.style.display = 'block';
+                const end = start - numPosts + 1;
 
-            if (end > 1) {
-                const freshButton = document.querySelector('.widget-load-more-button');
-                freshButton.replaceWith(freshButton.cloneNode(true));
-                const newButton = document.querySelector('.widget-load-more-button');
+                const fragment = document.createDocumentFragment();
 
-                newButton.addEventListener('click', function() {
-                    if (countPosts > 200) {
-                        countPosts = 0;
-                        container.innerHTML = '';
+                for (let n = start; n >= end; n--) {
+                    const script = document.createElement('script');
+                    script.async = true;
+                    script.src = CONFIG.WIDGET_SCRIPT_URL;
+                    script.setAttribute('data-telegram-post', `${state.currentChannel}/${n}`);
+                    script.setAttribute('data-width', '100%');
+                    fragment.appendChild(script);
+                    state.countPosts++;
+                }
+
+                elements.widgetContainer.appendChild(fragment);
+
+                if (end > 1) {
+                    widgetLoader.setupLoadMoreButton(end);
+                } else {
+                    elements.loadMoreButton.style.display = 'none';
+                }
+            },
+
+            // Setup load more button
+            setupLoadMoreButton(end) {
+                const newButton = elements.loadMoreButton.cloneNode(true);
+                elements.loadMoreButton.replaceWith(newButton);
+
+                newButton.addEventListener('click', () => {
+                    if (state.countPosts > CONFIG.MAX_POSTS_BEFORE_CLEAR) {
+                        state.countPosts = 0;
+                        elements.widgetContainer.innerHTML = '';
                     }
 
                     const newStart = end - 1;
-                    const numPostsToLoad = parseInt(container.dataset.num);
-
-                    loadTelegramWidgets(newStart, numPostsToLoad);
+                    const numPostsToLoad = parseInt(elements.widgetContainer.dataset.num);
+                    widgetLoader.load(newStart, numPostsToLoad);
                 });
-            } else {
-                loadButton.style.display = 'none';
-            }
-        }
 
-        // Remove deleted posts by detecting the size of the iframe
-        function checkIframesHeight() {
-            document.querySelectorAll('iframe[src*="t.me"]').forEach(iframe => {
-                const height = iframe.offsetHeight;
-                if (height < 60 && height > 0) {
-                    iframe.style.display = 'none';
+                // Update reference
+                elements.loadMoreButton = newButton;
+            }
+        };
+
+        // Optimized iframe monitor
+        const iframeMonitor = {
+            // Check iframe height and hide deleted ones
+            checkHeight() {
+                const iframes = document.querySelectorAll('iframe[src*="t.me"]');
+                iframes.forEach(iframe => {
+                    const { offsetHeight } = iframe;
+                    if (offsetHeight < CONFIG.MIN_IFRAME_HEIGHT && offsetHeight > 0) {
+                        iframe.style.display = 'none';
+                    }
+                });
+
+                state.countInterval++;
+                if (state.intervalId && state.countInterval >= CONFIG.INTERVAL_CHECKS) {
+                    clearInterval(state.intervalId);
+                    state.countInterval = 0;
+                    state.intervalId = null;
                 }
-            });
+            },
 
-            countInterval++;
-            if (intervalId && countInterval >= 25) {
-                clearInterval(intervalId);
-                countInterval = 0;
+            // Start monitoring
+            start() {
+                if (state.intervalId) {
+                    clearInterval(state.intervalId);
+                }
+                state.intervalId = setInterval(() => iframeMonitor.checkHeight(), 200);
             }
-        }
+        };
 
-        // Custom event listener to start loading widgets
-        window.addEventListener('telegramLoaded', function() {
-            const widget = document.getElementById('widget-container');
-            if (widget && lastPostId > 0) {
-                countPosts = 0;
-                start_post = parseInt(widget.dataset.start) + 8;
-                loadTelegramWidgets(start_post, parseInt(widget.dataset.num));
-                intervalId = setInterval(checkIframesHeight, 200);
+        // Optimized event listeners
+        const eventListeners = {
+            init() {
+                // Load widgets when loading is complete
+                window.addEventListener('telegramLoaded', () => {
+                    if (elements.widgetContainer && state.lastPostId > 0) {
+                        state.countPosts = 0;
+                        const startPost = parseInt(elements.widgetContainer.dataset.start) + CONFIG.LOAD_MORE_POST;
+                        widgetLoader.load(startPost, parseInt(elements.widgetContainer.dataset.num));
+                        iframeMonitor.start();
+                    }
+                });
+
+                // Load channel button
+                elements.loadChannelBtn.addEventListener('click', async () => {
+                    const channelName = utils.extractChannelName(elements.channelInput.value);
+
+                    if (!channelName) {
+                        alert('Please enter a valid channel name');
+                        return;
+                    }
+
+                    if (state.isLoading) return;
+
+                    utils.clearContainer();
+
+                    // Disable button during loading
+                    elements.loadChannelBtn.disabled = true;
+                    elements.loadChannelBtn.textContent = 'Loading...';
+
+                    try {
+                        const selectedMethod = document.querySelector('input[name="method"]:checked').value;
+                        const loadFunction = selectedMethod === 'api' ? api.fetchLastPost : binarySearch.findLastPost;
+                        await loadFunction(channelName);
+                    } catch (error) {
+                        console.error('Error loading channel:', error);
+                        utils.showError(error.message);
+                    } finally {
+                        // Asegurarse de que el botón siempre se rehabilite
+                        elements.loadChannelBtn.disabled = false;
+                        elements.loadChannelBtn.textContent = 'Load Channel';
+                    }
+                });
+
+                // Allow Enter to load channel
+                elements.channelInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        elements.loadChannelBtn.click();
+                    }
+                });
+
+                // Load channel from URL parameters
+                document.addEventListener('DOMContentLoaded', () => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const channelParam = urlParams.get('channel');
+                    if (channelParam) {
+                        elements.channelInput.value = channelParam;
+                    }
+                });
             }
-        });
+        };
 
-        // Event listener for the load channel button
-        document.getElementById('load-channel-btn').addEventListener('click', function() {
-            const channelInput = document.getElementById('channel-input');
-            const channelName = extractChannelName(channelInput.value);
-            const selectedMethod = document.querySelector('input[name="method"]:checked').value;
-            const widgetContainer = document.getElementById('widget-container');
-            widgetContainer.innerHTML = '';
-            document.querySelector('.widget-load-more-button').style.display = 'none';
-
-            if (!channelName) {
-                alert('Please enter a valid channel name');
-                return;
-            }
-
-            // Disable button during loading
-            this.disabled = true;
-            this.textContent = 'Loading...';
-
-            // Choose method
-            const loadFunction = selectedMethod === 'api' ? fetchLastPost : findLastPostBinary;
-
-            loadFunction(channelName).finally(() => {
-                this.disabled = false;
-                this.textContent = 'Load Channel';
-            });
-        });
-
-        // Allow Enter key to trigger channel loading
-        document.getElementById('channel-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                document.getElementById('load-channel-btn').click();
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const channelParam = urlParams.get('channel');
-            if (channelParam) {
-                document.getElementById('channel-input').value = channelParam;
-            }
-        });
+        // Initialize application
+        eventListeners.init();
     </script>
+
+
+
+
+
+
+
+
+
 </body>
 </html>
