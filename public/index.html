@@ -65,6 +65,25 @@
             background-color: #ccc;
             cursor: not-allowed;
         }
+        .method-selection {
+            background: white;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .method-selection label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+        .method-selection input[type="radio"] {
+            margin-right: 10px;
+        }
+        .method-selection div {
+            margin-bottom: 10px;
+        }
         #widget-container {
             margin-top: 20px;
         }
@@ -110,6 +129,32 @@
             text-align: center;
             color: #333;
         }
+        .binary-search-info {
+            background: #fff3cd;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            color: #856404;
+            font-size: 14px;
+        }
+        #search-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        #search-iframe {
+            width: 1px;
+            height: 1px;
+            border: none;
+            opacity: 0;
+        }
     </style>
 </head>
 <body>
@@ -119,15 +164,33 @@
     <div class="channel-input-container">
         <label for="channel-input">Enter Telegram Channel:</label>
         <input type="text" id="channel-input" placeholder="e.g., ORANGETERAPY or https://t.me/ORANGETERAPY/">
+
+        <div class="method-selection">
+            <label>Método para encontrar último mensaje:</label>
+            <div>
+                <input type="radio" id="method-api" name="method" value="api">
+                <label for="method-api">API (Rápido)</label>
+            </div>
+            <div>
+                <input type="radio" id="method-binary" name="method" value="binary" checked>
+                <label for="method-binary">Búsqueda Binaria (Sin API)</label>
+            </div>
+        </div>
+
         <button id="load-channel-btn">Load Channel</button>
     </div>
 
     <div id="current-channel" class="current-channel" style="display: none;"></div>
+    <div id="binary-search-info" class="binary-search-info" style="display: none;"></div>
 
     <div id="widget-container" data-start="0" data-num="20"></div>
     <button class="widget-load-more-button" style="display: none;">Load More Posts</button>
     <div id="loading" class="loading" style="display: none;">Loading latest post...</div>
     <div id="error" class="error" style="display: none;"></div>
+
+    <div id="search-container">
+        <iframe id="search-iframe"></iframe>
+    </div>
 
     <script>
         // Global variables
@@ -141,10 +204,8 @@
         function extractChannelName(input) {
             const cleanInput = input.trim();
 
-            // If it's a full URL, extract the channel name
             if (cleanInput.includes('t.me/')) {
                 const parts = cleanInput.split('/');
-                // Get the last non-empty part (handles trailing slashes)
                 let channelName = parts[parts.length - 1];
                 if (!channelName && parts.length > 1) {
                     channelName = parts[parts.length - 2];
@@ -152,37 +213,32 @@
                 return channelName;
             }
 
-            // If it starts with @, remove it
             if (cleanInput.startsWith('@')) {
                 return cleanInput.substring(1);
             }
 
-            // Otherwise, return as is (handles plain channel names like "ORANGETERAPY")
             return cleanInput;
         }
 
         async function fetchWithCache(url) {
             const cacheKey = `cache_${url}`;
             const now = new Date().getTime();
-            const cacheDuration = 30000; // 30 seconds in milliseconds
+            const cacheDuration = 30000;
 
-            // Try to get cached data
             const cachedData = localStorage.getItem(cacheKey);
             if (cachedData) {
                 const { timestamp, data } = JSON.parse(cachedData);
                 if (now - timestamp < cacheDuration) {
-                    return data; // Return cached data if not expired
+                    return data;
                 }
             }
 
-            // If no cached data or expired, make the request
             const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`HTTP Error: ${response.status}`);
             }
             const freshData = await response.json();
 
-            // Store in cache with timestamp
             localStorage.setItem(cacheKey, JSON.stringify({
                 timestamp: now,
                 data: freshData
@@ -191,16 +247,176 @@
             return freshData;
         }
 
-        // Function to fetch the latest post from a channel using proxy
+        // Function to check if a message exists by loading it in an iframe
+        function checkMessageExists(channelName, messageId) {
+            return new Promise((resolve) => {
+                // Crear contenedor oculto
+                const testContainer = document.createElement('div');
+                testContainer.style.position = 'absolute';
+                testContainer.style.left = '-9999px';
+                testContainer.style.visibility = 'hidden';
+                document.body.appendChild(testContainer);
+
+                // Crear script del widget
+                const script = document.createElement('script');
+                script.async = true;
+                script.src = 'https://telegram.org/js/telegram-widget.js?22';
+                script.setAttribute('data-telegram-post', `${channelName}/${messageId}`);
+                script.setAttribute('data-width', '100%');
+
+                // Timeout para evitar esperas infinitas
+                const timeout = setTimeout(() => {
+                    cleanup();
+                    resolve(false);
+                }, 5000); // 5 segundos de timeout
+
+                // Función de limpieza
+                const cleanup = () => {
+                    clearTimeout(timeout);
+                    if (testContainer.parentNode) {
+                        document.body.removeChild(testContainer);
+                    }
+                };
+
+                // Evento para verificar cuando se carga el widget
+                const checkExistence = () => {
+                    // Esperar un breve momento para que el iframe se renderice
+                    setTimeout(() => {
+                        const iframe = testContainer.querySelector('iframe');
+
+                        // Lógica CORREGIDA: Mensaje NO existe si height < 60px
+                        if (!iframe || iframe.offsetHeight < 60) {
+                            cleanup();
+                            resolve(false); // NO existe
+                        } else {
+                            cleanup();
+                            resolve(true); // SÍ existe
+                        }
+                    }, 500); // Tiempo de espera para renderizado
+                };
+
+                // Configurar eventos
+                script.onload = checkExistence;
+                script.onerror = () => {
+                    cleanup();
+                    resolve(false);
+                };
+
+                // Añadir el script al contenedor
+                testContainer.appendChild(script);
+            });
+        }
+
+        // Binary search function to find the last message
+        async function findLastPostBinary(channelName) {
+            const loadingElement = document.getElementById('loading');
+            const errorElement = document.getElementById('error');
+            const currentChannelElement = document.getElementById('current-channel');
+            const binarySearchInfo = document.getElementById('binary-search-info');
+
+            try {
+                loadingElement.textContent = 'Iniciando búsqueda binaria...';
+                loadingElement.style.display = 'block';
+                errorElement.style.display = 'none';
+                binarySearchInfo.style.display = 'block';
+
+                // Initial exponential search to find upper bound
+                const testValues = [100020, 100010, 100000, 99990, 99980, 60020, 60010, 60000, 59990, 59980, 40020, 40010, 40000, 39990, 39980, 20020, 20010, 20000, 19990, 19980, 10020, 10010, 10000, 9990, 9980, 1020, 1010, 1000, 990, 980, 120, 110, 100, 90, 80]
+                let lower = 1;
+                let upper = 1;
+
+                binarySearchInfo.innerHTML = `Buscando rango inicial...`;
+
+                // Find upper bound
+                for (let testValue of testValues) {
+                    binarySearchInfo.innerHTML = `Probando mensaje ${testValue}...`;
+                    const exists = await checkMessageExists(channelName, testValue);
+
+                    if (exists) {
+                        lower = testValue;
+                    } else {
+                        upper = testValue;
+                        break;
+                    }
+                }
+
+                // If all test values exist, continue exponentially
+                if (lower === testValues[testValues.length - 1]) {
+                    upper = lower * 2;
+                    while (await checkMessageExists(channelName, upper)) {
+                        lower = upper;
+                        upper = upper * 2;
+                        binarySearchInfo.innerHTML = `Expandiendo búsqueda: probando ${upper}...`;
+                    }
+                }
+
+                binarySearchInfo.innerHTML = `Rango encontrado: ${lower} - ${upper}. Iniciando búsqueda binaria...`;
+
+                // Binary search
+                while (lower < upper - 1) {
+                    const mid = Math.floor((lower + upper) / 2);
+                    binarySearchInfo.innerHTML = `Búsqueda binaria: probando ${mid} (rango: ${lower}-${upper})`;
+
+                    const exists = await checkMessageExists(channelName, mid);
+
+                    if (exists) {
+                        lower = mid;
+                    } else {
+                        upper = mid;
+                    }
+                }
+
+                // Final verification
+                binarySearchInfo.innerHTML = `Verificando último mensaje: ${lower}`;
+                const finalExists = await checkMessageExists(channelName, lower);
+
+                if (!finalExists) {
+                    throw new Error('No se encontraron mensajes válidos');
+                }
+
+                lastPostId = lower;
+                currentChannel = channelName;
+
+                // Show results
+                currentChannelElement.innerHTML = `Currently viewing: <strong>@${channelName}</strong> (Latest post ID: ${lastPostId})`;
+                currentChannelElement.style.display = 'block';
+
+                binarySearchInfo.innerHTML = `✅ Búsqueda completada. Último mensaje: ${lastPostId}`;
+                binarySearchInfo.style.backgroundColor = '#d4edda';
+                binarySearchInfo.style.color = '#155724';
+
+                loadingElement.style.display = 'none';
+
+                // Configure the container
+                const widgetContainer = document.getElementById('widget-container');
+                widgetContainer.dataset.start = lastPostId;
+                widgetContainer.dataset.num = 20;
+                widgetContainer.innerHTML = '';
+
+                // Trigger load event
+                window.dispatchEvent(new CustomEvent('telegramLoaded'));
+
+            } catch (error) {
+                console.error('Error en búsqueda binaria:', error);
+                loadingElement.style.display = 'none';
+                errorElement.textContent = `Error en búsqueda binaria: ${error.message}`;
+                errorElement.style.display = 'block';
+                binarySearchInfo.style.display = 'none';
+            }
+        }
+
+        // Original API function
         async function fetchLastPost(channelName) {
             const loadingElement = document.getElementById('loading');
             const errorElement = document.getElementById('error');
             const currentChannelElement = document.getElementById('current-channel');
+            const binarySearchInfo = document.getElementById('binary-search-info');
 
             try {
                 loadingElement.textContent = 'Loading latest post...';
                 loadingElement.style.display = 'block';
                 errorElement.style.display = 'none';
+                binarySearchInfo.style.display = 'none';
 
                 const url = `https://api-telegram-2.repostea.com/api/telegram/last-message?channel=${channelName}`;
                 const response = await fetch(url);
@@ -216,21 +432,16 @@
                 lastPostId = data.last_message_id;
                 currentChannel = channelName;
 
-                // Show current channel info
                 currentChannelElement.innerHTML = `Currently viewing: <strong>@${channelName}</strong> (Latest post ID: ${lastPostId})`;
                 currentChannelElement.style.display = 'block';
 
                 loadingElement.style.display = 'none';
 
-                // Configure the container with the latest post and how many to load
                 const widgetContainer = document.getElementById('widget-container');
                 widgetContainer.dataset.start = lastPostId;
-                widgetContainer.dataset.num = 20; // Load 20 posts initially
-
-                // Clear previous content
+                widgetContainer.dataset.num = 20;
                 widgetContainer.innerHTML = '';
 
-                // Trigger the load event to start loading widgets
                 window.dispatchEvent(new CustomEvent('telegramLoaded'));
 
             } catch (error) {
@@ -254,7 +465,6 @@
 
             loadButton.style.display = 'block';
 
-            // Load widgets for the specified range
             for (let n = start; n >= end; n--) {
                 const script = document.createElement('script');
                 script.async = true;
@@ -265,14 +475,12 @@
                 countPosts++;
             }
 
-            // Setup load more button if there are more posts
             if (end > 1) {
                 const freshButton = document.querySelector('.widget-load-more-button');
                 freshButton.replaceWith(freshButton.cloneNode(true));
                 const newButton = document.querySelector('.widget-load-more-button');
 
                 newButton.addEventListener('click', function() {
-                    // Clear content if we've loaded too many posts
                     if (countPosts > 200) {
                         countPosts = 0;
                         container.innerHTML = '';
@@ -320,6 +528,7 @@
         document.getElementById('load-channel-btn').addEventListener('click', function() {
             const channelInput = document.getElementById('channel-input');
             const channelName = extractChannelName(channelInput.value);
+            const selectedMethod = document.querySelector('input[name="method"]:checked').value;
 
             if (!channelName) {
                 alert('Please enter a valid channel name');
@@ -330,7 +539,10 @@
             this.disabled = true;
             this.textContent = 'Loading...';
 
-            fetchLastPost(channelName).finally(() => {
+            // Choose method
+            const loadFunction = selectedMethod === 'api' ? fetchLastPost : findLastPostBinary;
+
+            loadFunction(channelName).finally(() => {
                 this.disabled = false;
                 this.textContent = 'Load Channel';
             });
