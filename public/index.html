@@ -307,6 +307,7 @@
                 const testValues = [100020, 100010, 100000, 99990, 99980, 60020, 60010, 60000, 59990, 59980, 40020, 40010, 40000, 39990, 39980, 20020, 20010, 20000, 19990, 19980, 10020, 10010, 10000, 9990, 9980, 1020, 1010, 1000, 990, 980, 120, 110, 100, 90, 80];
                 let lower = 1;
                 let upper = 1;
+                let foundAny = false;
 
                 binarySearchInfo.innerHTML = `Searching initial range...`;
 
@@ -319,8 +320,14 @@
                         lower = testValue;
                     } else {
                         upper = testValue;
+                        foundAny = true;
                         break;
                     }
+                }
+
+                // If no messages found in test values
+                if (!foundAny) {
+                    throw new Error('No messages found - channel may not exist or have no public messages');
                 }
 
                 // If all test values exist, continue exponentially
