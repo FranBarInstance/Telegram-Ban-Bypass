@@ -33,13 +33,14 @@
             border-radius: 5px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .channel-input-container label {
+        .channel-input-container label:not(.method-selection label) {
             display: block;
             margin-bottom: 10px;
             font-weight: bold;
             color: #333;
         }
-        .channel-input-container input {
+
+        .channel-input-container input:not(.method-selection input) {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
@@ -118,16 +119,17 @@
     <div class="channel-input-container">
         <label for="channel-input">Enter Telegram Channel:</label>
         <input type="text" id="channel-input" placeholder="e.g., ORANGETERAPY or https://t.me/ORANGETERAPY/">
+        <div class="method-selection">
+            <input type="radio" id="method-api" name="method" value="api">
+            <label for="method-api">By API</label>
+            &nbsp;&nbsp;
+            <input type="radio" id="method-binary" name="method" value="binary" checked>
+            <label for="method-binary">By Binary Search</label>
+        </div>
         <button type="button" id="load-channel-btn">Load Channel</button>
     </div>
 
-    <div class="method-selection" style="margin: 10px;">
-        <input type="radio" id="method-api" name="method" value="api">
-        <label for="method-api">By API</label>
-        &nbsp;&nbsp;
-        <input type="radio" id="method-binary" name="method" value="binary" checked>
-        <label for="method-binary">By Binary Search</label>
-    </div>
+
 
     <div id="current-channel" class="current-channel" style="display: none;"></div>
     <div id="binary-search-info" class="binary-search-info" style="display: none;"></div>
