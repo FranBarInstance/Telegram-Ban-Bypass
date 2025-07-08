@@ -177,7 +177,7 @@
             </div>
         </div>
 
-        <button id="load-channel-btn">Load Channel</button>
+        <button type="button" id="load-channel-btn">Load Channel</button>
     </div>
 
     <div id="current-channel" class="current-channel" style="display: none;"></div>
@@ -283,7 +283,7 @@
                             cleanup();
                             resolve(true); // SÍ existe
                         }
-                    }, 750); // Tiempo de espera para renderizado
+                    }, 300); // Tiempo de espera para renderizado
                 };
 
                 // Configurar eventos
@@ -566,7 +566,6 @@
                     if (countPosts > 200) {
                         countPosts = 0;
                         container.innerHTML = '';
-                        setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 100);
                     }
 
                     const newStart = end - 1;
@@ -611,6 +610,9 @@
             const channelInput = document.getElementById('channel-input');
             const channelName = extractChannelName(channelInput.value);
             const selectedMethod = document.querySelector('input[name="method"]:checked').value;
+            const widgetContainer = document.getElementById('widget-container');
+            widgetContainer.innerHTML = '';
+            document.querySelector('.widget-load-more-button').style.display = 'none';
 
             if (!channelName) {
                 alert('Please enter a valid channel name');
