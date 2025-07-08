@@ -405,20 +405,60 @@
 
             // Perform binary search
             async performBinarySearch(channelName, lower, upper) {
-                while (lower < upper - 1) {
+                let lastValid = lower;
+                let quickCheckDone = false;
+
+                // Fase 1: Búsqueda binaria estándar (rápida)
+                while (lower <= upper) {
                     const mid = Math.floor((lower + upper) / 2);
-                    binarySearch.updateInfo(`Binary search: testing ${mid} (range: ${lower}-${upper})`);
+                    binarySearch.updateInfo(`Testing message ${mid}...`);
 
                     const exists = await messageChecker.checkExists(channelName, mid);
 
                     if (exists) {
-                        lower = mid;
+                        lastValid = mid;
+                        lower = mid + 1;
+
+                        // Optimización: Si estamos cerca del final, hacer un chequeo rápido
+                        if (upper - mid < 10 && !quickCheckDone) {
+                            quickCheckDone = true;
+                            for (let i = mid + 1; i <= upper; i++) {
+                                const quickExists = await messageChecker.checkExists(channelName, i);
+                                if (quickExists) lastValid = i;
+                                else break;
+                            }
+                            break;
+                        }
                     } else {
-                        upper = mid;
+                        upper = mid - 1;
                     }
                 }
 
-                return lower;
+                // Fase 2: Verificación final (solo si es necesario)
+                if (lastValid > 0) {
+                    // Chequeo rápido de los siguientes 3 mensajes (por si hay huecos pequeños)
+                    for (let i = 1; i <= 3; i++) {
+                        const nextId = lastValid + i;
+                        const exists = await messageChecker.checkExists(channelName, nextId);
+                        if (!exists) break;
+                        lastValid = nextId;
+                    }
+
+                    // Verificación final de robustez (solo una vez)
+                    const finalCheck = await messageChecker.checkExists(channelName, lastValid);
+                    if (!finalCheck) {
+                        // Retroceder hasta encontrar uno válido (máx 5 intentos)
+                        for (let i = 1; i <= 5; i++) {
+                            const prevId = lastValid - i;
+                            if (prevId < 1) break;
+                            const exists = await messageChecker.checkExists(channelName, prevId);
+                            if (exists) return prevId;
+                        }
+                        return 0;
+                    }
+                }
+
+                return lastValid;
             },
 
             // Display result
