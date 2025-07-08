@@ -253,7 +253,7 @@
                 script.onload = () => {
                     const iframe = testContainer.querySelector('iframe');
                     if (iframe) {
-                        const delay = isFirstCheck ? 800 : 350;
+                        const delay = isFirstCheck ? 800 : 400;
                         isFirstCheck = false;
                         iframe.onload = verifyIframe;
                         setTimeout(verifyIframe, delay);
