@@ -215,27 +215,23 @@
         // Function to check if a message exists by loading it in an iframe
         function checkMessageExists(channelName, messageId) {
             return new Promise((resolve) => {
-                // Create hidden container
                 const testContainer = document.createElement('div');
                 testContainer.style.position = 'absolute';
                 testContainer.style.left = '-9999px';
                 testContainer.style.visibility = 'hidden';
                 document.body.appendChild(testContainer);
 
-                // Create widget script
                 const script = document.createElement('script');
                 script.async = true;
                 script.src = 'https://telegram.org/js/telegram-widget.js?22';
                 script.setAttribute('data-telegram-post', `${channelName}/${messageId}`);
                 script.setAttribute('data-width', '100%');
 
-                // Timeout to avoid infinite waits
                 const timeout = setTimeout(() => {
                     cleanup();
                     resolve(false);
-                }, 5000); // 5 seconds timeout
+                }, 5000);
 
-                // Cleanup function
                 const cleanup = () => {
                     clearTimeout(timeout);
                     if (testContainer.parentNode) {
@@ -243,31 +239,35 @@
                     }
                 };
 
-                // Event to check when widget loads
-                const checkExistence = () => {
-                    const delay = isFirstCheck ? 800 : 300;
-                    isFirstCheck = false;
-                    // Wait a short moment for iframe to render
-                    setTimeout(() => {
-                        const iframe = testContainer.querySelector('iframe');
-                        if (!iframe || iframe.offsetHeight < 60) {
-                            cleanup();
-                            resolve(false); // Does NOT exist
-                        } else {
-                            cleanup();
-                            resolve(true); // Exists
-                        }
-                    }, delay); // Wait time for rendering
+                const verifyIframe = () => {
+                    const iframe = testContainer.querySelector('iframe');
+                    if (!iframe || iframe.offsetHeight < 60) {
+                        cleanup();
+                        resolve(false);
+                    } else {
+                        cleanup();
+                        resolve(true);
+                    }
                 };
 
-                // Set up events
-                script.onload = checkExistence;
+                script.onload = () => {
+                    const iframe = testContainer.querySelector('iframe');
+                    if (iframe) {
+                        const delay = isFirstCheck ? 800 : 300;
+                        isFirstCheck = false;
+                        iframe.onload = verifyIframe;
+                        setTimeout(verifyIframe, delay);
+                    } else {
+                        cleanup();
+                        resolve(false);
+                    }
+                };
+
                 script.onerror = () => {
                     cleanup();
                     resolve(false);
                 };
 
-                // Add script to container
                 testContainer.appendChild(script);
             });
         }
