@@ -177,7 +177,6 @@
         let countPosts = 0;
         let lastPostId = 0;
         let currentChannel = '';
-        let isFirstCheck = true;
 
         // Cache object
         const postCache = {
@@ -258,10 +257,8 @@
                 script.onload = () => {
                     const iframe = testContainer.querySelector('iframe');
                     if (iframe) {
-                        const delay = isFirstCheck ? 300 : 200;
-                        isFirstCheck = false;
                         iframe.onload = verifyIframe;
-                        setTimeout(verifyIframe, delay);
+                        setTimeout(verifyIframe, 600);
                     } else {
                         cleanup();
                         resolve(false);
