@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Telegram Ban Bypass">
+    <meta name="description" content="Allows you to skip the ban of any telegram channel or group. You can read the messages of a channel without appearing in the history, no one knows if you have read it.">
     <meta name="author" content="github.com/FranBar1966">
     <link rel="preload" href="https://telegram.org/js/telegram-widget.js?22" as="script">
-    <title>Telegram Ban Bypass</title>
+    <title>Telegram Ban Bypass - Avoid blocking the Tetegram channel or group</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -115,7 +115,6 @@
 <body>
     <h1>Telegram Ban Bypass</h1>
     <div class="author">by <a href="https://github.com/FranBar1966/Telegram-Ban-Bypass" target="_blank">Fran Bar</a></div>
-
     <div class="channel-input-container">
         <label for="channel-input">Enter Telegram Channel:</label>
         <input type="text" id="channel-input" placeholder="e.g., ORANGETERAPY or https://t.me/ORANGETERAPY/">
@@ -128,16 +127,26 @@
         </div>
         <button type="button" id="load-channel-btn">Load Channel</button>
     </div>
-
-
-
     <div id="current-channel" class="current-channel" style="display: none;"></div>
     <div id="binary-search-info" class="binary-search-info" style="display: none;"></div>
-
     <div id="widget-container" data-start="0" data-num="20"></div>
     <button class="widget-load-more-button" style="display: none;">Load More Posts</button>
     <div id="loading" class="loading" style="display: none;">Loading latest post...</div>
     <div id="error" class="error" style="display: none;"></div>
+
+    <hr>
+    <div class="tips">
+        <h3>💡 Tips for Better Performance:</h3>
+        <p>You can read the messages of a channel without appearing in the history, no one knows if you have read it, total privacy.</p>
+        <ul>
+            <li>No login required</li>
+            <li>Use channel names (e.g., "ORANGETERAPY")</li>
+            <li>Full URLs are supported (e.g., "https://t.me/ORANGETERAPY")</li>
+            <li>Use in the URL the “channel” parameter for the default channel: ?channel=channelname</li>
+            <li>Allows you to skip the ban of any telegram channel or group.</li>
+            <li>Alternatively you can download a HTML that works in any browser</li>
+        </ul>
+    </div>
 
     <script>
         // Configuration and constants
