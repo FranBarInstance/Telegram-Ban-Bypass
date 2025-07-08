@@ -195,7 +195,6 @@
                 state.isLoading = isLoading;
                 elements.loading.textContent = message;
                 elements.loading.style.display = isLoading ? 'block' : 'none';
-                elements.error.style.display = 'none';
             },
 
             // Show error
@@ -631,6 +630,7 @@
                     // Disable button during loading
                     elements.loadChannelBtn.disabled = true;
                     elements.loadChannelBtn.textContent = 'Loading...';
+                    elements.error.style.display = 'none';
 
                     try {
                         const selectedMethod = document.querySelector('input[name="method"]:checked').value;
