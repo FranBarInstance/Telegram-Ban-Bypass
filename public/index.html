@@ -247,8 +247,6 @@
                     // Wait a short moment for iframe to render
                     setTimeout(() => {
                         const iframe = testContainer.querySelector('iframe');
-
-                        // CORRECTED logic: Message does NOT exist if height < 60px
                         if (!iframe || iframe.offsetHeight < 60) {
                             cleanup();
                             resolve(false); // Does NOT exist
@@ -256,7 +254,7 @@
                             cleanup();
                             resolve(true); // Exists
                         }
-                    }, 300); // Wait time for rendering
+                    }, 250); // Wait time for rendering
                 };
 
                 // Set up events
