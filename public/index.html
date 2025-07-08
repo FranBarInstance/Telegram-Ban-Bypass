@@ -179,7 +179,7 @@
             data: {},
             get(channel) {
                 const cached = this.data[channel];
-                if (cached && Date.now() - cached.timestamp < 60000) { // 1 minute cache
+                if (cached && Date.now() - cached.timestamp < 120000) { // 2 minute cache
                     return cached.value;
                 }
                 return null;
