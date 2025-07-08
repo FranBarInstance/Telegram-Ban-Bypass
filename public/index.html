@@ -65,28 +65,6 @@
             background-color: #ccc;
             cursor: not-allowed;
         }
-        .method-selection {
-            background: white;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .method-selection label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: bold;
-            color: #333;
-        }
-        .method-selection input[type="radio"] {
-            margin-right: 10px;
-        }
-        .method-selection div {
-            margin-bottom: 10px;
-        }
-        #widget-container {
-            margin-top: 20px;
-        }
         .widget-load-more-button {
             display: block;
             width: 100%;
@@ -165,19 +143,14 @@
         <label for="channel-input">Enter Telegram Channel:</label>
         <input type="text" id="channel-input" placeholder="e.g., ORANGETERAPY or https://t.me/ORANGETERAPY/">
 
-        <div class="method-selection">
-            <label>Método para encontrar último mensaje:</label>
-            <div>
-                <input type="radio" id="method-api" name="method" value="api">
-                <label for="method-api">API (Rápido)</label>
-            </div>
-            <div>
-                <input type="radio" id="method-binary" name="method" value="binary" checked>
-                <label for="method-binary">Búsqueda Binaria (Sin API)</label>
-            </div>
-        </div>
-
         <button type="button" id="load-channel-btn">Load Channel</button>
+    </div>
+    <div class="method-selection" style="margin: 10px;">
+        <label for="method-binary"> API (Fast)</label>
+        <input type="radio" id="method-api" name="method" value="api">
+
+        <label for="method-binary">Binary Search</label>
+        <input type="radio" id="method-binary" name="method" value="binary" checked>
     </div>
 
     <div id="current-channel" class="current-channel" style="display: none;"></div>
@@ -241,27 +214,27 @@
         // Function to check if a message exists by loading it in an iframe
         function checkMessageExists(channelName, messageId) {
             return new Promise((resolve) => {
-                // Crear contenedor oculto
+                // Create hidden container
                 const testContainer = document.createElement('div');
                 testContainer.style.position = 'absolute';
                 testContainer.style.left = '-9999px';
                 testContainer.style.visibility = 'hidden';
                 document.body.appendChild(testContainer);
 
-                // Crear script del widget
+                // Create widget script
                 const script = document.createElement('script');
                 script.async = true;
                 script.src = 'https://telegram.org/js/telegram-widget.js?22';
                 script.setAttribute('data-telegram-post', `${channelName}/${messageId}`);
                 script.setAttribute('data-width', '100%');
 
-                // Timeout para evitar esperas infinitas
+                // Timeout to avoid infinite waits
                 const timeout = setTimeout(() => {
                     cleanup();
                     resolve(false);
-                }, 5000); // 5 segundos de timeout
+                }, 5000); // 5 seconds timeout
 
-                // Función de limpieza
+                // Cleanup function
                 const cleanup = () => {
                     clearTimeout(timeout);
                     if (testContainer.parentNode) {
@@ -269,31 +242,31 @@
                     }
                 };
 
-                // Evento para verificar cuando se carga el widget
+                // Event to check when widget loads
                 const checkExistence = () => {
-                    // Esperar un breve momento para que el iframe se renderice
+                    // Wait a short moment for iframe to render
                     setTimeout(() => {
                         const iframe = testContainer.querySelector('iframe');
 
-                        // Lógica CORREGIDA: Mensaje NO existe si height < 60px
+                        // CORRECTED logic: Message does NOT exist if height < 60px
                         if (!iframe || iframe.offsetHeight < 60) {
                             cleanup();
-                            resolve(false); // NO existe
+                            resolve(false); // Does NOT exist
                         } else {
                             cleanup();
-                            resolve(true); // SÍ existe
+                            resolve(true); // Exists
                         }
-                    }, 300); // Tiempo de espera para renderizado
+                    }, 300); // Wait time for rendering
                 };
 
-                // Configurar eventos
+                // Set up events
                 script.onload = checkExistence;
                 script.onerror = () => {
                     cleanup();
                     resolve(false);
                 };
 
-                // Añadir el script al contenedor
+                // Add script to container
                 testContainer.appendChild(script);
             });
         }
@@ -325,21 +298,21 @@
             }
 
             try {
-                loadingElement.textContent = 'Iniciando búsqueda binaria...';
+                loadingElement.textContent = 'Starting binary search...';
                 loadingElement.style.display = 'block';
                 errorElement.style.display = 'none';
                 binarySearchInfo.style.display = 'block';
 
                 // Initial exponential search to find upper bound
-                const testValues = [100020, 100010, 100000, 99990, 99980, 60020, 60010, 60000, 59990, 59980, 40020, 40010, 40000, 39990, 39980, 20020, 20010, 20000, 19990, 19980, 10020, 10010, 10000, 9990, 9980, 1020, 1010, 1000, 990, 980, 120, 110, 100, 90, 80]
+                const testValues = [100020, 100010, 100000, 99990, 99980, 60020, 60010, 60000, 59990, 59980, 40020, 40010, 40000, 39990, 39980, 20020, 20010, 20000, 19990, 19980, 10020, 10010, 10000, 9990, 9980, 1020, 1010, 1000, 990, 980, 120, 110, 100, 90, 80];
                 let lower = 1;
                 let upper = 1;
 
-                binarySearchInfo.innerHTML = `Buscando rango inicial...`;
+                binarySearchInfo.innerHTML = `Searching initial range...`;
 
                 // Find upper bound
                 for (let testValue of testValues) {
-                    binarySearchInfo.innerHTML = `Probando mensaje ${testValue}...`;
+                    binarySearchInfo.innerHTML = `Testing message ${testValue}...`;
                     const exists = await checkMessageExists(channelName, testValue);
 
                     if (exists) {
@@ -356,16 +329,16 @@
                     while (await checkMessageExists(channelName, upper)) {
                         lower = upper;
                         upper = upper * 2;
-                        binarySearchInfo.innerHTML = `Expandiendo búsqueda: probando ${upper}...`;
+                        binarySearchInfo.innerHTML = `Expanding search: testing ${upper}...`;
                     }
                 }
 
-                binarySearchInfo.innerHTML = `Rango encontrado: ${lower} - ${upper}. Iniciando búsqueda binaria...`;
+                binarySearchInfo.innerHTML = `Range found: ${lower} - ${upper}. Starting binary search...`;
 
                 // Binary search
                 while (lower < upper - 1) {
                     const mid = Math.floor((lower + upper) / 2);
-                    binarySearchInfo.innerHTML = `Búsqueda binaria: probando ${mid} (rango: ${lower}-${upper})`;
+                    binarySearchInfo.innerHTML = `Binary search: testing ${mid} (range: ${lower}-${upper})`;
 
                     const exists = await checkMessageExists(channelName, mid);
 
@@ -377,11 +350,11 @@
                 }
 
                 // Final verification
-                binarySearchInfo.innerHTML = `Verificando último mensaje: ${lower}`;
+                binarySearchInfo.innerHTML = `Verifying last message: ${lower}`;
                 const finalExists = await checkMessageExists(channelName, lower);
 
                 if (!finalExists) {
-                    throw new Error('No se encontraron mensajes válidos');
+                    throw new Error('No valid messages found');
                 }
 
                 lastPostId = lower;
@@ -394,7 +367,7 @@
                 currentChannelElement.innerHTML = `Currently viewing: <strong>@${channelName}</strong> (Latest post ID: ${lastPostId})`;
                 currentChannelElement.style.display = 'block';
 
-                binarySearchInfo.innerHTML = `✅ Búsqueda completada. Último mensaje: ${lastPostId}`;
+                binarySearchInfo.innerHTML = `✅ Search completed. Last message: ${lastPostId}`;
                 binarySearchInfo.style.backgroundColor = '#d4edda';
                 binarySearchInfo.style.color = '#155724';
 
@@ -410,9 +383,9 @@
                 window.dispatchEvent(new CustomEvent('telegramLoaded'));
 
             } catch (error) {
-                console.error('Error en búsqueda binaria:', error);
+                console.error('Error in binary search:', error);
                 loadingElement.style.display = 'none';
-                errorElement.textContent = `Error en búsqueda binaria: ${error.message}`;
+                errorElement.textContent = `Error in binary search: ${error.message}`;
                 errorElement.style.display = 'block';
                 binarySearchInfo.style.display = 'none';
             }
