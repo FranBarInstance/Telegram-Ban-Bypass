@@ -165,6 +165,10 @@
         <iframe id="search-iframe"></iframe>
     </div>
 
+    <div id="to-load-in-the-cache" style="height: 1px; width: 1px;">
+        <script async src="https://telegram.org/js/telegram-widget.js?22" data-telegram-post="telegram/395" data-width="100%"></script>
+    </div>
+
     <script>
         // Global variables
         let countInterval = 0;
@@ -253,7 +257,7 @@
                 script.onload = () => {
                     const iframe = testContainer.querySelector('iframe');
                     if (iframe) {
-                        const delay = isFirstCheck ? 800 : 400;
+                        const delay = isFirstCheck ? 300 : 200;
                         isFirstCheck = false;
                         iframe.onload = verifyIframe;
                         setTimeout(verifyIframe, delay);
