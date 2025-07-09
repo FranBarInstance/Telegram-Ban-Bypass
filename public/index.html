@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -234,46 +233,33 @@
             loadChannelBtn: document.getElementById('load-channel-btn')
         };
 
-        // Optimized cache with Map
         const postCache = new Map();
 
-        // Utilities
         const utils = {
-            // Extract channel name from different formats
             extractChannelName(input) {
                 const cleanInput = input.trim();
-
                 if (cleanInput.includes('t.me/')) {
                     const parts = cleanInput.split('/');
                     return parts[parts.length - 1] || parts[parts.length - 2];
                 }
-
                 return cleanInput.startsWith('@') ? cleanInput.substring(1) : cleanInput;
             },
-
-            // Update loading state
             setLoadingState(isLoading, message = 'Loading...') {
                 state.isLoading = isLoading;
                 elements.loading.textContent = message;
                 elements.loading.style.display = isLoading ? 'block' : 'none';
             },
-
-            // Show error
             showError(message) {
                 elements.error.textContent = message;
                 elements.error.style.display = 'block';
                 elements.loading.style.display = 'none';
             },
-
-            // Clear container
             clearContainer() {
                 elements.widgetContainer.innerHTML = '';
                 elements.loadMoreButton.style.display = 'none';
                 elements.currentChannel.style.display = 'none';
                 elements.binarySearchInfo.style.display = 'none';
             },
-
-            // Create test element to verify messages
             createTestElement() {
                 const testContainer = document.createElement('div');
                 Object.assign(testContainer.style, {
@@ -284,8 +270,6 @@
                 document.body.appendChild(testContainer);
                 return testContainer;
             },
-
-            // Guardar canal en localStorage
             saveChannel(channelName) {
                 const savedChannels = JSON.parse(localStorage.getItem('telegramSavedChannels') || '[]');
                 if (!savedChannels.includes(channelName)) {
@@ -295,20 +279,14 @@
                 }
                 return false;
             },
-
-            // Cargar canales guardados
             loadSavedChannels() {
                 return JSON.parse(localStorage.getItem('telegramSavedChannels') || '[]');
             },
-
-            // Eliminar canal guardado
             removeChannel(channelName) {
                 let savedChannels = utils.loadSavedChannels();
                 savedChannels = savedChannels.filter(ch => ch !== channelName);
                 localStorage.setItem('telegramSavedChannels', JSON.stringify(savedChannels));
             },
-
-            // Mostrar canales guardados
             displaySavedChannels() {
                 const savedChannels = utils.loadSavedChannels();
                 const listContainer = document.getElementById('saved-channels-list');
@@ -327,7 +305,6 @@
 
                     savedChannelsContainer.style.display = 'block';
 
-                    // Agregar event listeners a los botones de eliminar
                     document.querySelectorAll('.remove-channel').forEach(button => {
                         button.addEventListener('click', (e) => {
                             const channelToRemove = e.target.dataset.channel;
@@ -336,7 +313,6 @@
                         });
                     });
 
-                    // Agregar event listeners a los nombres de canal para cargarlos
                     document.querySelectorAll('#saved-channels-list li span').forEach(span => {
                         span.addEventListener('click', (e) => {
                             elements.channelInput.value = e.target.textContent.substring(1); // Remove @
@@ -347,11 +323,8 @@
                     savedChannelsContainer.style.display = 'none';
                 }
             }
-
-
         };
 
-        // Optimized cache management
         const cache = {
             get(channel) {
                 const cached = postCache.get(channel);
@@ -361,7 +334,6 @@
                 postCache.delete(channel);
                 return null;
             },
-
             set(channel, value) {
                 postCache.set(channel, {
                     value,
@@ -370,9 +342,7 @@
             }
         };
 
-        // Optimized message verification
         const messageChecker = {
-            // Check if a message exists
             async checkExists(channelName, messageId) {
                 return new Promise((resolve) => {
                     const testContainer = utils.createTestElement();
@@ -423,9 +393,7 @@
             }
         };
 
-        // Optimized binary search
         const binarySearch = {
-            // Optimized test values
             testValues: [
                 1000020, 1000000, 999980,
                 500020, 500000, 499980,
@@ -438,15 +406,11 @@
                 1020, 1000, 980,
                 120, 100, 80
             ],
-            // Update search info
             updateInfo(message) {
                 elements.binarySearchInfo.innerHTML = message;
                 elements.binarySearchInfo.style.display = 'block';
             },
-
-            // Find last post using binary search
             async findLastPost(channelName) {
-                // Check cache first
                 const cachedResult = cache.get(channelName);
                 if (cachedResult) {
                     binarySearch.displayResult(channelName, cachedResult);
@@ -463,7 +427,6 @@
 
                     const lastPostId = await binarySearch.performBinarySearch(channelName, lower, upper);
 
-                    // Final verification
                     binarySearch.updateInfo(`Verifying last message: ${lastPostId}`);
                     const finalExists = await messageChecker.checkExists(channelName, lastPostId);
 
@@ -478,21 +441,16 @@
                     console.error('Error in binary search:', error);
                     utils.showError(`Error in binary search: ${error.message}`);
                     elements.binarySearchInfo.style.display = 'none';
-
-                    // Asegurarse de rehabilitar el botón en caso de error
                     elements.loadChannelBtn.disabled = false;
                     elements.loadChannelBtn.textContent = 'Load Channel';
                     utils.setLoadingState(false);
                 }
             },
-
-            // Find initial range
             async findInitialRange(channelName) {
                 let lower = 1;
                 let upper = 1;
                 let foundAny = false;
 
-                // Search for upper bound
                 for (const testValue of binarySearch.testValues) {
                     binarySearch.updateInfo(`Testing message ${testValue}...`);
                     const exists = await messageChecker.checkExists(channelName, testValue);
@@ -510,7 +468,6 @@
                     throw new Error('No messages found - channel may not exist or have no public messages');
                 }
 
-                // Expand if necessary
                 if (lower === binarySearch.testValues[binarySearch.testValues.length - 1]) {
                     upper = lower * 2;
                     while (await messageChecker.checkExists(channelName, upper)) {
@@ -522,13 +479,10 @@
 
                 return { lower, upper };
             },
-
-            // Perform binary search
             async performBinarySearch(channelName, lower, upper) {
                 let lastValid = lower;
                 let quickCheckDone = false;
 
-                // Fase 1: Búsqueda binaria estándar (rápida)
                 while (lower <= upper) {
                     const mid = Math.floor((lower + upper) / 2);
                     binarySearch.updateInfo(`Testing message ${mid}...`);
@@ -539,7 +493,6 @@
                         lastValid = mid;
                         lower = mid + 1;
 
-                        // Optimización: Si estamos cerca del final, hacer un chequeo rápido
                         if (upper - mid < 10 && !quickCheckDone) {
                             quickCheckDone = true;
                             for (let i = mid + 1; i <= upper; i++) {
@@ -554,9 +507,7 @@
                     }
                 }
 
-                // Fase 2: Verificación final (solo si es necesario)
                 if (lastValid > 0) {
-                    // Chequeo rápido de los siguientes 3 mensajes (por si hay huecos pequeños)
                     for (let i = 1; i <= 3; i++) {
                         const nextId = lastValid + i;
                         const exists = await messageChecker.checkExists(channelName, nextId);
@@ -564,10 +515,8 @@
                         lastValid = nextId;
                     }
 
-                    // Verificación final de robustez (solo una vez)
                     const finalCheck = await messageChecker.checkExists(channelName, lastValid);
                     if (!finalCheck) {
-                        // Retroceder hasta encontrar uno válido (máx 5 intentos)
                         for (let i = 1; i <= 5; i++) {
                             const prevId = lastValid - i;
                             if (prevId < 1) break;
@@ -580,8 +529,6 @@
 
                 return lastValid;
             },
-
-            // Display result
             displayResult(channelName, lastPostId) {
                 state.lastPostId = lastPostId;
                 state.currentChannel = channelName;
@@ -635,8 +582,6 @@
                 } catch (error) {
                     console.error('Error fetching latest post:', error);
                     utils.showError(`Error loading posts: ${error.message}`);
-
-                    // Asegurarse de rehabilitar el botón en caso de error
                     elements.loadChannelBtn.disabled = false;
                     elements.loadChannelBtn.textContent = 'Load Channel';
                     utils.setLoadingState(false);
@@ -677,7 +622,6 @@
                 }
             },
 
-            // Setup load more button
             setupLoadMoreButton(end) {
                 const newButton = elements.loadMoreButton.cloneNode(true);
                 elements.loadMoreButton.replaceWith(newButton);
@@ -693,14 +637,11 @@
                     widgetLoader.load(newStart, numPostsToLoad);
                 });
 
-                // Update reference
                 elements.loadMoreButton = newButton;
             }
         };
 
-        // Optimized iframe monitor
         const iframeMonitor = {
-            // Check iframe height and hide deleted ones
             checkHeight() {
                 const iframes = document.querySelectorAll('iframe[src*="t.me"]');
                 iframes.forEach(iframe => {
@@ -718,7 +659,6 @@
                 }
             },
 
-            // Start monitoring
             start() {
                 if (state.intervalId) {
                     clearInterval(state.intervalId);
@@ -727,10 +667,8 @@
             }
         };
 
-        // Optimized event listeners
         const eventListeners = {
             init() {
-                // Load widgets when loading is complete
                 window.addEventListener('telegramLoaded', () => {
                     if (elements.widgetContainer && state.lastPostId > 0) {
                         state.countPosts = 0;
@@ -740,7 +678,6 @@
                     }
                 });
 
-                // Load channel button
                 elements.loadChannelBtn.addEventListener('click', async () => {
                     const channelName = utils.extractChannelName(elements.channelInput.value);
 
@@ -761,7 +698,6 @@
                         const loadFunction = selectedMethod === 'api' ? api.fetchLastPost : binarySearch.findLastPost;
                         await loadFunction(channelName);
 
-                        // Guardar el canal después de cargarlo exitosamente
                         if (utils.saveChannel(channelName)) {
                             utils.displaySavedChannels();
                         }
@@ -781,7 +717,6 @@
                         elements.channelInput.value = channelParam;
                     }
 
-                    // Mostrar canales guardados
                     utils.addChannelsFromURL();
                     utils.displaySavedChannels();
                 });
@@ -806,14 +741,12 @@
                     }
                 };
 
-                // Allow Enter to load channel
                 elements.channelInput.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') {
                         elements.loadChannelBtn.click();
                     }
                 });
 
-                // Load channel from URL parameters
                 document.addEventListener('DOMContentLoaded', () => {
                     const urlParams = new URLSearchParams(window.location.search);
                     const channelParam = urlParams.get('channel');
@@ -824,7 +757,6 @@
             }
         };
 
-        // Initialize application
         eventListeners.init();
     </script>
 
