@@ -11,12 +11,12 @@ No installation required. You can:
 2. Download the [single HTML file](https://github.com/FranBar1966/Telegram-Ban-Bypass/blob/master/public/index.html) and open it in any browser
 
 ## Features
- **Binary Search Algorithm** - Finds latest posts efficiently
- **Dual Loading Methods** - API or binary search
- **Smart Caching** - cache for fast reloads
- **Real-Time Feedback** - Shows search progress
- **Mobile Optimized** - Works on all devices
- **No Installation** - Runs directly in browser
+- **Binary Search Algorithm** - Finds latest posts efficiently
+- **Dual Loading Methods** - API or binary search
+- **Smart Caching** - cache for fast reloads
+- **Real-Time Feedback** - Shows search progress
+- **Mobile Optimized** - Works on all devices
+- **No Installation** - Runs directly in browser
 
 ## How It Works
 The tool bypasses restrictions by:
