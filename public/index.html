@@ -201,7 +201,7 @@
     <script>
         // Configuration and constants
         const CONFIG = {
-            CACHE_DURATION: 120000, // 2 minutes
+            CACHE_DURATION: 300000, // 5 minutes
             TIMEOUT_DURATION: 5000, // 5 seconds
             MIN_IFRAME_HEIGHT: 60,
             MAX_POSTS_BEFORE_CLEAR: 200,
@@ -782,8 +782,29 @@
                     }
 
                     // Mostrar canales guardados
+                    utils.addChannelsFromURL();
                     utils.displaySavedChannels();
                 });
+
+                utils.addChannelsFromURL = function() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const channelsToAdd = urlParams.get('add');
+
+                    if (channelsToAdd) {
+                        const channelsArray = channelsToAdd.split(',').map(ch => ch.trim()).filter(ch => ch);
+                        let addedAny = false;
+
+                        channelsArray.forEach(channel => {
+                            if (utils.saveChannel(channel)) {
+                                addedAny = true;
+                            }
+                        });
+
+                        if (addedAny) {
+                            utils.displaySavedChannels();
+                        }
+                    }
+                };
 
                 // Allow Enter to load channel
                 elements.channelInput.addEventListener('keypress', (e) => {
