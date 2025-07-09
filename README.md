@@ -62,7 +62,7 @@ However, deleted messages have a pattern - the iframe where they reside is notic
 
 ## Limitations
 - Only works with public channels
-- Loading speed depends on proxy performance
+- There may be issues with slow internet connections.
 - Some very old posts may not load
 - No media download capability
 - History is not persisted after page refresh
