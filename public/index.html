@@ -178,7 +178,7 @@
     </div>
     <div id="current-channel" class="current-channel" style="display: none;"></div>
     <div id="binary-search-info" class="binary-search-info" style="display: none;"></div>
-    <div id="widget-container" data-start="0" data-num="25"></div>
+    <div id="widget-container"></div>
     <button class="widget-load-more-button" style="display: none;">Load More Posts</button>
     <div id="loading" class="loading" style="display: none;">Loading latest post...</div>
     <div id="error" class="error" style="display: none;"></div>
@@ -191,8 +191,8 @@
             <li>No login required</li>
             <li>Use channel names (e.g., "ORANGETERAPY")</li>
             <li>Full URLs are supported (e.g., "https://t.me/ORANGETERAPY")</li>
-            <li>Use in the URL the “channel” parameter for the default channel: ?channel=channelname</li>
-            <li>Use in the URL the “add” parameter to add channels to the history, separated by commas: ?add=channel1,channel2,...</li>
+            <li>Use in the URL the "channel" parameter for the default channel: ?channel=channelname</li>
+            <li>Use in the URL the "add" parameter to add channels to the history, separated by commas: ?add=channel1,channel2,...</li>
             <li>Allows you to skip the ban of any telegram channel or group.</li>
             <li>Alternatively you can download a HTML that works in any browser</li>
         </ul>
@@ -201,12 +201,13 @@
     <script>
         // Configuration and constants
         const CONFIG = {
+            NUM_POSTS: 25,
             CACHE_DURATION: 300000, // 5 minutes
             TIMEOUT_DURATION: 5000, // 5 seconds
             MIN_IFRAME_HEIGHT: 60,
             MAX_POSTS_BEFORE_CLEAR: 200,
             INTERVAL_CHECKS: 25,
-            LOAD_MORE_POST: 8,
+            LOAD_MORE_POST: 0,
             WIDGET_SCRIPT_URL: 'https://telegram.org/js/telegram-widget.js?22',
             API_URL: 'https://api-telegram-2.repostea.com/api/telegram/last-message',
             LOAD_MORE_DELAY: 900
@@ -547,7 +548,6 @@
 
                 utils.setLoadingState(false);
 
-                elements.widgetContainer.dataset.start = lastPostId;
                 elements.widgetContainer.dataset.num = 20;
                 elements.widgetContainer.innerHTML = '';
 
@@ -593,7 +593,7 @@
         // Optimized widget loader
         const widgetLoader = {
             // Load Telegram widgets
-            load(start, numPosts) {
+            load(start, numPosts = CONFIG.NUM_POSTS) {
                 if (!elements.widgetContainer) {
                     console.error('Container with ID "widget-container" not found.');
                     return;
@@ -634,8 +634,7 @@
                     }
 
                     const newStart = end - 1;
-                    const numPostsToLoad = parseInt(elements.widgetContainer.dataset.num);
-                    widgetLoader.load(newStart, numPostsToLoad);
+                    widgetLoader.load(newStart);
                 });
 
                 elements.loadMoreButton = newButton;
@@ -673,8 +672,8 @@
                 window.addEventListener('telegramLoaded', () => {
                     if (elements.widgetContainer && state.lastPostId > 0) {
                         state.countPosts = 0;
-                        const startPost = parseInt(elements.widgetContainer.dataset.start) + CONFIG.LOAD_MORE_POST;
-                        widgetLoader.load(startPost, parseInt(elements.widgetContainer.dataset.num));
+                        const startPost = state.lastPostId + CONFIG.LOAD_MORE_POST;
+                        widgetLoader.load(startPost);
                         iframeMonitor.start();
                     }
                 });
