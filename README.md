@@ -47,6 +47,12 @@ The algorithm cannot distinguish between:
 
 This means in channels with substantial message deletions, the last-post detection may fail.
 
+#### Bypassing CORS to Identify Deleted Telegram Messages
+
+The last obstacle is detecting a non-existent message; it's not possible to access the Telegram widget's content due to CORS policies.
+
+However, deleted messages have a pattern - the iframe where they reside is noticeably smaller and can be easily identified.
+
 ## Technologies
 - Powered by: [telegram-channel-api](https://github.com/ArcInTower/telegram-channel-api)
 - Using Telegram's public widget API which isn't subject bans
