@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -110,6 +111,52 @@
             color: #856404;
             font-size: 14px;
         }
+        .saved-channels {
+            background: white;
+            padding: 20px;
+            padding-top: 2px;
+            padding-bottom: 2px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #saved-channels-list li span {
+            cursor: pointer;
+        }
+
+        #saved-channels-list li span:hover {
+            color: #006699;
+        }
+
+        #saved-channels-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        #saved-channels-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #saved-channels-list li:last-child {
+            border-bottom: none;
+        }
+
+        #saved-channels-list button {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 2px 8px;
+            cursor: pointer;
+        }
+
+        #saved-channels-list button:hover {
+            background-color: #cc0000;
+        }
     </style>
 </head>
 <body>
@@ -126,6 +173,9 @@
             <label for="method-binary">By Binary Search</label>
         </div>
         <button type="button" id="load-channel-btn">Load Channel</button>
+    </div>
+    <div class="saved-channels" style="display: none;">
+        <ul id="saved-channels-list"></ul>
     </div>
     <div id="current-channel" class="current-channel" style="display: none;"></div>
     <div id="binary-search-info" class="binary-search-info" style="display: none;"></div>
@@ -233,7 +283,72 @@
                 });
                 document.body.appendChild(testContainer);
                 return testContainer;
+            },
+
+            // Guardar canal en localStorage
+            saveChannel(channelName) {
+                const savedChannels = JSON.parse(localStorage.getItem('telegramSavedChannels') || '[]');
+                if (!savedChannels.includes(channelName)) {
+                    savedChannels.push(channelName);
+                    localStorage.setItem('telegramSavedChannels', JSON.stringify(savedChannels));
+                    return true;
+                }
+                return false;
+            },
+
+            // Cargar canales guardados
+            loadSavedChannels() {
+                return JSON.parse(localStorage.getItem('telegramSavedChannels') || '[]');
+            },
+
+            // Eliminar canal guardado
+            removeChannel(channelName) {
+                let savedChannels = utils.loadSavedChannels();
+                savedChannels = savedChannels.filter(ch => ch !== channelName);
+                localStorage.setItem('telegramSavedChannels', JSON.stringify(savedChannels));
+            },
+
+            // Mostrar canales guardados
+            displaySavedChannels() {
+                const savedChannels = utils.loadSavedChannels();
+                const listContainer = document.getElementById('saved-channels-list');
+                const savedChannelsContainer = document.querySelector('.saved-channels');
+
+                if (savedChannels.length > 0) {
+                    listContainer.innerHTML = '';
+                    savedChannels.forEach(channel => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <span>@${channel}</span>
+                            <button class="remove-channel" data-channel="${channel}">×</button>
+                        `;
+                        listContainer.appendChild(li);
+                    });
+
+                    savedChannelsContainer.style.display = 'block';
+
+                    // Agregar event listeners a los botones de eliminar
+                    document.querySelectorAll('.remove-channel').forEach(button => {
+                        button.addEventListener('click', (e) => {
+                            const channelToRemove = e.target.dataset.channel;
+                            utils.removeChannel(channelToRemove);
+                            utils.displaySavedChannels();
+                        });
+                    });
+
+                    // Agregar event listeners a los nombres de canal para cargarlos
+                    document.querySelectorAll('#saved-channels-list li span').forEach(span => {
+                        span.addEventListener('click', (e) => {
+                            elements.channelInput.value = e.target.textContent.substring(1); // Remove @
+                            elements.loadChannelBtn.click();
+                        });
+                    });
+                } else {
+                    savedChannelsContainer.style.display = 'none';
+                }
             }
+
+
         };
 
         // Optimized cache management
@@ -637,8 +752,6 @@
                     if (state.isLoading) return;
 
                     utils.clearContainer();
-
-                    // Disable button during loading
                     elements.loadChannelBtn.disabled = true;
                     elements.loadChannelBtn.textContent = 'Loading...';
                     elements.error.style.display = 'none';
@@ -647,14 +760,29 @@
                         const selectedMethod = document.querySelector('input[name="method"]:checked').value;
                         const loadFunction = selectedMethod === 'api' ? api.fetchLastPost : binarySearch.findLastPost;
                         await loadFunction(channelName);
+
+                        // Guardar el canal después de cargarlo exitosamente
+                        if (utils.saveChannel(channelName)) {
+                            utils.displaySavedChannels();
+                        }
                     } catch (error) {
                         console.error('Error loading channel:', error);
                         utils.showError(error.message);
                     } finally {
-                        // Asegurarse de que el botón siempre se rehabilite
                         elements.loadChannelBtn.disabled = false;
                         elements.loadChannelBtn.textContent = 'Load Channel';
                     }
+                });
+
+                document.addEventListener('DOMContentLoaded', () => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const channelParam = urlParams.get('channel');
+                    if (channelParam) {
+                        elements.channelInput.value = channelParam;
+                    }
+
+                    // Mostrar canales guardados
+                    utils.displaySavedChannels();
                 });
 
                 // Allow Enter to load channel

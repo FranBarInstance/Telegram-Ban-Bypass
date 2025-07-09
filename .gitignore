@@ -4,5 +4,4 @@
 __pycache__/
 *.py[cod]
 /public/index.min.html
-
 /public/index2.min.html
