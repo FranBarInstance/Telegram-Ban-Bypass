@@ -634,6 +634,7 @@
                     if (state.countPosts > CONFIG.MAX_POSTS_BEFORE_CLEAR) {
                         state.countPosts = 0;
                         elements.widgetContainer.innerHTML = '';
+                        setTimeout(()=>{window.scrollTo(0, 0);}, 100);
                     }
 
                     const newStart = end - 1;
