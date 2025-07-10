@@ -3,12 +3,12 @@
 ## Overview
 An enhanced client-side web tool that allows users to view content from any public Telegram channel, even if the channel is banned or restricted. The tool now includes improved features and performance optimizations.
 
-**Live Demo:** [DEMO](https://FranBarInstance.github.io/Telegram-Ban-Bypass/public/)
+**Live Demo:** [DEMO](https://franbarinstance.github.io/Telegram-Ban-Bypass/public/)
 
 ## Installation
 No installation required. You can:
-1. Use the **[live web version](https://FranBarInstance.github.io/Telegram-Ban-Bypass/public/)**, or
-2. Download the [single HTML file](https://github.com/FranBarInstance/Telegram-Ban-Bypass/blob/master/public/index.html) and open it in any browser
+1. Use the **[live web version](https://franbarinstance.github.io/Telegram-Ban-Bypass/public/)**, or
+2. Download the [single HTML file](https://github.com/franbarinstance/Telegram-Ban-Bypass/blob/master/public/index.html) and open it in any browser
 
 ## Features
 - **Binary Search Algorithm** - Finds latest posts efficiently
