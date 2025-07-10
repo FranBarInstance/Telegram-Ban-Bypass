@@ -11,6 +11,7 @@ No installation required. You can:
 2. Download the [single HTML file](https://github.com/franbarinstance/Telegram-Ban-Bypass/blob/master/public/index.html) and open it in any browser
 
 ## Features
+- **No login required** - No Telegram account needed to read channels
 - **Binary Search Algorithm** - Finds latest posts efficiently
 - **Dual Loading Methods** - API or binary search
 - **Smart Caching** - cache for fast reloads
@@ -65,7 +66,6 @@ However, deleted messages have a pattern - the iframe where they reside is notic
 - There may be issues with slow internet connections.
 - Some very old posts may not load
 - No media download capability
-- History is not persisted after page refresh
 
 ## License
 MIT License - Free for personal and commercial use
