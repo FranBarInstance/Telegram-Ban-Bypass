@@ -8,130 +8,180 @@
     <link rel="preload" href="https://telegram.org/js/telegram-widget.js?22" as="script">
     <title>Telegram Ban Bypass - Avoid blocking the Telegram channel or group</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        h1 {
-            color: #333;
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 1.8em;
-        }
-        .author {
-            text-align: center;
-            color: #666;
-            font-style: italic;
-            margin-bottom: 30px;
-        }
-        .channel-input-container {
-            background: white;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .channel-input-container label:not(.method-selection label) {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: bold;
-            color: #333;
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --accent-color: #007acc;
+            --accent-hover: #005fa3;
+            --card-bg: #f9f9f9;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        .channel-input-container input:not(.method-selection input) {
-            width: 100%;
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
             padding: 10px;
+            max-width: 550px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.9em;
+            margin-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        .author {
+            text-align: center;
+            font-style: italic;
+            font-size: 0.9em;
+            color: #777;
+            margin-bottom: 25px;
+        }
+
+        .channel-input-container {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 25px;
+        }
+
+        .channel-input-container label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-color);
+        }
+
+        .channel-input-container input[type="text"] {
+            width: 100%;
+            padding: 12px;
             border: 1px solid #ddd;
-            border-radius: 5px;
+            border-radius: var(--border-radius);
             font-size: 16px;
             box-sizing: border-box;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            transition: border-color 0.3s ease;
         }
-        .channel-input-container button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            background-color: #0088cc;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
+
+        .channel-input-container input:focus {
+            border-color: var(--accent-color);
+            outline: none;
+        }
+
+        .method-selection {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+
+        .method-selection input[type="radio"] {
+            transform: scale(1.5);
+            margin-bottom: 12px;
             cursor: pointer;
         }
-        .channel-input-container button:hover {
-            background-color: #006699;
+
+        .method-selection label {
+            cursor: pointer;
+            font-weight: normal !important;
         }
+
+        .channel-input-container button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .channel-input-container button:hover {
+            background-color: var(--accent-hover);
+        }
+
         .channel-input-container button:disabled {
             background-color: #ccc;
             cursor: not-allowed;
         }
+
         .widget-load-more-button {
             display: block;
             width: 100%;
             padding: 10px;
             margin: 20px 0;
-            background-color: #0088cc;
+            background-color: var(--accent-color);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: var(--border-radius);
             font-size: 16px;
             cursor: pointer;
             text-align: center;
+            transition: background-color 0.3s ease;
         }
+
         .widget-load-more-button:hover {
-            background-color: #006699;
+            background-color: var(--accent-hover);
         }
-        .loading {
+
+        .loading, .error {
             text-align: center;
-            padding: 20px;
+            padding: 15px;
             font-style: italic;
-            color: #666;
+            border-radius: var(--border-radius);
+            margin-top: 15px;
         }
+
+        .loading {
+            color: #555;
+            background: #e6f7ff;
+        }
+
         .error {
-            color: red;
-            text-align: center;
-            padding: 20px;
+            color: #cc0000;
+            background: #ffe6e6;
         }
+
         .current-channel {
             background: #e8f4f8;
-            padding: 10px;
-            margin-bottom: 20px;
-            border-radius: 5px;
+            padding: 12px;
+            border-radius: var(--border-radius);
             text-align: center;
-            color: #333;
+            color: var(--text-color);
+            margin-bottom: 20px;
+            font-weight: bold;
         }
+
         .binary-search-info {
             background: #fff3cd;
-            padding: 10px;
-            margin-bottom: 20px;
-            border-radius: 5px;
+            padding: 12px;
+            border-radius: var(--border-radius);
             color: #856404;
             font-size: 14px;
-        }
-        .saved-channels {
-            background: white;
-            padding: 20px;
-            padding-top: 2px;
-            padding-bottom: 2px;
             margin-bottom: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        #saved-channels-list li span {
-            cursor: pointer;
-        }
-
-        #saved-channels-list li span:hover {
-            color: #006699;
+        .saved-channels {
+            background: var(--card-bg);
+            padding: 5px 15px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 20px;
         }
 
         #saved-channels-list {
             list-style: none;
             padding: 0;
+            margin: 0;
         }
 
         #saved-channels-list li {
@@ -139,23 +189,57 @@
             border-bottom: 1px solid #eee;
             display: flex;
             justify-content: space-between;
+            align-items: center;
         }
 
         #saved-channels-list li:last-child {
             border-bottom: none;
         }
 
+        #saved-channels-list li span {
+            cursor: pointer;
+            color: var(--accent-color);
+            transition: color 0.3s ease;
+        }
+
+        #saved-channels-list li span:hover {
+            color: var(--accent-hover);
+        }
+
         #saved-channels-list button {
             background-color: #ff4444;
             color: white;
             border: none;
-            border-radius: 3px;
-            padding: 2px 8px;
+            border-radius: 4px;
+            padding: 4px 10px;
             cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
         }
 
         #saved-channels-list button:hover {
             background-color: #cc0000;
+        }
+
+        .tips {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-top: 20px;
+        }
+
+        .tips h3 {
+            margin-top: 0;
+            color: var(--text-color);
+        }
+
+        .tips ul {
+            padding-left: 20px;
+        }
+
+        .tips li {
+            margin-bottom: 8px;
         }
     </style>
 </head>
@@ -168,7 +252,7 @@
         <div class="method-selection">
             <input type="radio" id="method-api" name="method" value="api">
             <label for="method-api">By API</label>
-            &nbsp;&nbsp;
+            &nbsp;
             <input type="radio" id="method-binary" name="method" value="binary" checked>
             <label for="method-binary">By Binary Search</label>
         </div>
@@ -184,7 +268,6 @@
     <div id="loading" class="loading" style="display: none;">Loading latest post...</div>
     <div id="error" class="error" style="display: none;"></div>
 
-    <hr>
     <div class="tips">
         <h3>💡 Tips for Better Performance:</h3>
         <p>You can read the messages of a channel without appearing in the history, no one knows if you have read it, total privacy.</p>
@@ -302,7 +385,7 @@
                     savedChannels.forEach(channel => {
                         const li = document.createElement('li');
                         li.innerHTML = `
-                            <span>@${channel}</span>
+                            <span data-channel="${channel}">@${channel}</span>
                             <button class="remove-channel" data-channel="${channel}">×</button>
                         `;
                         listContainer.appendChild(li);
@@ -320,7 +403,7 @@
 
                     document.querySelectorAll('#saved-channels-list li span').forEach(span => {
                         span.addEventListener('click', (e) => {
-                            elements.channelInput.value = e.target.textContent.substring(1); // Remove @
+                            elements.channelInput.value = e.target.dataset.channel;
                             elements.loadChannelBtn.click();
                         });
                     });
