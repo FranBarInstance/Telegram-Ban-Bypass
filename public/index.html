@@ -22,6 +22,7 @@
         body {
             font-family: var(--font-main);
             background-color: var(--bg-color);
+            background-image: url('canvas.png');
             color: var(--text-color);
             margin: 0;
             padding: 10px;
@@ -285,6 +286,11 @@
             0%, 100% { transform: translateX(0); }
             50% { transform: translateX(5px); }
         }
+
+        iframe[src*="t.me"] {
+            margin-bottom: 10px;
+        }
+
     </style>
 </head>
 <body>
