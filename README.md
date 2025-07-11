@@ -1,7 +1,7 @@
 # Telegram Ban Bypass
 
 ## Overview
-An enhanced client-side web tool that allows users to view content from any public Telegram channel, even if the channel is banned or restricted. The tool now includes improved features and performance optimizations.
+An enhanced web-based tool that lets you view content from any public Telegram channel—even if your account is banned in that particular channel. Includes performance optimizations and upgraded features.
 
 **Live Demo:** [DEMO](https://franbarinstance.github.io/Telegram-Ban-Bypass/public/)
 
