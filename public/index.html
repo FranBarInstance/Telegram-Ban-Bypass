@@ -37,10 +37,18 @@
             color: var(--accent-color);
         }
 
+        .header {
+            background: var(--card-bg);
+            padding: 5px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 25px;
+        }
+
         .author {
             text-align: center;
             font-style: italic;
-            font-size: 0.9em;
+            font-size: 0.8em;
             color: #777;
             margin-bottom: 25px;
         }
@@ -294,8 +302,10 @@
     </style>
 </head>
 <body>
-    <h1>Telegram Ban Bypass</h1>
-    <div class="author">View on <a href="https://github.com/FranBarInstance/Telegram-Ban-Bypass" target="_blank">GitHub</a></div>
+    <div class="header">
+        <h1>Telegram Ban Bypass</h1>
+        <div class="author">View on <a href="https://github.com/FranBarInstance/Telegram-Ban-Bypass" target="_blank">GitHub</a></div>
+    </div>
     <div class="channel-input-container">
         <label for="channel-input">Enter Telegram Channel:</label>
         <input type="text" id="channel-input" placeholder="e.g., ORANGETERAPY or https://t.me/ORANGETERAPY/">
@@ -344,8 +354,8 @@
             MAX_POSTS_BEFORE_CLEAR: 200,
             INTERVAL_CHECKS: 25,
             LOAD_MORE_POST: 8,
-            DELETED_POST_CHECK_MAX_TIMES: 300,
-            DELETED_POST_CHECK_INTERVAL: 100,
+            DELETED_POST_CHECK_MAX_TIMES: 900,
+            DELETED_POST_CHECK_INTERVAL: 10,
             WIDGET_SCRIPT_URL: 'https://telegram.org/js/telegram-widget.js?22',
             API_URL: 'https://api-telegram-2.repostea.com/api/telegram/last-message',
             LOAD_MORE_DELAY: 900
