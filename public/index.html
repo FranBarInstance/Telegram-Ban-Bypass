@@ -1,11 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Allows you to skip the ban of any telegram channel or group. You can read the messages of a channel without appearing in the history, no one knows if you have read it.">
+    <meta name="description"
+        content="Allows you to skip the ban of any telegram channel or group. You can read the messages of a channel without appearing in the history, no one knows if you have read it.">
     <meta name="author" content="github.com/FranBarInstance">
     <link rel="preload" href="https://telegram.org/js/telegram-widget.js?22" as="script">
+    <script>
+        document.documentElement.lang = (navigator.language || navigator.userLanguage).startsWith('es') ? 'es' : 'en';
+    </script>
     <title>Telegram Ban Bypass - Avoid blocking the Telegram channel or group</title>
     <style>
         :root {
@@ -15,7 +20,7 @@
             --accent-hover: #005fa3;
             --card-bg: #f9f9f9;
             --border-radius: 8px;
-            --box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
@@ -51,6 +56,26 @@
             font-size: 0.8em;
             color: #777;
             margin-bottom: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .language-selector a {
+            color: var(--accent-color);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .language-selector a:hover {
+            color: var(--accent-hover);
+            text-decoration: underline;
+        }
+
+        .language-selector a.active {
+            font-weight: bold;
+            pointer-events: none;
         }
 
         .channel-input-container {
@@ -142,7 +167,8 @@
             background-color: var(--accent-hover);
         }
 
-        .loading, .error {
+        .loading,
+        .error {
             text-align: center;
             padding: 15px;
             font-style: italic;
@@ -291,32 +317,51 @@
         }
 
         @keyframes bounce {
-            0%, 100% { transform: translateX(0); }
-            50% { transform: translateX(5px); }
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            50% {
+                transform: translateX(5px);
+            }
         }
 
         iframe[src*="t.me"] {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.7em;
+            }
         }
 
     </style>
 </head>
+
 <body>
     <div class="header">
-        <h1>Telegram Ban Bypass</h1>
-        <div class="author">View on <a href="https://github.com/FranBarInstance/Telegram-Ban-Bypass" target="_blank">GitHub</a></div>
+        <h1 id="mainTitle"></h1>
+        <div class="author">
+            <span class="language-selector">
+                <a href="#" onclick="changeLanguage('es')" id="lang-es">Español</a> -
+                <a href="#" onclick="changeLanguage('en')" id="lang-en">English</a>
+            </span>
+        </div>
     </div>
     <div class="channel-input-container">
-        <label for="channel-input">Enter Telegram Channel:</label>
+        <label for="channel-input" id="enterChannelLabel"></label>
         <input type="text" id="channel-input" placeholder="e.g., ORANGETERAPY or https://t.me/ORANGETERAPY/">
         <div class="method-selection">
             <input type="radio" id="method-api" name="method" value="api">
-            <label for="method-api">By API</label>
+            <label for="method-api" id="byApiLabel"></label>
             &nbsp;
             <input type="radio" id="method-binary" name="method" value="binary" checked>
-            <label for="method-binary">By Binary Search</label>
+            <label for="method-binary" id="byBinarySearchLabel"></label>
         </div>
-        <button type="button" id="load-channel-btn">Load Channel</button>
+        <button type="button" id="load-channel-btn"></button>
     </div>
     <div class="saved-channels" style="display: none;">
         <ul id="saved-channels-list"></ul>
@@ -324,27 +369,115 @@
     <div id="current-channel" class="current-channel" style="display: none;"></div>
     <div id="binary-search-info" class="binary-search-info" style="display: none;"></div>
     <div id="widget-container"></div>
-    <button class="widget-load-more-button" style="display: none;">Load More Posts</button>
-    <div id="loading" class="loading" style="display: none;">Loading latest post...</div>
+    <button class="widget-load-more-button" style="display: none;" id="loadMoreBtn"></button>
+    <div id="loading" class="loading" style="display: none;"></div>
     <div id="error" class="error" style="display: none;"></div>
 
     <div class="tips">
-        <h3>Quick Guide: View Banned Channels:</h3>
-        <p>Allows you to access blocked Telegram channels or groups. You can read the messages of a channel without appearing in the history, no one knows if you have read it.</p>
-        <ul>
-            <li>No login required. No Telegram account needed to read channels</li>
-            <li>Use channel names (e.g., "ORANGETERAPY")</li>
-            <li>Full URLs are supported (e.g., "https://t.me/ORANGETERAPY")</li>
-            <li>Use in the URL the "channel" parameter for the default channel: ?channel=channelname</li>
-            <li>Use in the URL the "add" parameter to add channels to the history, separated by commas: ?add=channel1,channel2,...</li>
-            <li>Allows you to skip the ban of any telegram channel or group.</li>
-            <li>Alternatively you can download a HTML that works in any browser</li>
-        </ul>
+        <h3 id="quickGuideTitle"></h3>
+        <p id="quickGuideDescription"></p>
+        <ul id="featuresList"></ul>
+        <div style="text-align: center;">GitHub: <a href="https://github.com/FranBarInstance/Telegram-Ban-Bypass" target="_blank">Telegram Ban ypass</a></div>
     </div>
     <div class="for-caching" style="display: none;">
-        <script async src="https://telegram.org/js/telegram-widget.js?22" data-telegram-post="telegram/0" data-width="100%"></script>
+        <script async src="https://telegram.org/js/telegram-widget.js?22" data-telegram-post="telegram/0"
+            data-width="100%"></script>
     </div>
     <script>
+        // Translations
+        const translations = {
+            en: {
+                title: "Telegram Ban Bypass",
+                enterChannel: "Enter Telegram Channel:",
+                byApi: "By API",
+                byBinarySearch: "By Binary Search",
+                loadChannel: "Load Channel",
+                loading: "Loading...",
+                loadingLatestPost: "Loading latest post...",
+                startingBinarySearch: "Starting binary search...",
+                searchingInitialRange: "Searching initial range...",
+                testingMessage: "Testing message",
+                rangeFound: "Range found:",
+                verifyingLastMessage: "Verifying last message:",
+                noValidMessages: "No valid messages found",
+                noMessages: "No messages found - channel may not exist or have no public messages",
+                currentlyViewing: "Currently viewing:",
+                latestPostId: "Latest post ID:",
+                searchCompleted: "✅ Search completed. Last message:",
+                loadMore: "Load More Posts",
+                invalidChannel: "Please enter a valid channel name",
+                quickGuideTitle: "Quick Guide: View Banned Channels:",
+                quickGuideDescription: "Allows you to access blocked Telegram channels or groups. You can read the messages of a channel without appearing in the history, no one knows if you have read it.",
+                features: [
+                    "No login required. No Telegram account needed to read channels",
+                    "Use channel names (e.g., \"ORANGETERAPY\")",
+                    "Full URLs are supported (e.g., \"https://t.me/ORANGETERAPY\")",
+                    "Use in the URL the \"channel\" parameter for the default channel: ?channel=channelname",
+                    "Use in the URL the \"add\" parameter to add channels to the history, separated by commas: ?add=channel1,channel2,...",
+                    "Allows you to skip the ban of any telegram channel or group.",
+                    "Alternatively you can download a HTML that works in any browser"
+                ]
+            },
+            es: {
+                title: "Saltar Ban en Telegram",
+                enterChannel: "Introduce el Canal de Telegram:",
+                byApi: "Por API",
+                byBinarySearch: "Búsqueda Binaria",
+                loadChannel: "Cargar Canal",
+                loading: "Cargando...",
+                loadingLatestPost: "Cargando último mensaje...",
+                startingBinarySearch: "Iniciando búsqueda binaria...",
+                searchingInitialRange: "Buscando rango inicial...",
+                testingMessage: "Probando mensaje",
+                rangeFound: "Rango encontrado:",
+                verifyingLastMessage: "Verificando último mensaje:",
+                noValidMessages: "No se encontraron mensajes válidos",
+                noMessages: "No se encontraron mensajes - el canal puede no existir o no tener mensajes públicos",
+                currentlyViewing: "Viendo actualmente:",
+                latestPostId: "ID del último mensaje:",
+                searchCompleted: "✅ Búsqueda completada. Último mensaje:",
+                loadMore: "Cargar Más Mensajes",
+                invalidChannel: "Por favor, introduce un nombre de canal válido",
+                quickGuideTitle: "Guía Rápida: Ver Canales Bloqueados:",
+                quickGuideDescription: "Permite acceder a canales o grupos bloqueados de Telegram. Puedes leer los mensajes de un canal sin aparecer en el historial, nadie sabe si lo has leído.",
+                features: [
+                    "No requiere inicio de sesión. No necesitas cuenta de Telegram para leer canales",
+                    "Usa nombres de canal (ej: \"ORANGETERAPY\")",
+                    "URLs completas son soportadas (ej: \"https://t.me/ORANGETERAPY\")",
+                    "Usa en la URL el parámetro \"channel\" para el canal por defecto: ?channel=nombrecanal",
+                    "Usa en la URL el parámetro \"add\" para añadir canales al historial, separados por comas: ?add=canal1,canal2,...",
+                    "Permite saltarse el bloqueo de cualquier canal o grupo de telegram.",
+                    "Alternativamente puedes descargar un HTML que funciona en cualquier navegador"
+                ]
+            }
+        };
+
+        // Language management
+        const getPreferredLanguage = () => {
+            const savedLang = localStorage.getItem('preferredLanguage');
+            if (savedLang) return savedLang;
+
+            const userLang = navigator.language || navigator.userLanguage;
+            return userLang.startsWith('es') ? 'es' : 'en';
+        };
+
+        let currentLang = getPreferredLanguage();
+        let t = translations[currentLang];
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            t = translations[lang];
+            localStorage.setItem('preferredLanguage', lang);
+            document.documentElement.lang = lang;
+            i18n.updateUITexts();
+            updateLanguageSelector();
+        }
+
+        function updateLanguageSelector() {
+            document.getElementById('lang-es').classList.toggle('active', currentLang === 'es');
+            document.getElementById('lang-en').classList.toggle('active', currentLang === 'en');
+        }
+
         // Configuration and constants
         const CONFIG = {
             NUM_POSTS: 25,
@@ -568,20 +701,20 @@
                 }
 
                 try {
-                    utils.setLoadingState(true, 'Starting binary search...');
-                    binarySearch.updateInfo('Searching initial range...');
+                    utils.setLoadingState(true, t.startingBinarySearch);
+                    binarySearch.updateInfo(t.searchingInitialRange);
 
                     const { lower, upper } = await binarySearch.findInitialRange(channelName);
 
-                    binarySearch.updateInfo(`Range found: ${lower} - ${upper}. Starting binary search...`);
+                    binarySearch.updateInfo(`${t.rangeFound} ${lower} - ${upper}. ${t.startingBinarySearch}`);
 
                     const lastPostId = await binarySearch.performBinarySearch(channelName, lower, upper);
 
-                    binarySearch.updateInfo(`Verifying last message: ${lastPostId}`);
+                    binarySearch.updateInfo(`${t.verifyingLastMessage} ${lastPostId}`);
                     const finalExists = await messageChecker.checkExists(channelName, lastPostId);
 
                     if (!finalExists) {
-                        throw new Error('No valid messages found');
+                        throw new Error(t.noValidMessages);
                     }
 
                     cache.set(channelName, lastPostId);
@@ -623,7 +756,7 @@
                     while (await messageChecker.checkExists(channelName, upper)) {
                         lower = upper;
                         upper *= 2;
-                        binarySearch.updateInfo(`Expanding search: testing ${upper}...`);
+                        binarySearch.updateInfo(`${t.testingMessage} ${upper}...`);
                     }
                 }
 
@@ -683,10 +816,10 @@
                 state.lastPostId = lastPostId;
                 state.currentChannel = channelName;
 
-                elements.currentChannel.innerHTML = `Currently viewing: <strong>@${channelName}</strong> (Latest post ID: ${lastPostId})`;
+                elements.currentChannel.innerHTML = `${t.currentlyViewing} <strong>@${channelName}</strong> (${t.latestPostId} ${lastPostId})`;
                 elements.currentChannel.style.display = 'block';
 
-                binarySearch.updateInfo(`✅ Search completed. Last message: ${lastPostId}`);
+                binarySearch.updateInfo(`${t.searchCompleted} ${lastPostId}`);
                 elements.binarySearchInfo.style.backgroundColor = '#d4edda';
                 elements.binarySearchInfo.style.color = '#155724';
 
@@ -701,7 +834,7 @@
 
                 // Asegurarse de que el botón esté habilitado
                 elements.loadChannelBtn.disabled = false;
-                elements.loadChannelBtn.textContent = 'Load Channel';
+                elements.loadChannelBtn.textContent = t.loadChannel;
 
                 window.dispatchEvent(new CustomEvent('telegramLoaded'));
             }
@@ -780,7 +913,7 @@
                     if (state.countPosts > CONFIG.MAX_POSTS_BEFORE_CLEAR) {
                         state.countPosts = 0;
                         elements.widgetContainer.innerHTML = '';
-                        setTimeout(()=>{window.scrollTo(0, 0);}, 100);
+                        setTimeout(() => { window.scrollTo(0, 0); }, 100);
                     }
 
                     const newStart = end - 1;
@@ -817,8 +950,29 @@
             }
         };
 
+        const i18n = {
+            updateUITexts() {
+                // Update static UI elements
+                document.getElementById('mainTitle').textContent = t.title;
+                document.getElementById('enterChannelLabel').textContent = t.enterChannel;
+                document.getElementById('byApiLabel').textContent = t.byApi;
+                document.getElementById('byBinarySearchLabel').textContent = t.byBinarySearch;
+                document.getElementById('load-channel-btn').textContent = t.loadChannel;
+                document.getElementById('loadMoreBtn').textContent = t.loadMore;
+                document.getElementById('quickGuideTitle').textContent = t.quickGuideTitle;
+                document.getElementById('quickGuideDescription').textContent = t.quickGuideDescription;
+
+                // Update features list
+                const featuresList = document.getElementById('featuresList');
+                featuresList.innerHTML = t.features.map(feature => `<li>${feature}</li>`).join('');
+            }
+        };
+
         const eventListeners = {
             init() {
+                // Initialize translations and language selector
+                i18n.updateUITexts();
+                updateLanguageSelector();
                 window.addEventListener('telegramLoaded', () => {
                     if (elements.widgetContainer && state.lastPostId > 0) {
                         state.countPosts = 0;
@@ -831,7 +985,7 @@
                     const channelName = utils.extractChannelName(elements.channelInput.value);
 
                     if (!channelName) {
-                        alert('Please enter a valid channel name');
+                        alert(t.invalidChannel);
                         return;
                     }
 
@@ -839,7 +993,7 @@
 
                     utils.clearContainer();
                     elements.loadChannelBtn.disabled = true;
-                    elements.loadChannelBtn.textContent = 'Loading...';
+                    elements.loadChannelBtn.textContent = t.loading;
                     elements.error.style.display = 'none';
 
                     try {
@@ -870,7 +1024,7 @@
                     utils.displaySavedChannels();
                 });
 
-                utils.addChannelsFromURL = function() {
+                utils.addChannelsFromURL = function () {
                     const urlParams = new URLSearchParams(window.location.search);
                     const channelsToAdd = urlParams.get('add');
 
@@ -910,4 +1064,5 @@
     </script>
 
 </body>
+
 </html>
