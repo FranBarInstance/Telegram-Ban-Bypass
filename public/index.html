@@ -490,7 +490,7 @@
             DELETED_POST_CHECK_MAX_TIMES: 1500,
             DELETED_POST_CHECK_INTERVAL: 10,
             WIDGET_SCRIPT_URL: 'https://telegram.org/js/telegram-widget.js?22',
-            API_URL: 'https://api-telegram-2.repostea.com/api/telegram/last-message',
+            API_URL: 'https://api-telegram.repostea.com/api/v2/telegram/channels/{channel}/messages/last-id',
             LOAD_MORE_DELAY: 900
         };
 
@@ -847,19 +847,20 @@
                     utils.setLoadingState(true, 'Loading latest post...');
                     elements.binarySearchInfo.style.display = 'none';
 
-                    const response = await fetch(`${CONFIG.API_URL}?channel=${channelName}`);
+                    const url = CONFIG.API_URL.replace('{channel}', channelName);
+                    const response = await fetch(url);
 
                     if (!response.ok) {
                         throw new Error(`HTTP Error: ${response.status}`);
                     }
 
-                    const data = await response.json();
+                    const { data: { attributes: { last_message_id } } } = await response.json();
 
-                    if (!data.success || !data.last_message_id) {
+                    if (!last_message_id) {
                         throw new Error('No messages found in response');
                     }
 
-                    binarySearch.displayResult(channelName, data.last_message_id);
+                    binarySearch.displayResult(channelName, last_message_id);
 
                 } catch (error) {
                     console.error('Error fetching latest post:', error);
