@@ -791,7 +791,6 @@
                 }
 
                 if (lastValid > 0) {
-                    // Verificación hacia adelante con pasos más grandes
                     const forwardSteps = [10, 15, 20, 25, 30, 35, 40, 45, 50];
                     for (const step of forwardSteps) {
                         const nextId = lastValid + step;
@@ -803,27 +802,6 @@
                                 binarySearch.updateInfo(`Testing message ${i}...`);
                                 const intermediateExists = await messageChecker.checkExists(channelName, i);
                                 if (intermediateExists) lastValid = i;
-                            }
-                        }
-                    }
-
-                    // Verificación hacia atrás más exhaustiva si el último mensaje no existe
-                    const finalCheck = await messageChecker.checkExists(channelName, lastValid);
-                    if (!finalCheck) {
-                        const backwardSteps = [10, 15, 20, 25, 30, 35, 40, 45, 50];
-                        for (const step of backwardSteps) {
-                            const prevId = lastValid - step;
-                            if (prevId < 1) break;
-                            const exists = await messageChecker.checkExists(channelName, prevId);
-                            if (exists) {
-                                lastValid = prevId;
-                                // Verificar hacia adelante desde este punto
-                                for (let i = prevId + 1; i <= prevId + step; i++) {
-                                    binarySearch.updateInfo(`Testing message ${i}...`);
-                                    const forwardExists = await messageChecker.checkExists(channelName, i);
-                                    if (forwardExists) lastValid = i;
-                                }
-                                break;
                             }
                         }
                     }
