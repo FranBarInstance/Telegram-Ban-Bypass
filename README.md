@@ -1,16 +1,19 @@
 # Telegram Ban Bypass
 
 ## Overview
+
 An enhanced web-based tool that lets you view content from any public Telegram channel—even if your account is banned in that particular channel. Includes performance optimizations and upgraded features.
 
 **Live Demo:** [DEMO](https://franbarinstance.github.io/Telegram-Ban-Bypass/public/)
 
 ## Installation
+
 No installation required. You can:
 1. Use the **[live web version](https://franbarinstance.github.io/Telegram-Ban-Bypass/public/)**, or
 2. Download the [single HTML file](https://github.com/franbarinstance/Telegram-Ban-Bypass/blob/master/public/index.html) and open it in any browser
 
 ## Features
+
 - **No login required** - No Telegram account needed to read channels
 - **Binary Search Algorithm** - Finds latest posts efficiently
 - **Dual Loading Methods** - API or binary search
@@ -55,6 +58,7 @@ The last obstacle is detecting a non-existent message; it's not possible to acce
 However, deleted messages have a pattern - the iframe where they reside is noticeably smaller and can be easily identified.
 
 ## Technologies
+
 - Powered by: [telegram-channel-api](https://github.com/ArcInTower/telegram-channel-api)
 - Using Telegram's public widget API which isn't subject bans
 - Dynamically loading posts in reverse chronological order
@@ -62,10 +66,12 @@ However, deleted messages have a pattern - the iframe where they reside is notic
 - Caching responses to improve performance
 
 ## Limitations
+
 - Only works with public channels
 - There may be issues with slow internet connections.
 - Some very old posts may not load
 - No media download capability
 
 ## License
+
 MIT License - Free for personal and commercial use
