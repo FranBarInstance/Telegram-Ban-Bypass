@@ -1,12 +1,17 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="Allows you to skip the ban of any telegram channel or group. You can read the messages of a channel without appearing in the history, no one knows if you have read it.">
+    <meta name="description" content="Allows you to skip the ban of any telegram channel or group. You can read the messages of a channel without appearing in the history, no one knows if you have read it.">
     <meta name="author" content="github.com/FranBarInstance">
+    <meta name="theme-color" content="#007acc">
+    <meta name="application-name" content="Telegram Ban Bypass" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="icon" href="favicon.ico" type="image/ico">
+    <link rel="manifest" href="manifest.json">
     <link rel="preload" href="https://telegram.org/js/telegram-widget.js?22" as="script">
     <script>
         document.documentElement.lang = (navigator.language || navigator.userLanguage).startsWith('es') ? 'es' : 'en';
@@ -340,7 +345,6 @@
 
     </style>
 </head>
-
 <body>
     <div class="header">
         <h1 id="mainTitle"></h1>
@@ -1059,8 +1063,17 @@
         };
 
         eventListeners.init();
+
+        // Service Worker registration
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').then((registration) => {
+              console.log('Service Worker registrado con scope:', registration.scope);
+            }).catch((error) => {
+              console.error('Error al registrar el service worker:', error);
+            });
+          });
+        }
     </script>
-
 </body>
-
 </html>

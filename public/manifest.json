@@ -1,0 +1,21 @@
+{
+  "name": "Telegram Ban Bypass",
+  "short_name": "TGBanBypass",
+  "description": "Skip Telegram channel bans and read messages without being detected",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#007acc",
+  "offline_page": "offline.html",
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "orientation": "any",
+  "categories": ["utilities", "social"],
+  "prefer_related_applications": false
+}
