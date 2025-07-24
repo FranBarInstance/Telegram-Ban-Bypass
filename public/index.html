@@ -199,15 +199,7 @@
             text-align: center;
             color: var(--text-color);
             margin-bottom: 20px;
-        }
-
-        .binary-search-info {
-            background: #fff3cd;
-            padding: 12px;
-            border-radius: var(--border-radius);
-            color: #856404;
-            font-size: 14px;
-            margin-bottom: 20px;
+            transition: all 0.3s ease;
         }
 
         .saved-channels {
@@ -372,7 +364,6 @@
         <ul id="saved-channels-list"></ul>
     </div>
     <div id="current-channel" class="current-channel" style="display: none;"></div>
-    <div id="binary-search-info" class="binary-search-info" style="display: none;"></div>
     <div id="widget-container"></div>
     <button class="widget-load-more-button" style="display: none;" id="loadMoreBtn"></button>
     <div id="loading" class="loading" style="display: none;"></div>
@@ -382,7 +373,7 @@
         <h3 id="quickGuideTitle"></h3>
         <p id="quickGuideDescription"></p>
         <ul id="featuresList"></ul>
-        <div style="text-align: center;">GitHub: <a href="https://github.com/FranBarInstance/Telegram-Ban-Bypass" target="_blank">Telegram Ban ypass</a></div>
+        <div style="text-align: center;">GitHub: <a href="https://github.com/FranBarInstance/Telegram-Ban-Bypass" target="_blank">Telegram Ban Bypass</a></div>
     </div>
     <div class="for-caching" style="display: none;">
         <script async src="https://telegram.org/js/telegram-widget.js?22" data-telegram-post="telegram/0" data-width="100%"></script>
@@ -513,7 +504,6 @@
             loading: document.getElementById('loading'),
             error: document.getElementById('error'),
             currentChannel: document.getElementById('current-channel'),
-            binarySearchInfo: document.getElementById('binary-search-info'),
             widgetContainer: document.getElementById('widget-container'),
             loadMoreButton: document.querySelector('.widget-load-more-button'),
             channelInput: document.getElementById('channel-input'),
@@ -545,7 +535,6 @@
                 elements.widgetContainer.innerHTML = '';
                 elements.loadMoreButton.style.display = 'none';
                 elements.currentChannel.style.display = 'none';
-                elements.binarySearchInfo.style.display = 'none';
             },
             createTestElement() {
                 const testContainer = document.createElement('div');
@@ -694,8 +683,8 @@
                 120, 100, 80
             ],
             updateInfo(message) {
-                elements.binarySearchInfo.innerHTML = message;
-                elements.binarySearchInfo.style.display = 'block';
+                elements.currentChannel.innerHTML = message;
+                elements.currentChannel.style.display = 'block';
             },
             async findLastPost(channelName) {
                 const cachedResult = cache.get(channelName);
@@ -727,7 +716,6 @@
                 } catch (error) {
                     console.error('Error in binary search:', error);
                     utils.showError(`Error in binary search: ${error.message}`);
-                    elements.binarySearchInfo.style.display = 'none';
                     elements.loadChannelBtn.disabled = false;
                     elements.loadChannelBtn.textContent = 'Load Channel';
                     utils.setLoadingState(false);
@@ -820,11 +808,12 @@
                 elements.currentChannel.style.display = 'block';
 
                 binarySearch.updateInfo(`${t.searchCompleted} ${lastPostId}`);
-                elements.binarySearchInfo.style.backgroundColor = '#d4edda';
-                elements.binarySearchInfo.style.color = '#155724';
+                elements.currentChannel.style.backgroundColor = '#d4edda';
+                elements.currentChannel.style.color = '#155724';
 
                 setTimeout(() => {
-                    elements.binarySearchInfo.style.display = 'none';
+                    elements.currentChannel.style.backgroundColor = '';
+                    elements.currentChannel.style.color = '';
                 }, 1000);
 
                 utils.setLoadingState(false);
@@ -843,7 +832,7 @@
             async fetchLastPost(channelName) {
                 try {
                     utils.setLoadingState(true, 'Loading latest post...');
-                    elements.binarySearchInfo.style.display = 'none';
+                    elements.currentChannel.style.display = 'none';
 
                     const url = CONFIG.API_URL.replace('{channel}', channelName);
                     const response = await fetch(url);
