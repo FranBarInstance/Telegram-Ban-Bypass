@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -342,9 +343,9 @@
                 font-size: 1.7em;
             }
         }
-
     </style>
 </head>
+
 <body>
     <div class="header">
         <h1 id="mainTitle"></h1>
@@ -384,8 +385,7 @@
         <div style="text-align: center;">GitHub: <a href="https://github.com/FranBarInstance/Telegram-Ban-Bypass" target="_blank">Telegram Ban ypass</a></div>
     </div>
     <div class="for-caching" style="display: none;">
-        <script async src="https://telegram.org/js/telegram-widget.js?22" data-telegram-post="telegram/0"
-            data-width="100%"></script>
+        <script async src="https://telegram.org/js/telegram-widget.js?22" data-telegram-post="telegram/0" data-width="100%"></script>
     </div>
     <script>
         // Translations
@@ -801,7 +801,6 @@
                         const exists = await messageChecker.checkExists(channelName, nextId);
                         if (exists) {
                             lastValid = nextId;
-                            // Si encontramos uno, verificamos los intermedios
                             for (let i = lastValid - step + 1; i < nextId; i++) {
                                 binarySearch.updateInfo(`Testing message ${i}...`);
                                 const intermediateExists = await messageChecker.checkExists(channelName, i);
@@ -833,7 +832,6 @@
                 elements.widgetContainer.dataset.num = 20;
                 elements.widgetContainer.innerHTML = '';
 
-                // Asegurarse de que el botón esté habilitado
                 elements.loadChannelBtn.disabled = false;
                 elements.loadChannelBtn.textContent = t.loadChannel;
 
@@ -841,7 +839,6 @@
             }
         };
 
-        // Optimized API
         const api = {
             async fetchLastPost(channelName) {
                 try {
@@ -873,7 +870,6 @@
             }
         };
 
-        // Optimized widget loader
         const widgetLoader = {
             // Load Telegram widgets
             load(start, numPosts = CONFIG.NUM_POSTS) {
@@ -1066,14 +1062,15 @@
 
         // Service Worker registration
         if ('serviceWorker' in navigator) {
-          window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').then((registration) => {
-              console.log('Service Worker registrado con scope:', registration.scope);
-            }).catch((error) => {
-              console.error('Error al registrar el service worker:', error);
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then((registration) => {
+                    console.log('Service Worker registrado con scope:', registration.scope);
+                }).catch((error) => {
+                    console.error('Error al registrar el service worker:', error);
+                });
             });
-          });
         }
     </script>
 </body>
+
 </html>
