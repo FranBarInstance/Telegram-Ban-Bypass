@@ -844,7 +844,6 @@
                     const existsAtOne = await messageChecker.checkExists(channelName, 1);
                     finalId = existsAtOne ? 1 : Math.max(1, start - 100);
                 }
-                finalId += CONFIG.LOAD_MORE_POST
                 manualCacheUtil.set(channelName, finalId);
                 elements.startIdInput.value = finalId;
                 binarySearch.displayResult(channelName, finalId);
