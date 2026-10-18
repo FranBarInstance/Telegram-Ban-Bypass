@@ -487,7 +487,9 @@
             DELETED_POST_CHECK_INTERVAL: 10,
             WIDGET_SCRIPT_URL: 'https://telegram.org/js/telegram-widget.js?22',
             API_URL: 'https://api-telegram.repostea.com/api/v2/telegram/channels/{channel}/messages/last-id',
-            LOAD_MORE_DELAY: 900
+            LOAD_MORE_DELAY: 900,
+            RETRY_IFRAME_DELAY: 1500,
+            INITIAL_RANGE_MAX: 100000000
         };
         const state = {
             countInterval: 0,
@@ -514,13 +516,20 @@
         const postCache = new Map();
         const manualCache = new Map();
         const utils = {
+            isValidChannelName(name) {
+                return /^[A-Za-z0-9_]{5,32}$/.test(name);
+            },
             extractChannelName(input) {
                 const cleanInput = input.trim();
+                let name = cleanInput;
                 if (cleanInput.includes('t.me/')) {
                     const parts = cleanInput.split('/');
-                    return parts[parts.length - 1] || parts[parts.length - 2];
+                    name = parts[parts.length - 1] || parts[parts.length - 2];
                 }
-                return cleanInput.startsWith('@') ? cleanInput.substring(1) : cleanInput;
+                if (name.startsWith('@')) {
+                    name = name.substring(1);
+                }
+                return utils.isValidChannelName(name) ? name : '';
             },
             setLoadingState(isLoading, message = 'Loading...') {
                 state.isLoading = isLoading;
@@ -572,7 +581,15 @@
                     listContainer.innerHTML = '';
                     savedChannels.forEach(channel => {
                         const li = document.createElement('li');
-                        li.innerHTML = `<span data-channel="${channel}">@${channel}</span><button class="remove-channel" data-channel="${channel}">×</button>`;
+                        const span = document.createElement('span');
+                        span.dataset.channel = channel;
+                        span.textContent = `@${channel}`;
+                        const removeButton = document.createElement('button');
+                        removeButton.className = 'remove-channel';
+                        removeButton.dataset.channel = channel;
+                        removeButton.textContent = '×';
+                        li.appendChild(span);
+                        li.appendChild(removeButton);
                         listContainer.appendChild(li);
                     });
                     savedChannelsContainer.style.display = 'block';
@@ -697,9 +714,30 @@
                     script.setAttribute('data-width', '100%');
                     const verifyIframe = () => {
                         const iframe = testContainer.querySelector('iframe');
-                        const exists = iframe && iframe.offsetHeight >= CONFIG.MIN_IFRAME_HEIGHT;
+                        if (!iframe) {
+                            clearTimeout(timeout);
+                            resolveWith(false);
+                            return;
+                        }
+                        const height = iframe.offsetHeight;
+                        // An embed whose request was throttled by t.me never
+                        // receives the widget's resize postMessage and keeps
+                        // the browser default height (~150px), which would
+                        // pass the 60px threshold and be miscounted as an
+                        // existing message. Re-measure once after a delay;
+                        // if it is still in the default band, treat it as
+                        // not loaded.
+                        if (height >= 145 && height <= 155) {
+                            setTimeout(() => {
+                                const retryHeight = iframe.offsetHeight;
+                                const loaded = retryHeight < 145 || retryHeight > 155;
+                                clearTimeout(timeout);
+                                resolveWith(loaded && retryHeight >= CONFIG.MIN_IFRAME_HEIGHT);
+                            }, CONFIG.RETRY_IFRAME_DELAY);
+                            return;
+                        }
                         clearTimeout(timeout);
-                        resolveWith(exists);
+                        resolveWith(height >= CONFIG.MIN_IFRAME_HEIGHT);
                     };
                     script.onload = () => {
                         const iframe = testContainer.querySelector('iframe');
@@ -729,7 +767,7 @@
                 120, 100, 80
             ],
             updateInfo(message) {
-                elements.currentChannel.innerHTML = message;
+                elements.currentChannel.textContent = message;
                 elements.currentChannel.style.display = 'block';
             },
             async findLastPost(channelName) {
@@ -762,27 +800,27 @@
             async findInitialRange(channelName) {
                 let lower = 1;
                 let upper = 1;
-                let foundAny = false;
+                let foundGap = false;
                 for (const testValue of binarySearch.testValues) {
-                    binarySearch.updateInfo(`Testing message ${testValue}...`);
+                    binarySearch.updateInfo(`${t.testingMessage} ${testValue}...`);
                     const exists = await messageChecker.checkExists(channelName, testValue);
                     if (exists) {
                         lower = testValue;
                     } else {
                         upper = testValue;
-                        foundAny = true;
+                        foundGap = true;
                         break;
                     }
                 }
-                if (!foundAny) {
-                    throw new Error('No messages found - channel may not exist or have no public messages');
-                }
-                if (lower === binarySearch.testValues[binarySearch.testValues.length - 1]) {
+                if (!foundGap) {
+                    // Every grid probe exists: the channel is larger than the
+                    // top probe, so expand exponentially until a gap appears.
                     upper = lower * 2;
                     while (await messageChecker.checkExists(channelName, upper)) {
                         lower = upper;
                         upper *= 2;
                         binarySearch.updateInfo(`${t.testingMessage} ${upper}...`);
+                        if (upper >= CONFIG.INITIAL_RANGE_MAX) break;
                     }
                 }
                 return { lower, upper };
@@ -811,18 +849,16 @@
                     }
                 }
                 if (lastValid > 0) {
+                    // Forward probes past the binary-search result. Only the
+                    // probed IDs matter for the maximum: scanning the IDs
+                    // between them could move lastValid back below an ID
+                    // already verified to exist.
                     const forwardSteps = [10, 15, 20, 25, 30, 35, 40, 45, 50];
                     for (const step of forwardSteps) {
                         const nextId = lastValid + step;
+                        binarySearch.updateInfo(`${t.testingMessage} ${nextId}...`);
                         const exists = await messageChecker.checkExists(channelName, nextId);
-                        if (exists) {
-                            lastValid = nextId;
-                            for (let i = lastValid - step + 1; i < nextId; i++) {
-                                binarySearch.updateInfo(`Testing message ${i}...`);
-                                const intermediateExists = await messageChecker.checkExists(channelName, i);
-                                if (intermediateExists) lastValid = i;
-                            }
-                        }
+                        if (exists) lastValid = nextId;
                     }
                 }
                 return lastValid;
@@ -830,7 +866,14 @@
             displayResult(channelName, lastPostId) {
                 state.lastPostId = lastPostId;
                 state.currentChannel = channelName;
-                elements.currentChannel.innerHTML = `${t.currentlyViewing} <strong>@${channelName}</strong> (${t.latestPostId} ${lastPostId})`;
+                elements.currentChannel.textContent = '';
+                const channelLabel = document.createElement('strong');
+                channelLabel.textContent = `@${channelName}`;
+                elements.currentChannel.append(
+                    `${t.currentlyViewing} `,
+                    channelLabel,
+                    ` (${t.latestPostId} ${lastPostId})`
+                );
                 elements.currentChannel.style.display = 'block';
                 binarySearch.updateInfo(`${t.searchCompleted} ${lastPostId}`);
                 elements.currentChannel.style.backgroundColor = '#d4edda';
@@ -1110,7 +1153,10 @@
                     const urlParams = new URLSearchParams(window.location.search);
                     const channelsToAdd = urlParams.get('add');
                     if (channelsToAdd) {
-                        const channelsArray = channelsToAdd.split(',').map(ch => ch.trim()).filter(ch => ch);
+                        const channelsArray = channelsToAdd
+                            .split(',')
+                            .map(ch => utils.extractChannelName(ch))
+                            .filter(ch => ch);
                         let addedAny = false;
                         channelsArray.forEach(channel => {
                             if (utils.saveChannel(channel)) {
