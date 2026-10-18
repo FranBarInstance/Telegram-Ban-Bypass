@@ -5,6 +5,7 @@
                 enterChannel: "Telegram Channel:",
                 loadChannel: "Load",
                 loading: "Loading...",
+                checking: "Checking...",
                 loadingLatestPost: "Loading latest post...",
                 startingAutoSearch: "Starting automatic search...",
                 searchingInitialRange: "Searching initial range...",
@@ -24,8 +25,10 @@
                 manualMode: "Manual, start ID",
                 autoCheckLabel: "Auto-check messages",
                 seconds: "seconds",
-                checkingSavedLast: "Resuming from last message read:",
+                themeToDark: "Switch to dark mode",
+                themeToLight: "Switch to light mode",
                 startIdRequired: "Please enter a Start ID (or uncheck it for automatic search)",
+                invalidStartId: "Invalid start ID",
                 invalidChannel: "Please enter a valid channel name",
                 quickGuideTitle: "Quick Guide: View Banned Channels:",
                 quickGuideDescription: "Allows you to access blocked Telegram channels or groups. You can read the messages of a channel without appearing in the history, no one knows if you have read it.",
@@ -46,6 +49,7 @@
                 enterChannel: "Canal de Telegram:",
                 loadChannel: "Load",
                 loading: "Cargando...",
+                checking: "Comprobando...",
                 loadingLatestPost: "Cargando último mensaje...",
                 startingAutoSearch: "Iniciando búsqueda automática...",
                 searchingInitialRange: "Buscando rango inicial...",
@@ -65,8 +69,10 @@
                 manualMode: "Manual, start ID",
                 autoCheckLabel: "Comprobación automática",
                 seconds: "segundos",
-                checkingSavedLast: "Retomando desde el último mensaje leído:",
+                themeToDark: "Cambiar a modo oscuro",
+                themeToLight: "Cambiar a modo claro",
                 startIdRequired: "Introduce un Start ID (o desmárcalo para la búsqueda automática)",
+                invalidStartId: "Start ID inválido",
                 invalidChannel: "Introduce un nombre de canal válido",
                 quickGuideTitle: "Guía Rápida: Ver Canales Bloqueados:",
                 quickGuideDescription: "Permite acceder a canales o grupos bloqueados de Telegram. Puedes leer los mensajes de un canal sin aparecer en el historial, nadie sabe si lo has leído.",
@@ -110,13 +116,15 @@
             TIMEOUT_DURATION: 5000,
             MIN_IFRAME_HEIGHT: 60,
             MAX_POSTS_BEFORE_CLEAR: 200,
-            INTERVAL_CHECKS: 25,
             DELETED_POST_CHECK_MAX_TIMES: 1500,
             DELETED_POST_CHECK_INTERVAL: 10,
             WIDGET_SCRIPT_URL: 'https://telegram.org/js/telegram-widget.js?22',
-            LOAD_MORE_DELAY: 900,
-            RETRY_IFRAME_DELAY: 1500,
-            CHECK_NEW_MAX: 50,
+            CHECK_NEW_MAX: 20,
+            CHECK_NEW_BLOCK: 10,
+            PROBE_POLL_INTERVAL: 50,
+            PROBE_STABLE_SAMPLES: 10,
+            PROBE_BAND_STABLE_SAMPLES: 30,
+            THEME_KEY: 'tgTheme',
             COOKIES_KEY: 'tgAllowCookies',
             LAST_ID_KEY_PREFIX: 'tgLastPostId:',
             START_ID_KEY_PREFIX: 'tgStartId:',
@@ -165,7 +173,8 @@
             isAppKey(key) {
                 return key.startsWith(CONFIG.LAST_ID_KEY_PREFIX) ||
                        key.startsWith(CONFIG.START_ID_KEY_PREFIX) ||
-                       ['preferredLanguage', 'telegramSavedChannels', CONFIG.START_ID_ENABLED_KEY,
+                       ['preferredLanguage', 'telegramSavedChannels', CONFIG.THEME_KEY,
+                        CONFIG.START_ID_ENABLED_KEY,
                         CONFIG.AUTOCHECK_ENABLED_KEY, CONFIG.AUTOCHECK_INTERVAL_KEY].includes(key);
             },
             appKeys(store) {
@@ -209,6 +218,7 @@
             searchInfoText: document.getElementById('searchInfoText'),
             toolbarChannel: document.getElementById('toolbar-channel'),
             checkNewButton: document.getElementById('checkNewBtn'),
+            themeToggle: document.getElementById('theme-toggle'),
             tipsCard: document.getElementById('tips-card')
         };
         const utils = {
@@ -264,6 +274,14 @@
                     return true;
                 }
                 return false;
+            },
+            // The stored ID is the highest one ever found: it never goes back
+            saveLastId(channelName, lastPostId) {
+                const key = CONFIG.LAST_ID_KEY_PREFIX + channelName;
+                const stored = parseInt(storage.getItem(key), 10) || 0;
+                if (lastPostId > stored) {
+                    storage.setItem(key, String(lastPostId));
+                }
             },
             loadSavedChannels() {
                 return JSON.parse(storage.getItem('telegramSavedChannels') || '[]');
@@ -343,9 +361,15 @@
                 return new Promise((resolve) => {
                     const testContainer = utils.createTestElement();
                     let isResolved = false;
+                    let pageLoaded = false;
+                    let lastHeight = -1;
+                    let stableCount = 0;
+                    let fastTimer = null;
                     const cleanup = () => {
                         if (!isResolved) {
                             isResolved = true;
+                            clearTimeout(fastTimer);
+                            clearTimeout(timeout);
                             testContainer.remove();
                         }
                     };
@@ -361,38 +385,55 @@
                     script.src = CONFIG.WIDGET_SCRIPT_URL;
                     script.setAttribute('data-telegram-post', `${channelName}/${messageId}`);
                     script.setAttribute('data-width', '100%');
-                    const verifyIframe = () => {
+                    // Poll the iframe height every ~50 ms and resolve as soon
+                    // as the answer is clear:
+                    //   >160           -> the embed resized: the post exists
+                    //   stable <60     -> "post not found" page: does not exist
+                    //   stable 145-155 -> widget default (throttled): not
+                    //                     loaded; requires a longer stable
+                    //                     period so slow real embeds are not
+                    //                     misread as missing
+                    const poll = () => {
+                        if (isResolved) return;
                         const iframe = testContainer.querySelector('iframe');
-                        if (!iframe) {
-                            clearTimeout(timeout);
-                            resolveWith(false);
+                        const height = iframe ? iframe.offsetHeight : 0;
+                        if (height === lastHeight) {
+                            stableCount++;
+                        } else {
+                            stableCount = 0;
+                            lastHeight = height;
+                        }
+                        if (height > 160) {
+                            resolveWith(true);
                             return;
                         }
-                        const height = iframe.offsetHeight;
-                        // An embed whose request was throttled by t.me never
-                        // receives the widget's resize postMessage and keeps
-                        // the browser default height (~150px), which would
-                        // pass the 60px threshold and be miscounted as an
-                        // existing message. Re-measure once after a delay;
-                        // if it is still in the default band, treat it as
-                        // not loaded.
-                        if (height >= 145 && height <= 155) {
-                            setTimeout(() => {
-                                const retryHeight = iframe.offsetHeight;
-                                const loaded = retryHeight < 145 || retryHeight > 155;
-                                clearTimeout(timeout);
-                                resolveWith(loaded && retryHeight >= CONFIG.MIN_IFRAME_HEIGHT);
-                            }, CONFIG.RETRY_IFRAME_DELAY);
-                            return;
+                        if (pageLoaded && stableCount >= CONFIG.PROBE_STABLE_SAMPLES) {
+                            if (height > 0 && height < CONFIG.MIN_IFRAME_HEIGHT) {
+                                resolveWith(false);
+                                return;
+                            }
+                            if (height >= 145 && height <= 155) {
+                                // Default (throttled) widget size: trust it only
+                                // after a longer stable period, otherwise slow
+                                // real embeds would be misread as missing
+                                if (stableCount >= CONFIG.PROBE_BAND_STABLE_SAMPLES) {
+                                    resolveWith(false);
+                                    return;
+                                }
+                            } else if (height >= CONFIG.MIN_IFRAME_HEIGHT) {
+                                resolveWith(true);
+                                return;
+                            }
                         }
-                        clearTimeout(timeout);
-                        resolveWith(height >= CONFIG.MIN_IFRAME_HEIGHT);
+                        fastTimer = setTimeout(poll, CONFIG.PROBE_POLL_INTERVAL);
                     };
                     script.onload = () => {
                         const iframe = testContainer.querySelector('iframe');
                         if (iframe) {
-                            iframe.onload = verifyIframe;
-                            setTimeout(verifyIframe, CONFIG.LOAD_MORE_DELAY);
+                            iframe.onload = () => {
+                                pageLoaded = true;
+                            };
+                            fastTimer = setTimeout(poll, CONFIG.PROBE_POLL_INTERVAL);
                         } else {
                             resolveWith(false);
                         }
@@ -424,13 +465,11 @@
                     utils.setLoadingState(true, t.startingAutoSearch);
                     const savedId = parseInt(storage.getItem(CONFIG.LAST_ID_KEY_PREFIX + channelName), 10);
                     if (savedId > 0) {
-                        // Resume exactly where the user left off: "check new"
-                        // catches up with anything published since then
-                        autoSearch.updateInfo(`${t.checkingSavedLast} ${savedId}`);
-                        if (await messageChecker.checkExists(channelName, savedId)) {
-                            autoSearch.displayResult(channelName, savedId);
-                            return;
-                        }
+                        // Resume exactly where the user left off, without any
+                        // probe: "check new" catches up with what was published
+                        // after that ID
+                        autoSearch.displayResult(channelName, savedId);
+                        return;
                     }
                     autoSearch.updateInfo(t.searchingInitialRange);
                     const { lower, upper } = await autoSearch.findInitialRange(channelName);
@@ -518,7 +557,7 @@
             displayResult(channelName, lastPostId) {
                 state.lastPostId = lastPostId;
                 state.currentChannel = channelName;
-                storage.setItem(CONFIG.LAST_ID_KEY_PREFIX + channelName, String(lastPostId));
+                utils.saveLastId(channelName, lastPostId);
                 elements.toolbarChannel.textContent = `@${channelName}`;
                 elements.toolbarChannel.style.display = 'inline-block';
                 elements.currentChannel.textContent = '';
@@ -531,14 +570,11 @@
                 );
                 elements.currentChannel.style.display = 'block';
                 autoSearch.updateInfo(`${t.searchCompleted} ${lastPostId}`);
-                elements.currentChannel.style.backgroundColor = '#d4edda';
-                elements.currentChannel.style.color = '#155724';
+                elements.currentChannel.classList.add('flash-ok');
                 setTimeout(() => {
-                    elements.currentChannel.style.backgroundColor = '';
-                    elements.currentChannel.style.color = '';
+                    elements.currentChannel.classList.remove('flash-ok');
                 }, 1000);
                 utils.setLoadingState(false);
-                elements.widgetContainer.dataset.num = 20;
                 elements.widgetContainer.innerHTML = '';
                 elements.loadChannelBtn.disabled = false;
                 window.dispatchEvent(new CustomEvent('telegramLoaded'));
@@ -548,22 +584,29 @@
             // Manual mode displays starting exactly from the entered Start ID
             async findLastPost(channelName, startId) {
                 const start = parseInt(startId, 10);
-                if (isNaN(start) || start <= 0) throw new Error('Invalid start ID');
+                if (isNaN(start) || start <= 0) throw new Error(t.invalidStartId);
                 autoSearch.displayResult(channelName, start);
             }
         };
         const widgetLoader = {
+            createScript(postId) {
+                const script = document.createElement('script');
+                script.async = true;
+                script.src = CONFIG.WIDGET_SCRIPT_URL;
+                script.setAttribute('data-telegram-post', `${state.currentChannel}/${postId}`);
+                script.setAttribute('data-width', '100%');
+                if (theme.isDark()) {
+                    // Documented dark recipe: data-dark="1" only
+                    script.setAttribute('data-dark', '1');
+                }
+                return script;
+            },
             createPostScripts(start, numPosts) {
                 const end = start - numPosts + 1;
                 const fragment = document.createDocumentFragment();
                 // Ascending order: oldest first, newest last (chat-style)
                 for (let n = end; n <= start; n++) {
-                    const script = document.createElement('script');
-                    script.async = true;
-                    script.src = CONFIG.WIDGET_SCRIPT_URL;
-                    script.setAttribute('data-telegram-post', `${state.currentChannel}/${n}`);
-                    script.setAttribute('data-width', '100%');
-                    fragment.appendChild(script);
+                    fragment.appendChild(widgetLoader.createScript(n));
                     state.countPosts++;
                 }
                 return { fragment, end };
@@ -593,12 +636,7 @@
                         `iframe[src*="/${state.currentChannel}/${n}?"]`
                     );
                     if (stale) stale.remove();
-                    const script = document.createElement('script');
-                    script.async = true;
-                    script.src = CONFIG.WIDGET_SCRIPT_URL;
-                    script.setAttribute('data-telegram-post', `${state.currentChannel}/${n}`);
-                    script.setAttribute('data-width', '100%');
-                    fragment.appendChild(script);
+                    fragment.appendChild(widgetLoader.createScript(n));
                     state.countPosts++;
                 }
                 elements.widgetContainer.appendChild(fragment);
@@ -613,10 +651,55 @@
                         elements.widgetContainer.innerHTML = '';
                         setTimeout(() => { window.scrollTo(0, 0); }, 100);
                     }
+                    const previousFirst = elements.widgetContainer.querySelector('iframe');
                     const newStart = end - 1;
                     widgetLoader.load(newStart, CONFIG.NUM_POSTS, true);
+                    widgetLoader.trackBatchReady(newStart - CONFIG.NUM_POSTS + 1, newStart);
+                    widgetLoader.revealBatch(previousFirst);
                 });
                 elements.loadMoreButton = newButton;
+            },
+            // Bring the freshly loaded batch into view: the prepend lands above
+            // the viewport, so without this the user sees nothing happening
+            revealBatch(previousFirst, attempt = 0) {
+                const first = elements.widgetContainer.querySelector('iframe');
+                if (first && first !== previousFirst) {
+                    first.scrollIntoView({ block: 'start' });
+                    window.scrollBy(0, -70); // leave room for the sticky toolbar
+                    return;
+                }
+                if (attempt < 15) {
+                    setTimeout(() => widgetLoader.revealBatch(previousFirst, attempt + 1), 150);
+                }
+            },
+            // Keep the button in a busy state until most of the new batch is
+            // rendered (or 15 s max), so the user sees the loading progress
+            trackBatchReady(fromId, toId) {
+                const button = elements.loadMoreButton;
+                const total = toId - fromId + 1;
+                const started = Date.now();
+                button.disabled = true;
+                button.textContent = t.loading;
+                const check = () => {
+                    if (elements.loadMoreButton !== button) return;
+                    let ready = 0;
+                    elements.widgetContainer.querySelectorAll('iframe[src*="t.me"]').forEach(iframe => {
+                        const match = (iframe.getAttribute('src') || '').match(/t\.me\/[^/]+\/(\d+)/);
+                        if (!match) return;
+                        const id = Number(match[1]);
+                        if (id < fromId || id > toId) return;
+                        const height = iframe.offsetHeight;
+                        // Settled: out of the default ~150px band or measured
+                        if (height > 0 && (height < 140 || height > 160)) ready++;
+                    });
+                    if (ready >= Math.ceil(total * 0.6) || Date.now() - started > 15000) {
+                        button.disabled = false;
+                        button.textContent = t.loadMore;
+                        return;
+                    }
+                    setTimeout(check, 400);
+                };
+                setTimeout(check, 400);
             }
         };
         const autoScroller = {
@@ -684,19 +767,42 @@
                 autoScroller.stop();
                 state.isLoading = true;
                 elements.checkNewButton.disabled = true;
-                elements.checkNewButton.textContent = t.loading;
+                elements.checkNewButton.textContent = t.checking;
                 try {
-                    let nextId = state.lastPostId + 1;
-                    let found = 0;
-                    while (found < CONFIG.CHECK_NEW_MAX &&
-                           await messageChecker.checkExists(state.currentChannel, nextId)) {
-                        found++;
-                        nextId++;
+                    // Probe downwards inside two windows (+10 and +20),
+                    // stepping by two: the first existing target marks the
+                    // boundary and everything up to it is shown. Deleted
+                    // posts may hide the boundary, hence the descending scan.
+                    const step = CONFIG.CHECK_NEW_BLOCK;
+                    let highest = state.lastPostId;
+                    for (let windowEnd = step; windowEnd <= CONFIG.CHECK_NEW_MAX; windowEnd += step) {
+                        for (let offset = windowEnd; offset > windowEnd - step; offset -= 2) {
+                            const target = state.lastPostId + offset;
+                            if (await messageChecker.checkExists(state.currentChannel, target)) {
+                                // Descending hit: every higher even offset
+                                // already failed (except when target is the
+                                // window's first probe; then the next check
+                                // recovers anything higher), so the maximum
+                                // is target or target+1: one probe pins it down
+                                highest = target;
+                                if (await messageChecker.checkExists(state.currentChannel, target + 1)) {
+                                    highest = target + 1;
+                                }
+                                break;
+                            }
+                        }
+                        if (highest > state.lastPostId) break;
                     }
-                    if (found > 0) {
-                        widgetLoader.appendRange(state.lastPostId + 1, state.lastPostId + found);
-                        state.lastPostId = state.lastPostId + found;
-                        storage.setItem(CONFIG.LAST_ID_KEY_PREFIX + state.currentChannel, String(state.lastPostId));
+                    // A lone new post at an odd offset is invisible to every
+                    // even-offset probe: check the immediate next ID
+                    if (highest === state.lastPostId &&
+                        await messageChecker.checkExists(state.currentChannel, state.lastPostId + 1)) {
+                        highest = state.lastPostId + 1;
+                    }
+                    if (highest > state.lastPostId) {
+                        widgetLoader.appendRange(state.lastPostId + 1, highest);
+                        state.lastPostId = highest;
+                        utils.saveLastId(state.currentChannel, highest);
                         iframeMonitor.start();
                     } else {
                         elements.checkNewButton.textContent = t.noNew;
@@ -711,7 +817,7 @@
                 } finally {
                     state.isLoading = false;
                     elements.checkNewButton.disabled = false;
-                    if (elements.checkNewButton.textContent === t.loading) {
+                    if (elements.checkNewButton.textContent === t.checking) {
                         elements.checkNewButton.textContent = t.checkNew;
                     }
                     autoCheck.reschedule();
@@ -801,6 +907,77 @@
                 document.getElementById('secondsLabel').textContent = t.seconds;
                 const featuresList = document.getElementById('featuresList');
                 featuresList.innerHTML = t.features.map(feature => `<li>${feature}</li>`).join('');
+                theme.updateButton();
+            }
+        };
+        // Light/dark theme: stored preference ('light'/'dark') or the system
+        // when unset; Telegram embeds receive data-dark at creation time and
+        // the feed is rebuilt on change (rendered embeds cannot be re-tinted)
+        const theme = {
+            query: window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null,
+            preferred() {
+                const value = storage.getItem(CONFIG.THEME_KEY);
+                return value === 'light' || value === 'dark' ? value : null;
+            },
+            isDark() {
+                const preferred = theme.preferred();
+                if (preferred) return preferred === 'dark';
+                return !!(theme.query && theme.query.matches);
+            },
+            apply() {
+                const preferred = theme.preferred();
+                if (preferred) {
+                    document.documentElement.dataset.theme = preferred;
+                } else {
+                    delete document.documentElement.dataset.theme;
+                }
+                theme.updateButton();
+            },
+            updateButton() {
+                if (!elements.themeToggle) return;
+                const dark = theme.isDark();
+                elements.themeToggle.classList.toggle('is-dark', dark);
+                const label = dark ? t.themeToLight : t.themeToDark;
+                elements.themeToggle.title = label;
+                elements.themeToggle.setAttribute('aria-label', label);
+            },
+            toggle() {
+                storage.setItem(CONFIG.THEME_KEY, theme.isDark() ? 'light' : 'dark');
+                theme.apply();
+                theme.refreshEmbeds();
+            },
+            refreshEmbeds() {
+                const container = elements.widgetContainer;
+                if (!container || !state.currentChannel) return;
+                const ids = [...container.querySelectorAll('iframe[src*="t.me"]')]
+                    .map(iframe => {
+                        const match = (iframe.getAttribute('src') || '').match(/t\.me\/[^/]+\/(\d+)/);
+                        return match ? Number(match[1]) : null;
+                    })
+                    .filter(id => id !== null)
+                    .sort((a, b) => a - b);
+                if (!ids.length) return;
+                const wasAtBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 80;
+                container.innerHTML = '';
+                const fragment = document.createDocumentFragment();
+                for (const id of ids) {
+                    fragment.appendChild(widgetLoader.createScript(id));
+                }
+                container.appendChild(fragment);
+                iframeMonitor.start();
+                if (wasAtBottom) autoScroller.start();
+            },
+            init() {
+                theme.apply();
+                if (theme.query) {
+                    theme.query.addEventListener('change', () => {
+                        // Only in auto mode: follow the system theme
+                        if (!theme.preferred()) {
+                            theme.apply();
+                            theme.refreshEmbeds();
+                        }
+                    });
+                }
             }
         };
         const eventListeners = {
@@ -823,6 +1000,7 @@
                     }
                 });
                 elements.checkNewButton.addEventListener('click', () => newMessages.check());
+                elements.themeToggle.addEventListener('click', () => theme.toggle());
                 document.getElementById('pref-cookies').addEventListener('change', (e) => {
                     storage.setPersistent(e.target.checked);
                 });
@@ -937,6 +1115,7 @@
                 const savedInterval = parseInt(storage.getItem(CONFIG.AUTOCHECK_INTERVAL_KEY), 10);
                 document.getElementById('autocheck-interval').value =
                     Number.isFinite(savedInterval) && savedInterval >= 0 ? savedInterval : CONFIG.AUTOCHECK_DEFAULT_SECONDS;
+                theme.init();
             }
         };
         eventListeners.init();

@@ -15,6 +15,14 @@
     <link rel="preload" href="https://telegram.org/js/telegram-widget.js?22" as="script">
     <script>
         document.documentElement.lang = (navigator.language || navigator.userLanguage).startsWith('es') ? 'es' : 'en';
+        try {
+            // Read the stored theme preference before the stylesheet loads
+            // to avoid a flash of the wrong theme. Absent value = system.
+            var savedTheme = sessionStorage.getItem('tgTheme') || localStorage.getItem('tgTheme');
+            if (savedTheme === 'light' || savedTheme === 'dark') {
+                document.documentElement.dataset.theme = savedTheme;
+            }
+        } catch (e) { /* storage unavailable */ }
     </script>
     <title>Telegram Ban Bypass - Avoid blocking the Telegram channel or group</title>
     <link rel="stylesheet" href="style.css">
@@ -25,6 +33,15 @@
             <a class="brand" href="https://github.com/FranBarInstance/Telegram-Ban-Bypass" target="_blank" rel="noopener">TGBypass</a>
             <div class="toolbar-right">
                 <span id="toolbar-channel" class="toolbar-channel" style="display: none;"></span>
+                <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Theme">
+                    <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="4"></circle>
+                        <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+                    </svg>
+                    <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+                    </svg>
+                </button>
                 <select id="lang-select" class="language-selector" aria-label="Language" onchange="changeLanguage(this.value)">
                     <option value="es">Español</option>
                     <option value="en">English</option>

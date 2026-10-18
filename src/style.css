@@ -1,4 +1,5 @@
 :root {
+    color-scheme: light;
     --bg: #eef2f6;
     --bg-gradient: linear-gradient(180deg, #e7f3fb 0%, #eef2f6 240px);
     --surface: #ffffff;
@@ -21,8 +22,32 @@
     --shadow: 0 1px 3px rgba(16, 34, 53, 0.08), 0 4px 14px rgba(16, 34, 53, 0.06);
     --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
+/* Explicit user choice from the theme toggle */
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0e1621;
+    --bg-gradient: linear-gradient(180deg, #17212b 0%, #0e1621 240px);
+    --surface: #17212b;
+    --surface-soft: #1d2a38;
+    --text: #e9eef4;
+    --text-soft: #9fb0c0;
+    --border: #2b3a4a;
+    --accent: #229ED9;
+    --accent-strong: #3fb0e6;
+    --accent-soft: #1b3247;
+    --danger: #e0716d;
+    --danger-soft: #3a2324;
+    --note-bg: #33301f;
+    --note-border: #a8892e;
+    --note-text: #e8d49a;
+    --ok-bg: #1e3527;
+    --ok-text: #8fd6a4;
+    --success: #43bd72;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 14px rgba(0, 0, 0, 0.3);
+}
 @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
+        color-scheme: dark;
         --bg: #0e1621;
         --bg-gradient: linear-gradient(180deg, #17212b 0%, #0e1621 240px);
         --surface: #17212b;
@@ -123,6 +148,36 @@ main {
     outline: none;
     border-color: var(--accent);
     color: var(--accent);
+}
+.theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+.theme-toggle:hover,
+.theme-toggle:focus {
+    outline: none;
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.theme-toggle .icon-moon {
+    display: none;
+}
+.theme-toggle.is-dark .icon-sun {
+    display: none;
+}
+.theme-toggle.is-dark .icon-moon {
+    display: block;
 }
 .card {
     background: var(--surface);
@@ -292,6 +347,10 @@ main {
 .widget-load-more-button:hover {
     background: var(--accent-soft);
 }
+.widget-load-more-button:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
 #saved-channels-list {
     list-style: none;
     padding: 0;
@@ -341,6 +400,10 @@ main {
     text-align: center;
     margin: 14px 0;
     overflow-wrap: anywhere;
+}
+.current-channel.flash-ok {
+    background: var(--ok-bg);
+    color: var(--ok-text);
 }
 .loading {
     background: var(--surface);
@@ -452,8 +515,11 @@ iframe[src*="t.me"] {
     .brand {
         font-size: 1.1em;
     }
+    .toolbar-right {
+        gap: 8px;
+    }
     .toolbar-channel {
-        max-width: 32vw;
+        max-width: 26vw;
     }
     .card {
         padding: 16px;
