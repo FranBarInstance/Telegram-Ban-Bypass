@@ -934,6 +934,24 @@
                         if (results[j]) return batch[j];
                     }
                 }
+                // The grid's smallest probe is 80: channels whose newest post
+                // predates it need a fallback. Scan downward from 79 so the
+                // first hit is already the highest existing ID; a binary
+                // search here would assume monotonic existence and could miss
+                // posts behind small deletion gaps. Only empty channels and
+                // tiny channels pay the extra probes.
+                for (let base = grid[0] - 1; base >= 1; base -= CONFIG.SEARCH_PARALLEL) {
+                    autoSearch.checkStop();
+                    const ids = [];
+                    for (let k = 0; k < CONFIG.SEARCH_PARALLEL; k++) {
+                        if (base - k >= 1) ids.push(base - k);
+                    }
+                    autoSearch.updateInfo(`${t.testingMessage} ${ids[ids.length - 1]}-${ids[0]}...`);
+                    const results = await autoSearch.checkBatch(channelName, ids);
+                    for (let j = 0; j < ids.length; j++) {
+                        if (results[j]) return ids[j];
+                    }
+                }
                 return 0;
             },
             async sweepUp(channelName, anchor) {
