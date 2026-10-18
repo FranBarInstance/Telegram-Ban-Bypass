@@ -622,7 +622,6 @@ iframe[src*="t.me"] {
     <main>
         <aside class="sidebar">
             <section class="card input-card">
-                <label for="channel-input" id="enterChannelLabel"></label>
                 <div class="channel-row">
                     <input type="text" id="channel-input" placeholder="e.g., telegram or https://t.me/telegram/">
                     <button type="button" id="load-channel-btn" class="load-channel-btn" title="Load" aria-label="Load">
@@ -2099,7 +2098,9 @@ iframe[src*="t.me"] {
         };
         const i18n = {
             updateUITexts() {
-                document.getElementById('enterChannelLabel').textContent = t.enterChannel;
+                // No visible label: the placeholder already explains the field,
+                // but screen readers still need a name for the input
+                document.getElementById('channel-input').setAttribute('aria-label', t.enterChannel);
                 const loadBtn = document.getElementById('load-channel-btn');
                 loadBtn.title = t.loadChannel;
                 loadBtn.setAttribute('aria-label', t.loadChannel);

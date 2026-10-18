@@ -1407,7 +1407,9 @@
         };
         const i18n = {
             updateUITexts() {
-                document.getElementById('enterChannelLabel').textContent = t.enterChannel;
+                // No visible label: the placeholder already explains the field,
+                // but screen readers still need a name for the input
+                document.getElementById('channel-input').setAttribute('aria-label', t.enterChannel);
                 const loadBtn = document.getElementById('load-channel-btn');
                 loadBtn.title = t.loadChannel;
                 loadBtn.setAttribute('aria-label', t.loadChannel);
