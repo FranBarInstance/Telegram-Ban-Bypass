@@ -734,7 +734,12 @@
             }
         };
         const messageChecker = {
-            async checkExists(channelName, messageId) {
+            // Resolves { exists, certain }. A false is only "certain" when the
+            // embed rendered the "post not found" page (thin iframe). A false
+            // from a throttled embed (default ~150 px, never resized) or a
+            // network failure is ambiguous: the post may exist, so callers
+            // that cannot afford false negatives (the channel search) retry it.
+            probe(channelName, messageId) {
                 return new Promise((resolve) => {
                     const testContainer = utils.createTestElement();
                     let isResolved = false;
@@ -757,7 +762,7 @@
                             resolve(result);
                         }
                     };
-                    const timeout = setTimeout(() => resolveWith(false), CONFIG.TIMEOUT_DURATION);
+                    const timeout = setTimeout(() => resolveWith({ exists: false, certain: false }), CONFIG.TIMEOUT_DURATION);
                     const script = document.createElement('script');
                     script.async = true;
                     script.src = CONFIG.WIDGET_SCRIPT_URL;
@@ -783,12 +788,12 @@
                             lastHeight = height;
                         }
                         if (height > 160) {
-                            resolveWith(true);
+                            resolveWith({ exists: true, certain: true });
                             return;
                         }
                         if (pageLoaded) {
                             if (height > 0 && height < CONFIG.MIN_IFRAME_HEIGHT) {
-                                resolveWith(false);
+                                resolveWith({ exists: false, certain: true });
                                 return;
                             }
                             if (height >= 145 && height <= 155) {
@@ -796,14 +801,16 @@
                                 // has arrived. Give up once it has been stable
                                 // for a while, or once a deadline after load
                                 // passed, so a fluctuating height does not sit
-                                // until the full timeout
+                                // until the full timeout. The answer is
+                                // ambiguous: the post may exist but its embed
+                                // was throttled.
                                 if (stableCount >= CONFIG.PROBE_BAND_STABLE_SAMPLES ||
                                     Date.now() - pageLoadedAt >= CONFIG.PROBE_BAND_TIMEOUT) {
-                                    resolveWith(false);
+                                    resolveWith({ exists: false, certain: false });
                                     return;
                                 }
                             } else if (height >= CONFIG.MIN_IFRAME_HEIGHT) {
-                                resolveWith(true);
+                                resolveWith({ exists: true, certain: true });
                                 return;
                             }
                         }
@@ -818,12 +825,18 @@
                             };
                             fastTimer = setTimeout(poll, CONFIG.PROBE_POLL_INTERVAL);
                         } else {
-                            resolveWith(false);
+                            // No iframe at all: the widget deduplicates by DOM
+                            // id, so this only happens when the post is
+                            // already rendered elsewhere in the page
+                            resolveWith({ exists: false, certain: true });
                         }
                     };
-                    script.onerror = () => resolveWith(false);
+                    script.onerror = () => resolveWith({ exists: false, certain: false });
                     testContainer.appendChild(script);
                 });
+            },
+            async checkExists(channelName, messageId) {
+                return (await messageChecker.probe(channelName, messageId)).exists;
             }
         };
         // Gap-tolerant last-message search. Deleted messages break the
@@ -850,8 +863,22 @@
                 elements.currentChannel.textContent = message;
                 elements.currentChannel.style.display = 'block';
             },
+            // A false from a throttled embed is ambiguous, and the streak
+            // logic cannot afford false negatives: retry every uncertain
+            // false once before counting it as a failure.
             async checkBatch(channelName, ids) {
-                return Promise.all(ids.map(id => messageChecker.checkExists(channelName, id)));
+                const results = await Promise.all(ids.map(id => messageChecker.probe(channelName, id)));
+                const uncertain = [];
+                results.forEach((r, j) => {
+                    if (!r.exists && !r.certain) uncertain.push(j);
+                });
+                if (uncertain.length) {
+                    const retries = await Promise.all(uncertain.map(j => messageChecker.probe(channelName, ids[j])));
+                    retries.forEach((r, i) => {
+                        results[uncertain[i]] = r;
+                    });
+                }
+                return results.map(r => r.exists);
             },
             async findAnchor(channelName) {
                 const grid = autoSearch.gridValues;
