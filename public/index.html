@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Allows you to skip the ban of any telegram channel or group. You can read the messages of a channel without appearing in the history, no one knows if you have read it.">
     <meta name="author" content="github.com/FranBarInstance">
-    <meta name="theme-color" content="#007acc">
+    <meta name="theme-color" content="#229ED9">
     <meta name="application-name" content="Telegram Ban Bypass" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -18,382 +18,536 @@
     </script>
     <title>Telegram Ban Bypass - Avoid blocking the Telegram channel or group</title>
     <style>
-        :root {
-            --bg-color: #ffffff;
-            --text-color: #333333;
-            --accent-color: #007acc;
-            --accent-hover: #005fa3;
-            --card-bg: #f9f9f9;
-            --border-radius: 8px;
-            --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            font-family: var(--font-main);
-            background-color: var(--bg-color);
-            background-image: url('canvas.png');
-            color: var(--text-color);
-            margin: 0;
-            padding: 10px;
-            max-width: 550px;
-            margin: 0 auto;
-        }
-        h1 {
-            text-align: center;
-            font-size: 1.9em;
-            margin-bottom: 10px;
-            color: var(--accent-color);
-        }
-        .header {
-            background: var(--card-bg);
-            padding: 5px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            margin-bottom: 25px;
-        }
-        .author {
-            text-align: center;
-            font-style: italic;
-            font-size: 0.8em;
-            color: #777;
-            margin-bottom: 25px;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            align-items: center;
-        }
-        .language-selector a {
-            color: var(--accent-color);
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .language-selector a:hover {
-            color: var(--accent-hover);
-            text-decoration: underline;
-        }
-        .language-selector a.active {
-            font-weight: bold;
-            pointer-events: none;
-        }
-        .channel-input-container {
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            margin-bottom: 25px;
-        }
-        .channel-input-container label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--text-color);
-        }
-        .channel-input-container input[type="text"],
-        .channel-input-container input[type="number"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: var(--border-radius);
-            font-size: 16px;
-            box-sizing: border-box;
-            margin-bottom: 15px;
-            transition: border-color 0.3s ease;
-        }
-        .channel-input-container input:focus {
-            border-color: var(--accent-color);
-            outline: none;
-        }
-        .method-selection {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            font-size: 15px;
-        }
-        .method-selection input[type="radio"] {
-            transform: scale(1.5);
-            margin-bottom: 12px;
-            cursor: pointer;
-        }
-        .method-selection label {
-            cursor: pointer;
-            font-weight: normal !important;
-        }
-        .channel-input-container button {
-            padding: 12px;
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: var(--border-radius);
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        .channel-input-container button:hover {
-            background-color: var(--accent-hover);
-        }
-        .channel-input-container button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-        .widget-load-more-button {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            margin: 20px 0;
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: var(--border-radius);
-            font-size: 16px;
-            cursor: pointer;
-            text-align: center;
-            transition: background-color 0.3s ease;
-        }
-        .widget-load-more-button:hover {
-            background-color: var(--accent-hover);
-        }
-        .loading,
-        .error {
-            text-align: center;
-            padding: 15px;
-            font-style: italic;
-            border-radius: var(--border-radius);
-            margin-top: 15px;
-        }
-        .loading {
-            color: #555;
-            background: #e6f7ff;
-        }
-        .error {
-            color: #cc0000;
-            background: #ffe6e6;
-        }
-        .current-channel {
-            background: #e8f4f8;
-            padding: 12px;
-            border-radius: var(--border-radius);
-            text-align: center;
-            color: var(--text-color);
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-        .saved-channels {
-            background: var(--card-bg);
-            padding: 5px 15px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            margin-bottom: 20px;
-        }
-        #saved-channels-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        #saved-channels-list li {
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        #saved-channels-list li:last-child {
-            border-bottom: none;
-        }
-        #saved-channels-list li span {
-            cursor: pointer;
-            color: var(--accent-color);
-            transition: color 0.3s ease;
-        }
-        #saved-channels-list li span:hover {
-            color: var(--accent-hover);
-        }
-        #saved-channels-list button {
-            background-color: #ff4444;
-            color: white;
-            border: none;
-            border-radius: var(--border-radius);
-            padding: 4px 10px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background-color 0.3s ease;
-        }
-        #saved-channels-list button:hover {
-            background-color: #cc0000;
-        }
-        .tips {
-            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
-            padding: 25px;
-            border-radius: var(--border-radius);
-            margin-top: 25px;
-            margin-bottom: 25px;
-            border-left: 4px solid var(--accent-color);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            position: relative;
-            overflow: hidden;
-        }
-        .tips h3 {
-            margin-top: 0;
-            color: var(--text-color);
-            font-size: 1.2em;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .tips h3::before {
-            content: "";
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background-color: var(--accent-color);
-            border-radius: var(--border-radius);
-        }
-        .tips p {
-            color: #555;
-            line-height: 1.5;
-            margin-bottom: 15px;
-        }
-        .search-info {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 4px;
-        }
-        .search-info p {
-            margin: 0;
-            color: #856404;
-        }
-        .tips ul {
-            padding-left: 5px;
-            list-style-type: none;
-        }
-        .tips li {
-            margin-bottom: 12px;
-            padding-left: 25px;
-            position: relative;
-            line-height: 1.4;
-        }
-        .tips li::before {
-            content: "✔";
-            position: absolute;
-            left: 0;
-            color: var(--accent-color);
-            font-weight: bold;
-        }
-        .tips li:hover::before {
-            animation: bounce 0.5s;
-        }
-        @keyframes bounce {
-            0%,
-            100% {
-                transform: translateX(0);
-            }
-            50% {
-                transform: translateX(5px);
-            }
-        }
-        iframe[src*="t.me"] {
-            margin-bottom: 8px;
-        }
-        .start-id-container {
-            display: none;
-            margin-bottom: 15px;
-        }
-        .start-id-wrapper {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-bottom: 14px;
-        }
-        .start-id-wrapper input {
-            flex: 1;
-        }
-        .save-cookie-btn {
-            padding: 12px 20px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: var(--border-radius);
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            margin-bottom: 14px;
-        }
-        .save-cookie-btn:hover {
-            background-color: #218838;
-        }
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 1.7em;
-            }
-        }
+:root {
+    --bg: #eef2f6;
+    --bg-gradient: linear-gradient(180deg, #e7f3fb 0%, #eef2f6 240px);
+    --surface: #ffffff;
+    --surface-soft: #f4f7fa;
+    --text: #1c2733;
+    --text-soft: #5b6b7b;
+    --border: #dce4ec;
+    --accent: #229ED9;
+    --accent-strong: #1685bd;
+    --accent-soft: #e3f2fb;
+    --danger: #d9534f;
+    --danger-soft: #fdecec;
+    --note-bg: #fff6dd;
+    --note-border: #e6b93c;
+    --note-text: #7a5d10;
+    --ok-bg: #e2f4e7;
+    --ok-text: #1e6b34;
+    --success: #2fae5f;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(16, 34, 53, 0.08), 0 4px 14px rgba(16, 34, 53, 0.06);
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #0e1621;
+        --bg-gradient: linear-gradient(180deg, #17212b 0%, #0e1621 240px);
+        --surface: #17212b;
+        --surface-soft: #1d2a38;
+        --text: #e9eef4;
+        --text-soft: #9fb0c0;
+        --border: #2b3a4a;
+        --accent: #229ED9;
+        --accent-strong: #3fb0e6;
+        --accent-soft: #1b3247;
+        --danger: #e0716d;
+        --danger-soft: #3a2324;
+        --note-bg: #33301f;
+        --note-border: #a8892e;
+        --note-text: #e8d49a;
+        --ok-bg: #1e3527;
+        --ok-text: #8fd6a4;
+        --success: #43bd72;
+        --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 14px rgba(0, 0, 0, 0.3);
+    }
+}
+* {
+    box-sizing: border-box;
+}
+body {
+    margin: 0;
+    padding: 16px;
+    font-family: var(--font);
+    background: var(--bg);
+    background-image: var(--bg-gradient);
+    background-attachment: fixed;
+    color: var(--text);
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+}
+main {
+    max-width: 620px;
+    margin: 0 auto;
+}
+.toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 1px 4px rgba(16, 34, 53, 0.06);
+    margin: -16px -16px 0;
+    padding: 0 16px;
+}
+.toolbar-inner {
+    max-width: 620px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    min-height: 52px;
+}
+.brand {
+    font-size: 1.2em;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    text-decoration: none;
+}
+.brand:hover {
+    text-decoration: underline;
+}
+.toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+.toolbar-channel {
+    font-weight: 700;
+    color: var(--text);
+    max-width: 40vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.language-selector {
+    font-family: inherit;
+    font-size: 0.9em;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 5px 8px;
+    min-height: 36px;
+    cursor: pointer;
+    max-width: 130px;
+}
+.language-selector:hover,
+.language-selector:focus {
+    outline: none;
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    margin: 14px 0;
+}
+.input-card label:not(.method-option) {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+.input-card input[type="text"],
+.start-id-wrapper input[type="number"] {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 16px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--surface-soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 14px;
+}
+.input-card input:focus,
+.start-id-wrapper input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.controls-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+.method-selection {
+    display: flex;
+    flex: 2;
+    gap: 8px;
+    min-width: 0;
+}
+.method-option {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+}
+.method-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+.method-option span {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 9px 8px;
+    font-size: 0.9em;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface-soft);
+    color: var(--text-soft);
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.method-option input:checked + span {
+    background: var(--success);
+    border-color: var(--success);
+    color: #ffffff;
+    font-weight: 600;
+}
+.method-option input:disabled + span {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+.method-option input:focus-visible + span {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+.load-channel-btn,
+.widget-load-more-button {
+    display: block;
+    width: 100%;
+    padding: 13px 16px;
+    font-size: 16px;
+    font-family: inherit;
+    font-weight: 600;
+    color: #ffffff;
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+.load-channel-btn:hover,
+.widget-load-more-button:hover {
+    background: var(--accent-strong);
+}
+.load-channel-btn:disabled {
+    background: var(--border);
+    color: var(--text-soft);
+    cursor: not-allowed;
+}
+.widget-load-more-button {
+    margin: 18px 0;
+    background: var(--surface);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+}
+.widget-load-more-button:hover {
+    background: var(--accent-soft);
+}
+.controls-row .load-channel-btn {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    padding: 9px 8px;
+    font-size: 0.9em;
+}
+.start-id-container {
+    display: none;
+    margin-bottom: 4px;
+}
+.start-id-wrapper {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+}
+.start-id-wrapper input {
+    flex: 1;
+    margin-bottom: 14px;
+}
+.save-cookie-btn {
+    padding: 12px 16px;
+    font-size: 15px;
+    font-family: inherit;
+    font-weight: 600;
+    color: #ffffff;
+    background: #2f9e57;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.save-cookie-btn:hover {
+    background: #27864a;
+}
+#saved-channels-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+#saved-channels-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 4px;
+    border-bottom: 1px solid var(--border);
+}
+#saved-channels-list li:last-child {
+    border-bottom: none;
+}
+#saved-channels-list li span {
+    color: var(--accent);
+    font-weight: 500;
+    cursor: pointer;
+    overflow-wrap: anywhere;
+}
+#saved-channels-list li span:hover {
+    text-decoration: underline;
+}
+#saved-channels-list button {
+    flex-shrink: 0;
+    min-height: 40px;
+    min-width: 44px;
+    padding: 8px 14px;
+    font-size: 14px;
+    color: var(--danger);
+    background: transparent;
+    border: 1px solid var(--danger);
+    border-radius: 8px;
+    cursor: pointer;
+}
+#saved-channels-list button:hover {
+    background: var(--danger-soft);
+}
+.current-channel {
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    color: var(--text);
+    padding: 12px 16px;
+    border-radius: 10px;
+    text-align: center;
+    margin: 14px 0;
+    overflow-wrap: anywhere;
+}
+.loading {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-soft);
+    font-style: italic;
+    text-align: center;
+    padding: 14px;
+    border-radius: 10px;
+    margin: 14px 0;
+}
+.error {
+    background: var(--danger-soft);
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    text-align: center;
+    padding: 14px;
+    border-radius: 10px;
+    margin: 14px 0;
+}
+#widget-container {
+    margin-top: 14px;
+}
+iframe[src*="t.me"] {
+    margin-bottom: 10px;
+    border-radius: 8px;
+    max-width: 100%;
+}
+.tips h3 {
+    margin: 0 0 10px;
+    font-size: 1.15em;
+    color: var(--accent);
+}
+.tips p {
+    margin: 0 0 14px;
+    color: var(--text-soft);
+}
+.search-info {
+    background: var(--note-bg);
+    border-left: 4px solid var(--note-border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+}
+.search-info p {
+    margin: 0;
+    color: var(--note-text);
+    font-size: 0.95em;
+}
+.tips ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 14px;
+}
+.tips li {
+    position: relative;
+    padding: 3px 0 3px 26px;
+    margin-bottom: 8px;
+    color: var(--text-soft);
+    font-size: 0.95em;
+}
+.tips li::before {
+    content: "\2713";
+    position: absolute;
+    left: 2px;
+    color: var(--accent);
+    font-weight: 700;
+}
+.github-link {
+    text-align: center;
+    font-size: 0.9em;
+}
+.github-link a {
+    color: var(--accent);
+}
+@media (min-width: 1000px) {
+    main {
+        max-width: 1024px;
+        display: flex;
+        flex-direction: row-reverse;
+        align-items: flex-start;
+        gap: 20px;
+    }
+    .toolbar-inner {
+        max-width: 1024px;
+    }
+    .content {
+        flex: 0 0 540px;
+        min-width: 0;
+    }
+    .sidebar {
+        flex: 1;
+        min-width: 0;
+        position: sticky;
+        top: 67px;
+    }
+}
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+    .toolbar {
+        margin: -10px -10px 0;
+        padding: 0 10px;
+    }
+    .toolbar-inner {
+        min-height: 48px;
+    }
+    .brand {
+        font-size: 1.1em;
+    }
+    .toolbar-channel {
+        max-width: 32vw;
+    }
+    .card {
+        padding: 16px;
+        margin: 10px 0;
+    }
+    .method-selection {
+        gap: 6px;
+    }
+    .method-option span {
+        padding: 9px 6px;
+        font-size: 0.85em;
+    }
+    .start-id-wrapper {
+        flex-direction: column;
+    }
+    .save-cookie-btn {
+        width: 100%;
+    }
+}
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1 id="mainTitle"></h1>
-        <div class="author">
-            <span class="language-selector">
-                <a href="#" onclick="changeLanguage('es')" id="lang-es">Español</a> -
-                <a href="#" onclick="changeLanguage('en')" id="lang-en">English</a>
-            </span>
-        </div>
-    </div>
-    <div class="channel-input-container">
-        <label for="channel-input" id="enterChannelLabel"></label>
-        <input type="text" id="channel-input" placeholder="e.g., telegram or https://t.me/telegram/">
-        <div class="method-selection">
-            <input type="radio" id="method-api" name="method" value="api" disabled>
-            <label for="method-api" id="byApiLabel"></label>
-            &nbsp;
-            <input type="radio" id="method-binary" name="method" value="binary" checked>
-            <label for="method-binary" id="byBinarySearchLabel"></label>
-            &nbsp;
-            <input type="radio" id="method-manual" name="method" value="manual">
-            <label for="method-manual" id="byManualLabel"></label>
-        </div>
-        <div class="start-id-container" id="start-id-container">
-            <label for="start-id-input">Start ID</label>
-            <div class="start-id-wrapper">
-                <input type="number" id="start-id-input" placeholder="Start ID">
-                <button type="button" id="save-cookie-btn" class="save-cookie-btn"></button>
+    <header class="toolbar">
+        <div class="toolbar-inner">
+            <a class="brand" href="https://github.com/FranBarInstance/Telegram-Ban-Bypass" target="_blank" rel="noopener">TGBypass</a>
+            <div class="toolbar-right">
+                <span id="toolbar-channel" class="toolbar-channel" style="display: none;"></span>
+                <select id="lang-select" class="language-selector" aria-label="Language" onchange="changeLanguage(this.value)">
+                    <option value="es">Español</option>
+                    <option value="en">English</option>
+                </select>
             </div>
         </div>
-        <button type="button" id="load-channel-btn" style="width:100%;"></button>
-    </div>
-    <div class="saved-channels" style="display: none;">
-        <ul id="saved-channels-list"></ul>
-    </div>
-    <div id="current-channel" class="current-channel" style="display: none;"></div>
-    <div id="widget-container"></div>
-    <button class="widget-load-more-button" style="display: none;" id="loadMoreBtn"></button>
-    <div id="loading" class="loading" style="display: none;"></div>
-    <div id="error" class="error" style="display: none;"></div>
-    <div class="tips">
-        <h3 id="quickGuideTitle"></h3>
-        <p id="quickGuideDescription"></p>
-        <div class="search-info" id="searchInfo">
-            <p id="searchInfoText"></p>
+    </header>
+    <main>
+        <aside class="sidebar">
+            <section class="card input-card">
+                <label for="channel-input" id="enterChannelLabel"></label>
+                <input type="text" id="channel-input" placeholder="e.g., telegram or https://t.me/telegram/">
+                <div class="controls-row">
+                    <div class="method-selection" role="radiogroup">
+                        <label class="method-option">
+                            <input type="radio" id="method-auto" name="method" value="auto" checked>
+                            <span id="byAutoLabel"></span>
+                        </label>
+                        <label class="method-option">
+                            <input type="radio" id="method-manual" name="method" value="manual">
+                            <span id="byManualLabel"></span>
+                        </label>
+                    </div>
+                    <button type="button" id="load-channel-btn" class="load-channel-btn"></button>
+                </div>
+                <div class="start-id-container" id="start-id-container">
+                    <label for="start-id-input">Start ID</label>
+                    <div class="start-id-wrapper">
+                        <input type="number" id="start-id-input" placeholder="Start ID">
+                        <button type="button" id="save-cookie-btn" class="save-cookie-btn"></button>
+                    </div>
+                </div>
+            </section>
+            <section class="card saved-channels" style="display: none;">
+                <ul id="saved-channels-list"></ul>
+            </section>
+        </aside>
+        <div class="content">
+            <div id="current-channel" class="current-channel" style="display: none;"></div>
+            <div id="widget-container"></div>
+            <button class="widget-load-more-button" style="display: none;" id="loadMoreBtn"></button>
+            <div id="loading" class="loading" style="display: none;"></div>
+            <div id="error" class="error" style="display: none;"></div>
+            <section class="card tips" id="tips-card">
+                <h3 id="quickGuideTitle"></h3>
+                <p id="quickGuideDescription"></p>
+                <div class="search-info" id="searchInfo">
+                    <p id="searchInfoText"></p>
+                </div>
+                <ul id="featuresList"></ul>
+                <p class="github-link">GitHub: <a href="https://github.com/FranBarInstance/Telegram-Ban-Bypass" target="_blank">Telegram Ban Bypass</a></p>
+            </section>
         </div>
-        <ul id="featuresList"></ul>
-        <div style="text-align: center;">GitHub: <a href="https://github.com/FranBarInstance/Telegram-Ban-Bypass" target="_blank">Telegram Ban Bypass</a></div>
-    </div>
+    </main>
     <div class="for-caching" style="display: none;">
         <script async src="https://telegram.org/js/telegram-widget.js?22" data-telegram-post="telegram/0" data-width="100%"></script>
     </div>
     <script>
         const translations = {
             en: {
-                title: "Telegram Ban Bypass",
                 enterChannel: "Enter Telegram Channel:",
-                byApi: "API",
-                byBinarySearch: "Binary",
+                byAuto: "Auto",
                 byManual: "Manual",
-                loadChannel: "Load Channel",
+                loadChannel: "Load",
                 loading: "Loading...",
                 loadingLatestPost: "Loading latest post...",
-                startingBinarySearch: "Starting binary search...",
+                startingAutoSearch: "Starting automatic search...",
                 searchingInitialRange: "Searching initial range...",
                 testingMessage: "Testing message",
                 rangeFound: "Range found:",
@@ -407,7 +561,7 @@
                 invalidChannel: "Please enter a valid channel name",
                 quickGuideTitle: "Quick Guide: View Banned Channels:",
                 quickGuideDescription: "Allows you to access blocked Telegram channels or groups. You can read the messages of a channel without appearing in the history, no one knows if you have read it.",
-                searchInfoText: "Binary search fails in channels where many messages have been deleted. In that case you can use manual search, entering manually the ID of the last message of the group or channel. You must find that ID yourself.",
+                searchInfoText: "Automatic search fails in channels where many messages have been deleted. In that case you can use manual search, entering manually the ID of the last message of the group or channel. You must find that ID yourself.",
                 features: [
                     "No login required. No Telegram account needed to read channels",
                     "Use channel names (e.g., \"telegram\")",
@@ -420,15 +574,13 @@
                 saveAsCookie: "Save as Cookie"
             },
             es: {
-                title: "Saltar Ban en Telegram",
                 enterChannel: "Introduce el Canal de Telegram:",
-                byApi: "API",
-                byBinarySearch: "Binaria",
+                byAuto: "Auto",
                 byManual: "Manual",
-                loadChannel: "Cargar Canal",
+                loadChannel: "Load",
                 loading: "Cargando...",
                 loadingLatestPost: "Cargando último mensaje...",
-                startingBinarySearch: "Iniciando búsqueda binaria...",
+                startingAutoSearch: "Iniciando búsqueda automática...",
                 searchingInitialRange: "Buscando rango inicial...",
                 testingMessage: "Probando mensaje",
                 rangeFound: "Rango encontrado:",
@@ -442,7 +594,7 @@
                 invalidChannel: "Por favor, introduce un nombre de canal válido",
                 quickGuideTitle: "Guía Rápida: Ver Canales Bloqueados:",
                 quickGuideDescription: "Permite acceder a canales o grupos bloqueados de Telegram. Puedes leer los mensajes de un canal sin aparecer en el historial, nadie sabe si lo has leído.",
-                searchInfoText: "La búsqueda binaria falla en canales donde se han borrado muchos mensajes. En ese caso puedes usar la búsqueda manual, poniendo manualmente el ID del último mensaje del grupo o canal. Tú debes encargarte de encontrar ese ID.",
+                searchInfoText: "La búsqueda automática falla en canales donde se han borrado muchos mensajes. En ese caso puedes usar la búsqueda manual, poniendo manualmente el ID del último mensaje del grupo o canal. Tú debes encargarte de encontrar ese ID.",
                 features: [
                     "No requiere inicio de sesión. No necesitas cuenta de Telegram para leer canales",
                     "Usa nombres de canal (ej: \"telegram\")",
@@ -472,8 +624,7 @@
             updateLanguageSelector();
         }
         function updateLanguageSelector() {
-            document.getElementById('lang-es').classList.toggle('active', currentLang === 'es');
-            document.getElementById('lang-en').classList.toggle('active', currentLang === 'en');
+            document.getElementById('lang-select').value = currentLang;
         }
         const CONFIG = {
             NUM_POSTS: 25,
@@ -486,7 +637,6 @@
             DELETED_POST_CHECK_MAX_TIMES: 1500,
             DELETED_POST_CHECK_INTERVAL: 10,
             WIDGET_SCRIPT_URL: 'https://telegram.org/js/telegram-widget.js?22',
-            API_URL: 'https://api-telegram.repostea.com/api/v2/telegram/channels/{channel}/messages/last-id',
             LOAD_MORE_DELAY: 900,
             RETRY_IFRAME_DELAY: 1500,
             INITIAL_RANGE_MAX: 100000000
@@ -511,7 +661,9 @@
             startIdContainer: document.getElementById('start-id-container'),
             saveCookieBtn: document.getElementById('save-cookie-btn'),
             searchInfo: document.getElementById('searchInfo'),
-            searchInfoText: document.getElementById('searchInfoText')
+            searchInfoText: document.getElementById('searchInfoText'),
+            toolbarChannel: document.getElementById('toolbar-channel'),
+            tipsCard: document.getElementById('tips-card')
         };
         const postCache = new Map();
         const manualCache = new Map();
@@ -545,6 +697,8 @@
                 elements.widgetContainer.innerHTML = '';
                 elements.loadMoreButton.style.display = 'none';
                 elements.currentChannel.style.display = 'none';
+                elements.toolbarChannel.textContent = '';
+                elements.toolbarChannel.style.display = 'none';
             },
             createTestElement() {
                 const testContainer = document.createElement('div');
@@ -753,7 +907,7 @@
                 });
             }
         };
-        const binarySearch = {
+        const autoSearch = {
             testValues: [
                 1000020, 1000000, 999980,
                 500020, 500000, 499980,
@@ -773,25 +927,25 @@
             async findLastPost(channelName) {
                 const cachedResult = cache.get(channelName);
                 if (cachedResult) {
-                    binarySearch.displayResult(channelName, cachedResult);
+                    autoSearch.displayResult(channelName, cachedResult);
                     return;
                 }
                 try {
-                    utils.setLoadingState(true, t.startingBinarySearch);
-                    binarySearch.updateInfo(t.searchingInitialRange);
-                    const { lower, upper } = await binarySearch.findInitialRange(channelName);
-                    binarySearch.updateInfo(`${t.rangeFound} ${lower} - ${upper}. ${t.startingBinarySearch}`);
-                    const lastPostId = await binarySearch.performBinarySearch(channelName, lower, upper);
-                    binarySearch.updateInfo(`${t.verifyingLastMessage} ${lastPostId}`);
+                    utils.setLoadingState(true, t.startingAutoSearch);
+                    autoSearch.updateInfo(t.searchingInitialRange);
+                    const { lower, upper } = await autoSearch.findInitialRange(channelName);
+                    autoSearch.updateInfo(`${t.rangeFound} ${lower} - ${upper}. ${t.startingAutoSearch}`);
+                    const lastPostId = await autoSearch.performBinarySearch(channelName, lower, upper);
+                    autoSearch.updateInfo(`${t.verifyingLastMessage} ${lastPostId}`);
                     const finalExists = await messageChecker.checkExists(channelName, lastPostId);
                     if (!finalExists) {
                         throw new Error(t.noValidMessages);
                     }
                     cache.set(channelName, lastPostId);
-                    binarySearch.displayResult(channelName, lastPostId);
+                    autoSearch.displayResult(channelName, lastPostId);
                 } catch (error) {
-                    console.error('Error in binary search:', error);
-                    utils.showError(`Error in binary search: ${error.message}`);
+                    console.error('Error in auto search:', error);
+                    utils.showError(`Error in auto search: ${error.message}`);
                     elements.loadChannelBtn.disabled = false;
                     elements.loadChannelBtn.textContent = t.loadChannel;
                     utils.setLoadingState(false);
@@ -801,8 +955,8 @@
                 let lower = 1;
                 let upper = 1;
                 let foundGap = false;
-                for (const testValue of binarySearch.testValues) {
-                    binarySearch.updateInfo(`${t.testingMessage} ${testValue}...`);
+                for (const testValue of autoSearch.testValues) {
+                    autoSearch.updateInfo(`${t.testingMessage} ${testValue}...`);
                     const exists = await messageChecker.checkExists(channelName, testValue);
                     if (exists) {
                         lower = testValue;
@@ -819,7 +973,7 @@
                     while (await messageChecker.checkExists(channelName, upper)) {
                         lower = upper;
                         upper *= 2;
-                        binarySearch.updateInfo(`${t.testingMessage} ${upper}...`);
+                        autoSearch.updateInfo(`${t.testingMessage} ${upper}...`);
                         if (upper >= CONFIG.INITIAL_RANGE_MAX) break;
                     }
                 }
@@ -830,7 +984,7 @@
                 let quickCheckDone = false;
                 while (lower <= upper) {
                     const mid = Math.floor((lower + upper) / 2);
-                    binarySearch.updateInfo(`Testing message ${mid}...`);
+                    autoSearch.updateInfo(`Testing message ${mid}...`);
                     const exists = await messageChecker.checkExists(channelName, mid);
                     if (exists) {
                         lastValid = mid;
@@ -856,7 +1010,7 @@
                     const forwardSteps = [10, 15, 20, 25, 30, 35, 40, 45, 50];
                     for (const step of forwardSteps) {
                         const nextId = lastValid + step;
-                        binarySearch.updateInfo(`${t.testingMessage} ${nextId}...`);
+                        autoSearch.updateInfo(`${t.testingMessage} ${nextId}...`);
                         const exists = await messageChecker.checkExists(channelName, nextId);
                         if (exists) lastValid = nextId;
                     }
@@ -866,6 +1020,8 @@
             displayResult(channelName, lastPostId) {
                 state.lastPostId = lastPostId;
                 state.currentChannel = channelName;
+                elements.toolbarChannel.textContent = `@${channelName}`;
+                elements.toolbarChannel.style.display = 'inline-block';
                 elements.currentChannel.textContent = '';
                 const channelLabel = document.createElement('strong');
                 channelLabel.textContent = `@${channelName}`;
@@ -875,7 +1031,7 @@
                     ` (${t.latestPostId} ${lastPostId})`
                 );
                 elements.currentChannel.style.display = 'block';
-                binarySearch.updateInfo(`${t.searchCompleted} ${lastPostId}`);
+                autoSearch.updateInfo(`${t.searchCompleted} ${lastPostId}`);
                 elements.currentChannel.style.backgroundColor = '#d4edda';
                 elements.currentChannel.style.color = '#155724';
                 setTimeout(() => {
@@ -890,30 +1046,6 @@
                 window.dispatchEvent(new CustomEvent('telegramLoaded'));
             }
         };
-        const api = {
-            async fetchLastPost(channelName) {
-                try {
-                    utils.setLoadingState(true, 'Loading latest post...');
-                    elements.currentChannel.style.display = 'none';
-                    const url = CONFIG.API_URL.replace('{channel}', channelName);
-                    const response = await fetch(url);
-                    if (!response.ok) {
-                        throw new Error(`HTTP Error: ${response.status}`);
-                    }
-                    const { data: { attributes: { last_message_id } } } = await response.json();
-                    if (!last_message_id) {
-                        throw new Error('No messages found in response');
-                    }
-                    binarySearch.displayResult(channelName, last_message_id);
-                } catch (error) {
-                    console.error('Error fetching latest post:', error);
-                    utils.showError(`Error loading posts: ${error.message}`);
-                    elements.loadChannelBtn.disabled = false;
-                    elements.loadChannelBtn.textContent = 'Load Channel';
-                    utils.setLoadingState(false);
-                }
-            }
-        };
         const manualSearch = {
             async findLastPost(channelName, startId) {
                 const start = parseInt(startId, 10);
@@ -922,13 +1054,13 @@
                 let highestFound = null;
                 for (let offset = 1; offset <= 100; offset++) {
                     const testId = start + offset;
-                    binarySearch.updateInfo(`Testing ${testId}...`);
+                    autoSearch.updateInfo(`Testing ${testId}...`);
                     const exists = await messageChecker.checkExists(channelName, testId);
                     if (exists) {
                         highestFound = testId;
                         for (let nextOffset = offset + 1; nextOffset <= 100; nextOffset++) {
                             const nextId = start + nextOffset;
-                            binarySearch.updateInfo(`Testing ${nextId}...`);
+                            autoSearch.updateInfo(`Testing ${nextId}...`);
                             const nextExists = await messageChecker.checkExists(channelName, nextId);
                             if (nextExists) {
                                 highestFound = nextId;
@@ -946,7 +1078,7 @@
                     for (let offset = 1; offset <= 100; offset++) {
                         const testId = start - offset;
                         if (testId < 1) break;
-                        binarySearch.updateInfo(`Testing ${testId}...`);
+                        autoSearch.updateInfo(`Testing ${testId}...`);
                         const exists = await messageChecker.checkExists(channelName, testId);
                         if (exists) {
                             lowestFound = testId;
@@ -954,7 +1086,7 @@
                             for (let upOffset = 1; upOffset <= 100; upOffset++) {
                                 const upId = testId + upOffset;
                                 if (upId > start) break;
-                                binarySearch.updateInfo(`Testing ${upId}...`);
+                                autoSearch.updateInfo(`Testing ${upId}...`);
                                 const upExists = await messageChecker.checkExists(channelName, upId);
                                 if (upExists) {
                                     highestFound = upId;
@@ -973,14 +1105,14 @@
                 if (highestFound !== null) {
                     finalId = highestFound;
                 } else {
-                    binarySearch.updateInfo(`Testing 1...`);
+                    autoSearch.updateInfo(`Testing 1...`);
                     const existsAtOne = await messageChecker.checkExists(channelName, 1);
                     finalId = existsAtOne ? 1 : Math.max(1, start - 100);
                 }
                 manualCacheUtil.set(channelName, finalId);
                 utils.saveChannelStartId(channelName, finalId);
                 elements.startIdInput.value = finalId;
-                binarySearch.displayResult(channelName, finalId);
+                autoSearch.displayResult(channelName, finalId);
             }
         };
         const widgetLoader = {
@@ -1046,10 +1178,8 @@
         };
         const i18n = {
             updateUITexts() {
-                document.getElementById('mainTitle').textContent = t.title;
                 document.getElementById('enterChannelLabel').textContent = t.enterChannel;
-                document.getElementById('byApiLabel').textContent = t.byApi;
-                document.getElementById('byBinarySearchLabel').textContent = t.byBinarySearch;
+                document.getElementById('byAutoLabel').textContent = t.byAuto;
                 document.getElementById('byManualLabel').textContent = t.byManual;
                 document.getElementById('load-channel-btn').textContent = t.loadChannel;
                 document.getElementById('loadMoreBtn').textContent = t.loadMore;
@@ -1118,14 +1248,13 @@
                         }
                     }
                     utils.clearContainer();
+                    elements.tipsCard.style.display = 'none';
                     elements.loadChannelBtn.disabled = true;
                     elements.loadChannelBtn.textContent = t.loading;
                     elements.error.style.display = 'none';
                     try {
-                        if (selectedMethod === 'api') {
-                            await api.fetchLastPost(channelName);
-                        } else if (selectedMethod === 'binary') {
-                            await binarySearch.findLastPost(channelName);
+                        if (selectedMethod === 'auto') {
+                            await autoSearch.findLastPost(channelName);
                         } else if (selectedMethod === 'manual') {
                             await manualSearch.findLastPost(channelName, elements.startIdInput.value);
                         }
