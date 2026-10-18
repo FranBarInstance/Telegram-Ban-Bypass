@@ -15,10 +15,12 @@ No installation required. You can:
 ## Features
 
 - **No login required** - No Telegram account needed to read channels
-- **Binary Search Algorithm** - Finds latest posts efficiently
-- **Dual Loading Methods** - API or binary search
-- **Smart Caching** - cache for fast reloads
+- **Gap-tolerant multi-pass search** - Finds the latest post even across deleted-message gaps
+- **Resume where you left off** - Revisiting a channel opens instantly from the saved last ID
+- **Check for new messages** - Manual button, optional auto-check timer, and an extended check that jumps larger gaps
+- **Manual Start ID mode** - For channels where the automatic search struggles, start from a known message ID
 - **Real-Time Feedback** - Shows search progress
+- **Light & dark themes, 9 languages** - Follows system preferences, installable as a PWA
 - **Mobile Optimized** - Works on all devices
 - **No Installation** - Runs directly in browser
 
@@ -37,19 +39,12 @@ The main obstacle is determining the most recent message ID in a channel or grou
 
 #### The Solution: A Widget-Based Workaround
 
-To bypass these limitations and avoid relying on an API, this tool uses Telegram’s post widget to detect the latest message. The process works in two stages:
+To bypass these limitations and avoid relying on an API, this tool uses Telegram’s post widget to detect the latest message. The search works in passes of decreasing resolution, tolerating gaps of deleted messages:
 
-1. Estimating the message range – The tool checks for the existence of messages within a probable range.
-2. Binary search – It then performs an efficient binary search to pinpoint the last available message.
-
-#### Technical Limitation: Message Existence Verification
-
-The algorithm cannot distinguish between:
-
-- Non-existent message IDs (beyond valid range)
-- Purged messages (deleted by admins/users)
-
-This means in channels with substantial message deletions, the last-post detection may fail.
+1. Anchor grid – A small grid of probe IDs finds a message known to exist.
+2. Upward sweep – Coarse probes bracket the region above the last existing message.
+3. Refinement – Successive passes at 10k, 1k, 100 and 10 narrow the region.
+4. Final scan – A resolution-1 scan pins down the exact last message ID.
 
 #### Bypassing CORS to Identify Deleted Telegram Messages
 
@@ -59,11 +54,10 @@ However, deleted messages have a pattern - the iframe where they reside is notic
 
 ## Technologies
 
-- Powered by: [telegram-channel-api](https://github.com/ArcInTower/telegram-channel-api)
 - Using Telegram's public widget API which isn't subject bans
 - Dynamically loading posts in reverse chronological order
 - Automatically detecting and removing deleted posts
-- Caching responses to improve performance
+- Single dependency-free HTML file (vanilla JS/CSS), installable as a PWA
 
 ## Limitations
 
@@ -71,6 +65,7 @@ However, deleted messages have a pattern - the iframe where they reside is notic
 - There may be issues with slow internet connections.
 - Some very old posts may not load
 - No media download capability
+- Channels with extremely heavy deletions (e.g. spam purges removing more than half of all messages) can defeat the automatic search; use manual Start ID mode there
 
 ## License
 

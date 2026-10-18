@@ -12,6 +12,7 @@
                 rangeFound: "Range found:",
                 verifyingLastMessage: "Verifying last message:",
                 noValidMessages: "No valid messages found",
+                channelTooLarge: "Channel too large for automatic search. Use manual Start ID mode.",
                 currentlyViewing: "Currently viewing:",
                 latestPostId: "Latest post ID:",
                 searchCompleted: "✅ Search completed. Last message:",
@@ -61,6 +62,7 @@
                 rangeFound: "Rango encontrado:",
                 verifyingLastMessage: "Verificando último mensaje:",
                 noValidMessages: "No hay mensajes válidos",
+                channelTooLarge: "Canal demasiado grande para la búsqueda automática. Usa Start ID manual.",
                 currentlyViewing: "Viendo actualmente:",
                 latestPostId: "Último ID:",
                 searchCompleted: "✅ Búsqueda completada. Último mensaje:",
@@ -110,6 +112,7 @@
                 rangeFound: "Диапазон найден:",
                 verifyingLastMessage: "Проверка последнего сообщения:",
                 noValidMessages: "Нет корректных сообщений",
+                channelTooLarge: "Канал слишком большой для автопоиска. Используйте Start ID вручную.",
                 currentlyViewing: "Сейчас просматривается:",
                 latestPostId: "Последний ID:",
                 searchCompleted: "✅ Поиск завершён. Последнее сообщение:",
@@ -159,6 +162,7 @@
                 rangeFound: "Faixa encontrada:",
                 verifyingLastMessage: "Verificando última mensagem:",
                 noValidMessages: "Nenhuma mensagem válida",
+                channelTooLarge: "Canal grande demais para a busca automática. Use Start ID manual.",
                 currentlyViewing: "Visualizando agora:",
                 latestPostId: "ID mais recente:",
                 searchCompleted: "✅ Busca concluída. Última mensagem:",
@@ -208,6 +212,7 @@
                 rangeFound: "Bereich gefunden:",
                 verifyingLastMessage: "Letzte Nachricht prüfen:",
                 noValidMessages: "Keine gültigen Nachrichten",
+                channelTooLarge: "Kanal zu groß für die automatische Suche. Start ID manuell nutzen.",
                 currentlyViewing: "Aktuell angezeigt:",
                 latestPostId: "Letzte ID:",
                 searchCompleted: "✅ Suche abgeschlossen. Letzte Nachricht:",
@@ -257,6 +262,7 @@
                 rangeFound: "Plage trouvée:",
                 verifyingLastMessage: "Vérification du dernier message:",
                 noValidMessages: "Aucun message valide",
+                channelTooLarge: "Canal trop grand pour la recherche automatique. Utilisez Start ID.",
                 currentlyViewing: "Consultation actuelle:",
                 latestPostId: "Dernier ID:",
                 searchCompleted: "✅ Recherche terminée. Dernier message:",
@@ -306,6 +312,7 @@
                 rangeFound: "Intervallo trovato:",
                 verifyingLastMessage: "Verifica ultimo messaggio:",
                 noValidMessages: "Nessun messaggio valido",
+                channelTooLarge: "Canale troppo grande per la ricerca automatica. Usa Start ID manuale.",
                 currentlyViewing: "Al momento visualizzi:",
                 latestPostId: "Ultimo ID:",
                 searchCompleted: "✅ Ricerca completata. Ultimo messaggio:",
@@ -355,6 +362,7 @@
                 rangeFound: "Znaleziono zakres:",
                 verifyingLastMessage: "Sprawdzanie ostatniej wiadomości:",
                 noValidMessages: "Brak poprawnych wiadomości",
+                channelTooLarge: "Kanał zbyt duży do wyszukiwania. Użyj Start ID ręcznie.",
                 currentlyViewing: "Aktualnie oglądasz:",
                 latestPostId: "Ostatnie ID:",
                 searchCompleted: "✅ Szukanie zakończone. Ostatnia wiadomość:",
@@ -404,6 +412,7 @@
                 rangeFound: "Bereik gevonden:",
                 verifyingLastMessage: "Laatste bericht verifiëren:",
                 noValidMessages: "Geen geldige berichten",
+                channelTooLarge: "Kanaal te groot voor automatisch zoeken. Gebruik handmatige Start ID.",
                 currentlyViewing: "Nu aan het bekijken:",
                 latestPostId: "Laatste ID:",
                 searchCompleted: "✅ Zoeken voltooid. Laatste bericht:",
@@ -500,7 +509,7 @@
             SEARCH_LEVELS: [10000, 1000, 100, 10],
             SEARCH_FINAL_WINDOW: 1000,
             SEARCH_FINAL_STREAK: 100,
-            SEARCH_MAX_ID: 10000000
+            SEARCH_MAX_ID: 3000000
         };
         const state = {
             countInterval: 0,
@@ -916,7 +925,10 @@
                         return { highest, upper: ids[ids.length - 1] };
                     }
                 }
-                return { highest, upper: CONFIG.SEARCH_MAX_ID };
+                // Posts still existed at the sweep ceiling: the channel extends
+                // beyond SEARCH_MAX_ID. Refinement cannot bracket it, so report
+                // it as too large instead of returning a silently wrong ID.
+                return { highest, upper: CONFIG.SEARCH_MAX_ID, capped: fails === 0 };
             },
             async refineLevel(channelName, highest, upper, step) {
                 let fails = 0;
@@ -980,6 +992,9 @@
                         throw new Error(t.noValidMessages);
                     }
                     const sweep = await autoSearch.sweepUp(channelName, anchor);
+                    if (sweep.capped) {
+                        throw new Error(t.channelTooLarge);
+                    }
                     autoSearch.updateInfo(`${t.rangeFound} ${sweep.highest} - ${sweep.upper}. ${t.startingAutoSearch}`);
                     let highest = sweep.highest;
                     let upper = sweep.upper;
