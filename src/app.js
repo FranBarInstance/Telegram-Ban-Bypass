@@ -1,8 +1,8 @@
+        // Base language is English: keep translated strings similar in length
+        // to the English ones so the layout does not break.
         const translations = {
             en: {
-                enterChannel: "Enter Telegram Channel:",
-                byAuto: "Auto",
-                byManual: "Manual",
+                enterChannel: "Telegram Channel:",
                 loadChannel: "Load",
                 loading: "Loading...",
                 loadingLatestPost: "Loading latest post...",
@@ -19,25 +19,31 @@
                 loadMore: "Load Older Posts",
                 checkNew: "Check for New Messages",
                 noNew: "No new messages",
+                prefs: "Preferences",
+                allowCookies: "Persistent cookies",
+                manualMode: "Manual, start ID",
+                autoCheckLabel: "Auto-check messages",
+                seconds: "seconds",
+                checkingSavedLast: "Resuming from last message read:",
+                startIdRequired: "Please enter a Start ID (or uncheck it for automatic search)",
                 invalidChannel: "Please enter a valid channel name",
                 quickGuideTitle: "Quick Guide: View Banned Channels:",
                 quickGuideDescription: "Allows you to access blocked Telegram channels or groups. You can read the messages of a channel without appearing in the history, no one knows if you have read it.",
-                searchInfoText: "Automatic search fails in channels where many messages have been deleted. In that case you can use manual search, entering manually the ID of the last message of the group or channel. You must find that ID yourself.",
+                searchInfoText: "Automatic search fails in channels where many messages have been deleted. In that case enable \"Manual, start ID\" in Preferences and enter the last message ID, which you must find yourself.",
                 features: [
                     "No login required. No Telegram account needed to read channels",
                     "Use channel names (e.g., \"telegram\")",
                     "Full URLs are supported (e.g., \"https://t.me/telegram\")",
+                    "Remembers where you left off in each channel and resumes there",
+                    "Auto-check for new messages at a fixed interval",
                     "Use in the URL the \"channel\" parameter for the default channel: ?channel=channelname",
                     "Use in the URL the \"add\" parameter to add channels to the history, separated by commas: ?add=channel1,channel2,...",
                     "Allows you to skip the ban of any telegram channel or group.",
                     "Alternatively you can download a HTML that works in any browser"
-                ],
-                saveAsCookie: "Save as Cookie"
+                ]
             },
             es: {
-                enterChannel: "Introduce el Canal de Telegram:",
-                byAuto: "Auto",
-                byManual: "Manual",
+                enterChannel: "Canal de Telegram:",
                 loadChannel: "Load",
                 loading: "Cargando...",
                 loadingLatestPost: "Cargando último mensaje...",
@@ -46,7 +52,7 @@
                 testingMessage: "Probando mensaje",
                 rangeFound: "Rango encontrado:",
                 verifyingLastMessage: "Verificando último mensaje:",
-                noValidMessages: "No se encontraron mensajes válidos",
+                noValidMessages: "No hay mensajes válidos",
                 noMessages: "No se encontraron mensajes - el canal puede no existir o no tener mensajes públicos",
                 currentlyViewing: "Viendo actualmente:",
                 latestPostId: "Último ID:",
@@ -54,24 +60,34 @@
                 loadMore: "Cargar Mensajes Anteriores",
                 checkNew: "Comprobar Nuevos Mensajes",
                 noNew: "No hay mensajes nuevos",
-                invalidChannel: "Por favor, introduce un nombre de canal válido",
+                prefs: "Preferencias",
+                allowCookies: "Cookies persistentes",
+                manualMode: "Manual, start ID",
+                autoCheckLabel: "Comprobación automática",
+                seconds: "segundos",
+                checkingSavedLast: "Retomando desde el último mensaje leído:",
+                startIdRequired: "Introduce un Start ID (o desmárcalo para la búsqueda automática)",
+                invalidChannel: "Introduce un nombre de canal válido",
                 quickGuideTitle: "Guía Rápida: Ver Canales Bloqueados:",
                 quickGuideDescription: "Permite acceder a canales o grupos bloqueados de Telegram. Puedes leer los mensajes de un canal sin aparecer en el historial, nadie sabe si lo has leído.",
-                searchInfoText: "La búsqueda automática falla en canales donde se han borrado muchos mensajes. En ese caso puedes usar la búsqueda manual, poniendo manualmente el ID del último mensaje del grupo o canal. Tú debes encargarte de encontrar ese ID.",
+                searchInfoText: "La búsqueda automática falla en canales donde se han borrado muchos mensajes. En ese caso activa \"Manual, start ID\" en Preferencias e introduce el ID del último mensaje, que debes encontrar tú.",
                 features: [
-                    "No requiere inicio de sesión. No necesitas cuenta de Telegram para leer canales",
+                    "Sin inicio de sesión. No necesitas cuenta de Telegram para leer canales",
                     "Usa nombres de canal (ej: \"telegram\")",
                     "URLs completas son soportadas (ej: \"https://t.me/telegram\")",
+                    "Recuerda dónde te quedaste en cada canal y retoma desde ahí",
+                    "Comprueba mensajes nuevos automáticamente a intervalos",
                     "Usa en la URL el parámetro \"channel\" para el canal por defecto: ?channel=nombrecanal",
                     "Usa en la URL el parámetro \"add\" para añadir canales al historial, separados por comas: ?add=canal1,canal2,...",
                     "Permite saltarse el bloqueo de cualquier canal o grupo de telegram.",
-                    "Alternativamente puedes descargar un HTML que funciona en cualquier navegador"
-                ],
-                saveAsCookie: "Guardar Cookie"
+                    "Puedes descargar un HTML que funciona en cualquier navegador"
+                ]
             }
         };
         const getPreferredLanguage = () => {
-            const savedLang = localStorage.getItem('preferredLanguage');
+            // Runs before the storage object exists: read both backends directly
+            const savedLang = sessionStorage.getItem('preferredLanguage') ||
+                              localStorage.getItem('preferredLanguage');
             if (savedLang) return savedLang;
             const userLang = navigator.language || navigator.userLanguage;
             return userLang.startsWith('es') ? 'es' : 'en';
@@ -81,7 +97,7 @@
         function changeLanguage(lang) {
             currentLang = lang;
             t = translations[lang];
-            localStorage.setItem('preferredLanguage', lang);
+            storage.setItem('preferredLanguage', lang);
             document.documentElement.lang = lang;
             i18n.updateUITexts();
             updateLanguageSelector();
@@ -91,18 +107,23 @@
         }
         const CONFIG = {
             NUM_POSTS: 25,
-            CACHE_DURATION: 600000,
             TIMEOUT_DURATION: 5000,
             MIN_IFRAME_HEIGHT: 60,
             MAX_POSTS_BEFORE_CLEAR: 200,
             INTERVAL_CHECKS: 25,
-            LOAD_MORE_POST: 10,
             DELETED_POST_CHECK_MAX_TIMES: 1500,
             DELETED_POST_CHECK_INTERVAL: 10,
             WIDGET_SCRIPT_URL: 'https://telegram.org/js/telegram-widget.js?22',
             LOAD_MORE_DELAY: 900,
             RETRY_IFRAME_DELAY: 1500,
             CHECK_NEW_MAX: 50,
+            COOKIES_KEY: 'tgAllowCookies',
+            LAST_ID_KEY_PREFIX: 'tgLastPostId:',
+            START_ID_KEY_PREFIX: 'tgStartId:',
+            START_ID_ENABLED_KEY: 'tgStartIdEnabled',
+            AUTOCHECK_ENABLED_KEY: 'tgAutoCheckEnabled',
+            AUTOCHECK_INTERVAL_KEY: 'tgAutoCheckInterval',
+            AUTOCHECK_DEFAULT_SECONDS: 60,
             SCROLL_INITIAL_DELAY: 300,
             AUTO_SCROLL_WINDOW: 10000,
             INITIAL_RANGE_MAX: 100000000
@@ -115,6 +136,65 @@
             currentChannel: '',
             isLoading: false
         };
+        // Session storage by default; localStorage only when the user opts in
+        // via "Allow cookies" (the opt-in flag itself always lives in localStorage)
+        const storage = {
+            isPersistent() {
+                try {
+                    return localStorage.getItem(CONFIG.COOKIES_KEY) === '1';
+                } catch (e) {
+                    return false;
+                }
+            },
+            current() {
+                return storage.isPersistent() ? localStorage : sessionStorage;
+            },
+            getItem(key) {
+                return storage.current().getItem(key);
+            },
+            setItem(key, value) {
+                try {
+                    storage.current().setItem(key, value);
+                } catch (e) {
+                    console.error('Storage error:', e);
+                }
+            },
+            removeItem(key) {
+                storage.current().removeItem(key);
+            },
+            isAppKey(key) {
+                return key.startsWith(CONFIG.LAST_ID_KEY_PREFIX) ||
+                       key.startsWith(CONFIG.START_ID_KEY_PREFIX) ||
+                       ['preferredLanguage', 'telegramSavedChannels', CONFIG.START_ID_ENABLED_KEY,
+                        CONFIG.AUTOCHECK_ENABLED_KEY, CONFIG.AUTOCHECK_INTERVAL_KEY].includes(key);
+            },
+            appKeys(store) {
+                const keys = [];
+                for (let i = 0; i < store.length; i++) {
+                    const key = store.key(i);
+                    if (storage.isAppKey(key)) keys.push(key);
+                }
+                return keys;
+            },
+            setPersistent(on) {
+                try {
+                    if (on) {
+                        localStorage.setItem(CONFIG.COOKIES_KEY, '1');
+                        for (const key of storage.appKeys(sessionStorage)) {
+                            localStorage.setItem(key, sessionStorage.getItem(key));
+                        }
+                    } else {
+                        localStorage.removeItem(CONFIG.COOKIES_KEY);
+                        for (const key of storage.appKeys(localStorage)) {
+                            sessionStorage.setItem(key, localStorage.getItem(key));
+                            localStorage.removeItem(key);
+                        }
+                    }
+                } catch (e) {
+                    console.error('Could not change storage mode:', e);
+                }
+            }
+        };
         const elements = {
             loading: document.getElementById('loading'),
             error: document.getElementById('error'),
@@ -124,16 +204,13 @@
             channelInput: document.getElementById('channel-input'),
             loadChannelBtn: document.getElementById('load-channel-btn'),
             startIdInput: document.getElementById('start-id-input'),
-            startIdContainer: document.getElementById('start-id-container'),
-            saveCookieBtn: document.getElementById('save-cookie-btn'),
+            startIdCheckbox: document.getElementById('pref-startid'),
             searchInfo: document.getElementById('searchInfo'),
             searchInfoText: document.getElementById('searchInfoText'),
             toolbarChannel: document.getElementById('toolbar-channel'),
             checkNewButton: document.getElementById('checkNewBtn'),
             tipsCard: document.getElementById('tips-card')
         };
-        const postCache = new Map();
-        const manualCache = new Map();
         const utils = {
             isValidChannelName(name) {
                 return /^[A-Za-z0-9_]{5,32}$/.test(name);
@@ -164,6 +241,7 @@
                 elements.widgetContainer.innerHTML = '';
                 elements.loadMoreButton.style.display = 'none';
                 elements.checkNewButton.style.display = 'none';
+                autoCheck.stop();
                 elements.currentChannel.style.display = 'none';
                 elements.toolbarChannel.textContent = '';
                 elements.toolbarChannel.style.display = 'none';
@@ -179,21 +257,21 @@
                 return testContainer;
             },
             saveChannel(channelName) {
-                const savedChannels = JSON.parse(localStorage.getItem('telegramSavedChannels') || '[]');
+                const savedChannels = JSON.parse(storage.getItem('telegramSavedChannels') || '[]');
                 if (!savedChannels.includes(channelName)) {
                     savedChannels.push(channelName);
-                    localStorage.setItem('telegramSavedChannels', JSON.stringify(savedChannels));
+                    storage.setItem('telegramSavedChannels', JSON.stringify(savedChannels));
                     return true;
                 }
                 return false;
             },
             loadSavedChannels() {
-                return JSON.parse(localStorage.getItem('telegramSavedChannels') || '[]');
+                return JSON.parse(storage.getItem('telegramSavedChannels') || '[]');
             },
             removeChannel(channelName) {
                 let savedChannels = utils.loadSavedChannels();
                 savedChannels = savedChannels.filter(ch => ch !== channelName);
-                localStorage.setItem('telegramSavedChannels', JSON.stringify(savedChannels));
+                storage.setItem('telegramSavedChannels', JSON.stringify(savedChannels));
             },
             displaySavedChannels() {
                 const savedChannels = utils.loadSavedChannels();
@@ -233,50 +311,22 @@
                     savedChannelsContainer.style.display = 'none';
                 }
             },
-            setCookie(name, value, days) {
-                const date = new Date();
-                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-                const expires = "expires=" + date.toUTCString();
-                document.cookie = name + "=" + value + ";" + expires + ";path=/";
-            },
-            getCookie(name) {
-                const nameEQ = name + "=";
-                const ca = document.cookie.split(';');
-                for(let i = 0; i < ca.length; i++) {
-                    let c = ca[i];
-                    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-                    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-                }
-                return null;
-            },
-            deleteCookie(name) {
-                document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-            },
+            // Start IDs live in storage (session or persistent per the opt-in),
+            // one entry per channel; an empty value means "auto" and clears it
             saveChannelStartId(channelName, startId) {
-                const channelStartIds = JSON.parse(utils.getCookie('telegram_channel_start_ids') || '{}');
-                channelStartIds[channelName] = startId;
-                const date = new Date();
-                date.setMonth(date.getMonth() + 1);
-                const expires = "expires=" + date.toUTCString();
-                document.cookie = "telegram_channel_start_ids=" + JSON.stringify(channelStartIds) + ";" + expires + ";path=/";
+                const key = CONFIG.START_ID_KEY_PREFIX + channelName;
+                if (startId === null || startId === undefined || String(startId).trim() === '') {
+                    storage.removeItem(key);
+                } else {
+                    storage.setItem(key, String(startId).trim());
+                }
             },
             getChannelStartId(channelName) {
-                const channelStartIds = JSON.parse(utils.getCookie('telegram_channel_start_ids') || '{}');
-                return channelStartIds[channelName] || null;
-            },
-            deleteChannelStartId(channelName) {
-                const channelStartIds = JSON.parse(utils.getCookie('telegram_channel_start_ids') || '{}');
-                delete channelStartIds[channelName];
-                const date = new Date();
-                date.setMonth(date.getMonth() + 1);
-                const expires = "expires=" + date.toUTCString();
-                document.cookie = "telegram_channel_start_ids=" + JSON.stringify(channelStartIds) + ";" + expires + ";path=/";
+                return storage.getItem(CONFIG.START_ID_KEY_PREFIX + channelName) || null;
             },
             loadChannelStartId(channelName) {
                 const savedStartId = utils.getChannelStartId(channelName);
-                if (savedStartId) {
-                    elements.startIdInput.value = savedStartId;
-                }
+                elements.startIdInput.value = savedStartId || '';
                 return savedStartId;
             },
             loadCurrentChannelStartId() {
@@ -284,31 +334,8 @@
                 if (channelName) {
                     return utils.loadChannelStartId(channelName);
                 }
+                elements.startIdInput.value = '';
                 return null;
-            }
-        };
-        const cache = {
-            get(channel) {
-                const cached = postCache.get(channel);
-                if (cached && Date.now() - cached.timestamp < CONFIG.CACHE_DURATION) {
-                    return cached.value;
-                }
-                postCache.delete(channel);
-                return null;
-            },
-            set(channel, value) {
-                postCache.set(channel, {
-                    value,
-                    timestamp: Date.now()
-                });
-            }
-        };
-        const manualCacheUtil = {
-            get(channel) {
-                return manualCache.get(channel) || null;
-            },
-            set(channel, value) {
-                manualCache.set(channel, value);
             }
         };
         const messageChecker = {
@@ -393,13 +420,18 @@
                 elements.currentChannel.style.display = 'block';
             },
             async findLastPost(channelName) {
-                const cachedResult = cache.get(channelName);
-                if (cachedResult) {
-                    autoSearch.displayResult(channelName, cachedResult);
-                    return;
-                }
                 try {
                     utils.setLoadingState(true, t.startingAutoSearch);
+                    const savedId = parseInt(storage.getItem(CONFIG.LAST_ID_KEY_PREFIX + channelName), 10);
+                    if (savedId > 0) {
+                        // Resume exactly where the user left off: "check new"
+                        // catches up with anything published since then
+                        autoSearch.updateInfo(`${t.checkingSavedLast} ${savedId}`);
+                        if (await messageChecker.checkExists(channelName, savedId)) {
+                            autoSearch.displayResult(channelName, savedId);
+                            return;
+                        }
+                    }
                     autoSearch.updateInfo(t.searchingInitialRange);
                     const { lower, upper } = await autoSearch.findInitialRange(channelName);
                     autoSearch.updateInfo(`${t.rangeFound} ${lower} - ${upper}. ${t.startingAutoSearch}`);
@@ -409,13 +441,11 @@
                     if (!finalExists) {
                         throw new Error(t.noValidMessages);
                     }
-                    cache.set(channelName, lastPostId);
                     autoSearch.displayResult(channelName, lastPostId);
                 } catch (error) {
                     console.error('Error in auto search:', error);
                     utils.showError(`Error in auto search: ${error.message}`);
                     elements.loadChannelBtn.disabled = false;
-                    elements.loadChannelBtn.textContent = t.loadChannel;
                     utils.setLoadingState(false);
                 }
             },
@@ -488,6 +518,7 @@
             displayResult(channelName, lastPostId) {
                 state.lastPostId = lastPostId;
                 state.currentChannel = channelName;
+                storage.setItem(CONFIG.LAST_ID_KEY_PREFIX + channelName, String(lastPostId));
                 elements.toolbarChannel.textContent = `@${channelName}`;
                 elements.toolbarChannel.style.display = 'inline-block';
                 elements.currentChannel.textContent = '';
@@ -510,77 +541,15 @@
                 elements.widgetContainer.dataset.num = 20;
                 elements.widgetContainer.innerHTML = '';
                 elements.loadChannelBtn.disabled = false;
-                elements.loadChannelBtn.textContent = t.loadChannel;
                 window.dispatchEvent(new CustomEvent('telegramLoaded'));
             }
         };
         const manualSearch = {
+            // Manual mode displays starting exactly from the entered Start ID
             async findLastPost(channelName, startId) {
                 const start = parseInt(startId, 10);
                 if (isNaN(start) || start <= 0) throw new Error('Invalid start ID');
-                utils.setLoadingState(true, 'Searching...');
-                let highestFound = null;
-                for (let offset = 1; offset <= 100; offset++) {
-                    const testId = start + offset;
-                    autoSearch.updateInfo(`Testing ${testId}...`);
-                    const exists = await messageChecker.checkExists(channelName, testId);
-                    if (exists) {
-                        highestFound = testId;
-                        for (let nextOffset = offset + 1; nextOffset <= 100; nextOffset++) {
-                            const nextId = start + nextOffset;
-                            autoSearch.updateInfo(`Testing ${nextId}...`);
-                            const nextExists = await messageChecker.checkExists(channelName, nextId);
-                            if (nextExists) {
-                                highestFound = nextId;
-                                offset = nextOffset;
-                            } else {
-                                break;
-                            }
-                        }
-                        break;
-                    }
-                    if (offset >= 10 && highestFound === null) break;
-                }
-                if (highestFound === null) {
-                    let lowestFound = null;
-                    for (let offset = 1; offset <= 100; offset++) {
-                        const testId = start - offset;
-                        if (testId < 1) break;
-                        autoSearch.updateInfo(`Testing ${testId}...`);
-                        const exists = await messageChecker.checkExists(channelName, testId);
-                        if (exists) {
-                            lowestFound = testId;
-                            highestFound = testId;
-                            for (let upOffset = 1; upOffset <= 100; upOffset++) {
-                                const upId = testId + upOffset;
-                                if (upId > start) break;
-                                autoSearch.updateInfo(`Testing ${upId}...`);
-                                const upExists = await messageChecker.checkExists(channelName, upId);
-                                if (upExists) {
-                                    highestFound = upId;
-                                } else {
-                                    break;
-                                }
-                            }
-                            break;
-                        }
-                    }
-                    if (highestFound === null && lowestFound !== null) {
-                        highestFound = lowestFound;
-                    }
-                }
-                let finalId;
-                if (highestFound !== null) {
-                    finalId = highestFound;
-                } else {
-                    autoSearch.updateInfo(`Testing 1...`);
-                    const existsAtOne = await messageChecker.checkExists(channelName, 1);
-                    finalId = existsAtOne ? 1 : Math.max(1, start - 100);
-                }
-                manualCacheUtil.set(channelName, finalId);
-                utils.saveChannelStartId(channelName, finalId);
-                elements.startIdInput.value = finalId;
-                autoSearch.displayResult(channelName, finalId);
+                autoSearch.displayResult(channelName, start);
             }
         };
         const widgetLoader = {
@@ -618,6 +587,12 @@
             appendRange(fromId, toId) {
                 const fragment = document.createDocumentFragment();
                 for (let n = fromId; n <= toId; n++) {
+                    // Safety net: replace any embed already rendered for this
+                    // ID instead of appending a duplicate
+                    const stale = elements.widgetContainer.querySelector(
+                        `iframe[src*="/${state.currentChannel}/${n}?"]`
+                    );
+                    if (stale) stale.remove();
                     const script = document.createElement('script');
                     script.async = true;
                     script.src = CONFIG.WIDGET_SCRIPT_URL;
@@ -647,6 +622,8 @@
         const autoScroller = {
             observer: null,
             debounce: null,
+            initialTimer: null,
+            windowTimer: null,
             active: false,
             scroll() {
                 elements.checkNewButton.scrollIntoView({ behavior: 'auto', block: 'end' });
@@ -658,7 +635,7 @@
             start() {
                 autoScroller.stop();
                 autoScroller.active = true;
-                setTimeout(() => {
+                autoScroller.initialTimer = setTimeout(() => {
                     if (autoScroller.active) autoScroller.scheduleScroll();
                 }, CONFIG.SCROLL_INITIAL_DELAY);
                 autoScroller.observer = new MutationObserver(mutations => {
@@ -678,7 +655,7 @@
                 window.addEventListener('wheel', autoScroller.cancelOnUserScroll, { passive: true });
                 window.addEventListener('touchstart', autoScroller.cancelOnUserScroll, { passive: true });
                 window.addEventListener('keydown', autoScroller.cancelOnUserScroll);
-                setTimeout(() => autoScroller.stop(), CONFIG.AUTO_SCROLL_WINDOW);
+                autoScroller.windowTimer = setTimeout(() => autoScroller.stop(), CONFIG.AUTO_SCROLL_WINDOW);
             },
             stop() {
                 if (autoScroller.active) {
@@ -687,6 +664,8 @@
                 }
                 autoScroller.active = false;
                 clearTimeout(autoScroller.debounce);
+                clearTimeout(autoScroller.initialTimer);
+                clearTimeout(autoScroller.windowTimer);
                 if (autoScroller.observer) {
                     autoScroller.observer.disconnect();
                     autoScroller.observer = null;
@@ -717,6 +696,7 @@
                     if (found > 0) {
                         widgetLoader.appendRange(state.lastPostId + 1, state.lastPostId + found);
                         state.lastPostId = state.lastPostId + found;
+                        storage.setItem(CONFIG.LAST_ID_KEY_PREFIX + state.currentChannel, String(state.lastPostId));
                         iframeMonitor.start();
                     } else {
                         elements.checkNewButton.textContent = t.noNew;
@@ -734,6 +714,47 @@
                     if (elements.checkNewButton.textContent === t.loading) {
                         elements.checkNewButton.textContent = t.checkNew;
                     }
+                    autoCheck.reschedule();
+                }
+            }
+        };
+        const autoCheck = {
+            intervalId: null,
+            nextAt: 0,
+            seconds() {
+                const checkbox = document.getElementById('pref-autocheck');
+                const value = parseInt(document.getElementById('autocheck-interval').value, 10);
+                return checkbox.checked && value > 0 ? value : 0;
+            },
+            start() {
+                autoCheck.stop();
+                const seconds = autoCheck.seconds();
+                if (!seconds || !state.currentChannel || state.lastPostId <= 0) return;
+                autoCheck.nextAt = Date.now() + seconds * 1000;
+                autoCheck.intervalId = setInterval(autoCheck.tick, 1000);
+            },
+            stop() {
+                if (autoCheck.intervalId) {
+                    clearInterval(autoCheck.intervalId);
+                    autoCheck.intervalId = null;
+                }
+                if (elements.checkNewButton.textContent.startsWith(t.checkNew)) {
+                    elements.checkNewButton.textContent = t.checkNew;
+                }
+            },
+            reschedule() {
+                const seconds = autoCheck.seconds();
+                if (seconds && autoCheck.intervalId) {
+                    autoCheck.nextAt = Date.now() + seconds * 1000;
+                }
+            },
+            tick() {
+                if (state.isLoading) return;
+                const remaining = Math.ceil((autoCheck.nextAt - Date.now()) / 1000);
+                if (remaining <= 0) {
+                    newMessages.check();
+                } else {
+                    elements.checkNewButton.textContent = `${t.checkNew} (${remaining}s)`;
                 }
             }
         };
@@ -757,21 +778,27 @@
                 if (state.intervalId) {
                     clearInterval(state.intervalId);
                 }
+                // Each run gets its full quota of ticks
+                state.countInterval = 0;
                 state.intervalId = setInterval(() => iframeMonitor.checkHeight(), CONFIG.DELETED_POST_CHECK_INTERVAL);
             }
         };
         const i18n = {
             updateUITexts() {
                 document.getElementById('enterChannelLabel').textContent = t.enterChannel;
-                document.getElementById('byAutoLabel').textContent = t.byAuto;
-                document.getElementById('byManualLabel').textContent = t.byManual;
-                document.getElementById('load-channel-btn').textContent = t.loadChannel;
+                const loadBtn = document.getElementById('load-channel-btn');
+                loadBtn.title = t.loadChannel;
+                loadBtn.setAttribute('aria-label', t.loadChannel);
                 document.getElementById('loadMoreBtn').textContent = t.loadMore;
                 document.getElementById('checkNewBtn').textContent = t.checkNew;
                 document.getElementById('quickGuideTitle').textContent = t.quickGuideTitle;
                 document.getElementById('quickGuideDescription').textContent = t.quickGuideDescription;
                 document.getElementById('searchInfoText').textContent = t.searchInfoText;
-                document.getElementById('save-cookie-btn').textContent = t.saveAsCookie;
+                document.getElementById('prefsTitle').textContent = t.prefs;
+                document.getElementById('prefCookiesLabel').textContent = t.allowCookies;
+                document.getElementById('prefStartIdLabel').textContent = t.manualMode;
+                document.getElementById('prefAutoCheckLabel').textContent = t.autoCheckLabel;
+                document.getElementById('secondsLabel').textContent = t.seconds;
                 const featuresList = document.getElementById('featuresList');
                 featuresList.innerHTML = t.features.map(feature => `<li>${feature}</li>`).join('');
             }
@@ -783,38 +810,48 @@
                 window.addEventListener('telegramLoaded', () => {
                     if (elements.widgetContainer && state.lastPostId > 0) {
                         state.countPosts = 0;
-                        const startPost = state.lastPostId + CONFIG.LOAD_MORE_POST;
-                        widgetLoader.load(startPost);
+                        // Render exactly up to lastPostId: telegram-widget.js
+                        // deduplicates embeds by post ID, so any rendered ID
+                        // above lastPostId would make the "check new" probes
+                        // (lastPostId+1…) silently resolve to false
+                        widgetLoader.load(state.lastPostId);
                         elements.checkNewButton.style.display = 'block';
                         // Land at the newest message (bottom), like a chat:
                         // scroll almost immediately, then re-adjust as iframes load
                         autoScroller.start();
+                        autoCheck.start();
                     }
                 });
                 elements.checkNewButton.addEventListener('click', () => newMessages.check());
-                document.querySelectorAll('input[name="method"]').forEach(radio => {
-                    radio.addEventListener('change', () => {
-                        const isManual = document.querySelector('input[name="method"]:checked').value === 'manual';
-                        elements.startIdContainer.style.display = isManual ? 'block' : 'none';
-                        if (isManual) {
-                            utils.loadCurrentChannelStartId();
-                        }
-                    });
+                document.getElementById('pref-cookies').addEventListener('change', (e) => {
+                    storage.setPersistent(e.target.checked);
                 });
-                elements.saveCookieBtn.addEventListener('click', () => {
+                document.getElementById('pref-autocheck').addEventListener('change', (e) => {
+                    storage.setItem(CONFIG.AUTOCHECK_ENABLED_KEY, e.target.checked ? '1' : '0');
+                    autoCheck.start();
+                });
+                document.getElementById('autocheck-interval').addEventListener('change', (e) => {
+                    const value = Math.max(0, parseInt(e.target.value, 10) || 0);
+                    e.target.value = value;
+                    storage.setItem(CONFIG.AUTOCHECK_INTERVAL_KEY, String(value));
+                    autoCheck.start();
+                });
+                elements.startIdCheckbox.addEventListener('change', () => {
+                    const on = elements.startIdCheckbox.checked;
+                    storage.setItem(CONFIG.START_ID_ENABLED_KEY, on ? '1' : '0');
+                    elements.startIdInput.disabled = !on;
+                    if (on) {
+                        utils.loadCurrentChannelStartId();
+                    }
+                });
+                elements.startIdInput.addEventListener('change', () => {
                     const channelName = utils.extractChannelName(elements.channelInput.value);
-                    const startId = elements.startIdInput.value.trim();
-                    if (channelName && startId) {
-                        utils.saveChannelStartId(channelName, startId);
-                        alert('Start ID for channel @' + channelName + ' saved in cookie for 30 days');
-                    } else {
-                        alert('Please enter a channel and a Start ID');
+                    if (channelName) {
+                        utils.saveChannelStartId(channelName, elements.startIdInput.value);
                     }
                 });
                 elements.channelInput.addEventListener('input', () => {
-                    if (document.querySelector('input[name="method"]:checked').value === 'manual') {
-                        utils.loadCurrentChannelStartId();
-                    }
+                    utils.loadCurrentChannelStartId();
                 });
                 elements.loadChannelBtn.addEventListener('click', async () => {
                     const channelName = utils.extractChannelName(elements.channelInput.value);
@@ -823,30 +860,25 @@
                         return;
                     }
                     if (state.isLoading) return;
-                    const selectedMethod = document.querySelector('input[name="method"]:checked').value;
-                    if (selectedMethod === 'manual') {
-                        let startId = elements.startIdInput.value.trim();
-                        if (!startId) {
-                            const savedStartId = utils.getChannelStartId(channelName);
-                            if (savedStartId) {
-                                startId = savedStartId;
-                                elements.startIdInput.value = savedStartId;
-                            } else {
-                                alert('Please enter a Start ID');
-                                return;
-                            }
-                        }
+                    // Start ID checked = manual search from that ID; unchecked = automatic
+                    const useManual = elements.startIdCheckbox.checked;
+                    const startId = elements.startIdInput.value.trim();
+                    if (useManual && startId === '') {
+                        alert(t.startIdRequired);
+                        return;
+                    }
+                    if (useManual) {
+                        utils.saveChannelStartId(channelName, startId);
                     }
                     utils.clearContainer();
                     elements.tipsCard.style.display = 'none';
                     elements.loadChannelBtn.disabled = true;
-                    elements.loadChannelBtn.textContent = t.loading;
                     elements.error.style.display = 'none';
                     try {
-                        if (selectedMethod === 'auto') {
+                        if (useManual) {
+                            await manualSearch.findLastPost(channelName, startId);
+                        } else {
                             await autoSearch.findLastPost(channelName);
-                        } else if (selectedMethod === 'manual') {
-                            await manualSearch.findLastPost(channelName, elements.startIdInput.value);
                         }
                         if (utils.saveChannel(channelName)) {
                             utils.displaySavedChannels();
@@ -856,7 +888,6 @@
                         utils.showError(error.message);
                     } finally {
                         elements.loadChannelBtn.disabled = false;
-                        elements.loadChannelBtn.textContent = t.loadChannel;
                     }
                 });
                 document.addEventListener('DOMContentLoaded', () => {
@@ -864,6 +895,9 @@
                     const channelParam = urlParams.get('channel');
                     if (channelParam) {
                         elements.channelInput.value = channelParam;
+                        // Programmatic assignment does not fire 'input', so
+                        // fill the saved Start ID for this channel explicitly
+                        utils.loadCurrentChannelStartId();
                     }
                     utils.addChannelsFromURL();
                     utils.displaySavedChannels();
@@ -892,6 +926,17 @@
                         elements.loadChannelBtn.click();
                     }
                 });
+                // Restore saved preferences
+                document.getElementById('pref-cookies').checked = storage.isPersistent();
+                const startIdOn = storage.getItem(CONFIG.START_ID_ENABLED_KEY) === '1';
+                elements.startIdCheckbox.checked = startIdOn;
+                elements.startIdInput.disabled = !startIdOn;
+                utils.loadCurrentChannelStartId();
+                document.getElementById('pref-autocheck').checked =
+                    storage.getItem(CONFIG.AUTOCHECK_ENABLED_KEY) === '1';
+                const savedInterval = parseInt(storage.getItem(CONFIG.AUTOCHECK_INTERVAL_KEY), 10);
+                document.getElementById('autocheck-interval').value =
+                    Number.isFinite(savedInterval) && savedInterval >= 0 ? savedInterval : CONFIG.AUTOCHECK_DEFAULT_SECONDS;
             }
         };
         eventListeners.init();

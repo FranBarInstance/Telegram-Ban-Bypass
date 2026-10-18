@@ -132,13 +132,12 @@ main {
     padding: 20px;
     margin: 14px 0;
 }
-.input-card label:not(.method-option) {
+.input-card label {
     display: block;
     font-weight: 600;
     margin-bottom: 8px;
 }
-.input-card input[type="text"],
-.start-id-wrapper input[type="number"] {
+.input-card input[type="text"] {
     width: 100%;
     padding: 12px 14px;
     font-size: 16px;
@@ -149,62 +148,100 @@ main {
     border-radius: 10px;
     margin-bottom: 14px;
 }
-.input-card input:focus,
-.start-id-wrapper input:focus {
+.input-card input:focus {
     outline: none;
     border-color: var(--accent);
     box-shadow: 0 0 0 3px var(--accent-soft);
 }
-.controls-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 14px;
-}
-.method-selection {
-    display: flex;
-    flex: 2;
-    gap: 8px;
-    min-width: 0;
-}
-.method-option {
-    display: flex;
-    flex: 1;
-    min-width: 0;
-}
-.method-option input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-}
-.method-option span {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 9px 8px;
-    font-size: 0.9em;
+.prefs {
+    margin-top: 14px;
     border: 1px solid var(--border);
     border-radius: 10px;
     background: var(--surface-soft);
+}
+.prefs summary {
+    padding: 11px 14px;
+    font-weight: 600;
     color: var(--text-soft);
     cursor: pointer;
-    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    list-style: none;
 }
-.method-option input:checked + span {
-    background: var(--success);
-    border-color: var(--success);
-    color: #ffffff;
-    font-weight: 600;
+.prefs summary::before {
+    content: "▸ ";
+    color: var(--accent);
 }
-.method-option input:disabled + span {
-    opacity: 0.45;
+.prefs[open] summary::before {
+    content: "▾ ";
+}
+.prefs .pref-row,
+.prefs .pref-autocheck-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    font-size: 0.95em;
+    color: var(--text);
+    cursor: pointer;
+}
+.prefs .pref-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.95em;
+}
+.prefs input[type="checkbox"],
+.prefs input[type="radio"] {
+    accent-color: var(--success);
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+.pref-autocheck-row,
+.pref-startid-row {
+    flex-wrap: wrap;
+    cursor: default;
+}
+.autocheck-interval,
+.startid-value {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    font-size: 0.9em;
+    color: var(--text-soft);
+}
+.autocheck-interval input,
+.startid-value input {
+    padding: 6px 8px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+.autocheck-interval input {
+    width: 70px;
+}
+.startid-value input {
+    width: 95px;
+}
+.autocheck-interval input:disabled,
+.startid-value input:disabled {
+    opacity: 0.5;
     cursor: not-allowed;
 }
-.method-option input:focus-visible + span {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
+.channel-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
 }
-.load-channel-btn,
+.channel-row input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    margin-bottom: 0;
+}
 .widget-load-more-button {
     display: block;
     width: 100%;
@@ -219,8 +256,23 @@ main {
     cursor: pointer;
     transition: background-color 0.15s ease;
 }
-.load-channel-btn:hover,
+.load-channel-btn {
+    flex: none;
+    width: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
 .widget-load-more-button:hover {
+    background: var(--accent-strong);
+}
+.load-channel-btn:hover {
     background: var(--accent-strong);
 }
 .load-channel-btn:disabled {
@@ -239,41 +291,6 @@ main {
 }
 .widget-load-more-button:hover {
     background: var(--accent-soft);
-}
-.controls-row .load-channel-btn {
-    flex: 1;
-    width: auto;
-    min-width: 0;
-    padding: 9px 8px;
-    font-size: 0.9em;
-}
-.start-id-container {
-    display: none;
-    margin-bottom: 4px;
-}
-.start-id-wrapper {
-    display: flex;
-    gap: 10px;
-    align-items: stretch;
-}
-.start-id-wrapper input {
-    flex: 1;
-    margin-bottom: 14px;
-}
-.save-cookie-btn {
-    padding: 12px 16px;
-    font-size: 15px;
-    font-family: inherit;
-    font-weight: 600;
-    color: #ffffff;
-    background: #2f9e57;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    white-space: nowrap;
-}
-.save-cookie-btn:hover {
-    background: #27864a;
 }
 #saved-channels-list {
     list-style: none;
@@ -441,18 +458,5 @@ iframe[src*="t.me"] {
     .card {
         padding: 16px;
         margin: 10px 0;
-    }
-    .method-selection {
-        gap: 6px;
-    }
-    .method-option span {
-        padding: 9px 6px;
-        font-size: 0.85em;
-    }
-    .start-id-wrapper {
-        flex-direction: column;
-    }
-    .save-cookie-btn {
-        width: 100%;
     }
 }

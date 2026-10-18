@@ -36,27 +36,40 @@
         <aside class="sidebar">
             <section class="card input-card">
                 <label for="channel-input" id="enterChannelLabel"></label>
-                <input type="text" id="channel-input" placeholder="e.g., telegram or https://t.me/telegram/">
-                <div class="controls-row">
-                    <div class="method-selection" role="radiogroup">
-                        <label class="method-option">
-                            <input type="radio" id="method-auto" name="method" value="auto" checked>
-                            <span id="byAutoLabel"></span>
-                        </label>
-                        <label class="method-option">
-                            <input type="radio" id="method-manual" name="method" value="manual">
-                            <span id="byManualLabel"></span>
-                        </label>
-                    </div>
-                    <button type="button" id="load-channel-btn" class="load-channel-btn"></button>
+                <div class="channel-row">
+                    <input type="text" id="channel-input" placeholder="e.g., telegram or https://t.me/telegram/">
+                    <button type="button" id="load-channel-btn" class="load-channel-btn" title="Load" aria-label="Load">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+                            <path d="M2 21 23 12 2 3v7l15 2-15 2v7z"/>
+                        </svg>
+                    </button>
                 </div>
-                <div class="start-id-container" id="start-id-container">
-                    <label for="start-id-input">Start ID</label>
-                    <div class="start-id-wrapper">
-                        <input type="number" id="start-id-input" placeholder="Start ID">
-                        <button type="button" id="save-cookie-btn" class="save-cookie-btn"></button>
+                <details class="prefs" id="prefs-box">
+                    <summary id="prefsTitle"></summary>
+                    <label class="pref-row">
+                        <input type="checkbox" id="pref-cookies">
+                        <span id="prefCookiesLabel"></span>
+                    </label>
+                    <div class="pref-row pref-startid-row">
+                        <label class="pref-check">
+                            <input type="checkbox" id="pref-startid">
+                            <span id="prefStartIdLabel"></span>
+                        </label>
+                        <div class="startid-value">
+                            <input type="number" id="start-id-input" min="1" disabled>
+                        </div>
                     </div>
-                </div>
+                    <div class="pref-row pref-autocheck-row">
+                        <label class="pref-check">
+                            <input type="checkbox" id="pref-autocheck">
+                            <span id="prefAutoCheckLabel"></span>
+                        </label>
+                        <div class="autocheck-interval">
+                            <input type="number" id="autocheck-interval" min="0" step="5" value="60">
+                            <span id="secondsLabel"></span>
+                        </div>
+                    </div>
+                </details>
             </section>
             <section class="card saved-channels" style="display: none;">
                 <ul id="saved-channels-list"></ul>
