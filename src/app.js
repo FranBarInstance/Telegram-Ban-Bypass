@@ -381,9 +381,14 @@
             }
         };
         const getPreferredLanguage = () => {
-            // Runs before the storage object exists: read both backends directly
-            const savedLang = sessionStorage.getItem('preferredLanguage') ||
-                              localStorage.getItem('preferredLanguage');
+            // Runs before the storage object exists: read both backends
+            // directly. Firefox with cookies fully blocked makes any storage
+            // access throw, so this must not crash the whole script
+            let savedLang = null;
+            try {
+                savedLang = sessionStorage.getItem('preferredLanguage') ||
+                            localStorage.getItem('preferredLanguage');
+            } catch (e) { /* storage disabled: fall back to the browser language */ }
             if (savedLang && translations[savedLang]) return savedLang;
             const base = (navigator.language || navigator.userLanguage || 'en').split('-')[0];
             return translations[base] ? base : 'en';
@@ -448,7 +453,13 @@
                 return storage.isPersistent() ? localStorage : sessionStorage;
             },
             getItem(key) {
-                return storage.current().getItem(key);
+                try {
+                    return storage.current().getItem(key);
+                } catch (e) {
+                    // Browsers with cookies fully disabled make every storage
+                    // access throw: behave as if nothing were stored
+                    return null;
+                }
             },
             setItem(key, value) {
                 try {
@@ -458,7 +469,11 @@
                 }
             },
             removeItem(key) {
-                storage.current().removeItem(key);
+                try {
+                    storage.current().removeItem(key);
+                } catch (e) {
+                    console.error('Storage error:', e);
+                }
             },
             isAppKey(key) {
                 return key.startsWith(CONFIG.LAST_ID_KEY_PREFIX) ||
@@ -1293,6 +1308,10 @@
                 elements.themeToggle.addEventListener('click', () => theme.toggle());
                 document.getElementById('pref-cookies').addEventListener('change', (e) => {
                     storage.setPersistent(e.target.checked);
+                    // Reflect the real state: with storage disabled (Firefox
+                    // blocking all cookies) nothing is saved and the checkbox
+                    // must snap back instead of lying
+                    e.target.checked = storage.isPersistent();
                 });
                 document.getElementById('pref-autocheck').addEventListener('change', (e) => {
                     storage.setItem(CONFIG.AUTOCHECK_ENABLED_KEY, e.target.checked ? '1' : '0');
