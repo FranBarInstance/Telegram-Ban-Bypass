@@ -481,8 +481,8 @@
             DEEP_CHECK_MAX: 100,
             CHECK_NEW_BLOCK: 10,
             PROBE_POLL_INTERVAL: 50,
-            PROBE_STABLE_SAMPLES: 10,
             PROBE_BAND_STABLE_SAMPLES: 30,
+            PROBE_BAND_TIMEOUT: 1500,
             THEME_KEY: 'tgTheme',
             COOKIES_KEY: 'tgAllowCookies',
             LAST_ID_KEY_PREFIX: 'tgLastPostId:',
@@ -733,6 +733,7 @@
                     const testContainer = utils.createTestElement();
                     let isResolved = false;
                     let pageLoaded = false;
+                    let pageLoadedAt = 0;
                     let lastHeight = -1;
                     let stableCount = 0;
                     let fastTimer = null;
@@ -757,13 +758,14 @@
                     script.setAttribute('data-telegram-post', `${channelName}/${messageId}`);
                     script.setAttribute('data-width', '100%');
                     // Poll the iframe height every ~50 ms and resolve as soon
-                    // as the answer is clear:
-                    //   >160           -> the embed resized: the post exists
-                    //   stable <60     -> "post not found" page: does not exist
-                    //   stable 145-155 -> widget default (throttled): not
-                    //                     loaded; requires a longer stable
-                    //                     period so slow real embeds are not
-                    //                     misread as missing
+                    // as the answer is clear. The iframe starts at its default
+                    // ~150 px and the embed resizes it once, so any height
+                    // outside 145-155 after the page loaded is already final:
+                    //   >160 / 60-144 -> the embed resized: the post exists
+                    //   0 < h < 60    -> "post not found" page: does not exist
+                    //   145-155       -> still the default size (throttled or
+                    //                     missing embed): give up after a
+                    //                     stable period or a deadline
                     const poll = () => {
                         if (isResolved) return;
                         const iframe = testContainer.querySelector('iframe');
@@ -778,16 +780,19 @@
                             resolveWith(true);
                             return;
                         }
-                        if (pageLoaded && stableCount >= CONFIG.PROBE_STABLE_SAMPLES) {
+                        if (pageLoaded) {
                             if (height > 0 && height < CONFIG.MIN_IFRAME_HEIGHT) {
                                 resolveWith(false);
                                 return;
                             }
                             if (height >= 145 && height <= 155) {
-                                // Default (throttled) widget size: trust it only
-                                // after a longer stable period, otherwise slow
-                                // real embeds would be misread as missing
-                                if (stableCount >= CONFIG.PROBE_BAND_STABLE_SAMPLES) {
+                                // Default (throttled) widget size: no resize
+                                // has arrived. Give up once it has been stable
+                                // for a while, or once a deadline after load
+                                // passed, so a fluctuating height does not sit
+                                // until the full timeout
+                                if (stableCount >= CONFIG.PROBE_BAND_STABLE_SAMPLES ||
+                                    Date.now() - pageLoadedAt >= CONFIG.PROBE_BAND_TIMEOUT) {
                                     resolveWith(false);
                                     return;
                                 }
@@ -803,6 +808,7 @@
                         if (iframe) {
                             iframe.onload = () => {
                                 pageLoaded = true;
+                                pageLoadedAt = Date.now();
                             };
                             fastTimer = setTimeout(poll, CONFIG.PROBE_POLL_INTERVAL);
                         } else {
@@ -1063,7 +1069,7 @@
                         // Settled: out of the default ~150px band or measured
                         if (height > 0 && (height < 140 || height > 160)) ready++;
                     });
-                    if (ready >= Math.ceil(total * 0.6) || Date.now() - started > 15000) {
+                    if (ready >= Math.ceil(total * 0.6) || Date.now() - started > 6000) {
                         button.disabled = false;
                         button.textContent = t.loadMore;
                         return;
