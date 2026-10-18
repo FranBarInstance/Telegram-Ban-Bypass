@@ -16,7 +16,9 @@
                 currentlyViewing: "Currently viewing:",
                 latestPostId: "Latest post ID:",
                 searchCompleted: "✅ Search completed. Last message:",
-                loadMore: "Load More Posts",
+                loadMore: "Load Older Posts",
+                checkNew: "Check for New Messages",
+                noNew: "No new messages",
                 invalidChannel: "Please enter a valid channel name",
                 quickGuideTitle: "Quick Guide: View Banned Channels:",
                 quickGuideDescription: "Allows you to access blocked Telegram channels or groups. You can read the messages of a channel without appearing in the history, no one knows if you have read it.",
@@ -49,7 +51,9 @@
                 currentlyViewing: "Viendo actualmente:",
                 latestPostId: "Último ID:",
                 searchCompleted: "✅ Búsqueda completada. Último mensaje:",
-                loadMore: "Cargar Más Mensajes",
+                loadMore: "Cargar Mensajes Anteriores",
+                checkNew: "Comprobar Nuevos Mensajes",
+                noNew: "No hay mensajes nuevos",
                 invalidChannel: "Por favor, introduce un nombre de canal válido",
                 quickGuideTitle: "Guía Rápida: Ver Canales Bloqueados:",
                 quickGuideDescription: "Permite acceder a canales o grupos bloqueados de Telegram. Puedes leer los mensajes de un canal sin aparecer en el historial, nadie sabe si lo has leído.",
@@ -98,6 +102,9 @@
             WIDGET_SCRIPT_URL: 'https://telegram.org/js/telegram-widget.js?22',
             LOAD_MORE_DELAY: 900,
             RETRY_IFRAME_DELAY: 1500,
+            CHECK_NEW_MAX: 50,
+            SCROLL_INITIAL_DELAY: 300,
+            AUTO_SCROLL_WINDOW: 10000,
             INITIAL_RANGE_MAX: 100000000
         };
         const state = {
@@ -122,6 +129,7 @@
             searchInfo: document.getElementById('searchInfo'),
             searchInfoText: document.getElementById('searchInfoText'),
             toolbarChannel: document.getElementById('toolbar-channel'),
+            checkNewButton: document.getElementById('checkNewBtn'),
             tipsCard: document.getElementById('tips-card')
         };
         const postCache = new Map();
@@ -155,6 +163,7 @@
             clearContainer() {
                 elements.widgetContainer.innerHTML = '';
                 elements.loadMoreButton.style.display = 'none';
+                elements.checkNewButton.style.display = 'none';
                 elements.currentChannel.style.display = 'none';
                 elements.toolbarChannel.textContent = '';
                 elements.toolbarChannel.style.display = 'none';
@@ -575,13 +584,40 @@
             }
         };
         const widgetLoader = {
-            load(start, numPosts = CONFIG.NUM_POSTS) {
+            createPostScripts(start, numPosts) {
+                const end = start - numPosts + 1;
+                const fragment = document.createDocumentFragment();
+                // Ascending order: oldest first, newest last (chat-style)
+                for (let n = end; n <= start; n++) {
+                    const script = document.createElement('script');
+                    script.async = true;
+                    script.src = CONFIG.WIDGET_SCRIPT_URL;
+                    script.setAttribute('data-telegram-post', `${state.currentChannel}/${n}`);
+                    script.setAttribute('data-width', '100%');
+                    fragment.appendChild(script);
+                    state.countPosts++;
+                }
+                return { fragment, end };
+            },
+            load(start, numPosts = CONFIG.NUM_POSTS, prepend = false) {
                 if (!elements.widgetContainer) return;
                 iframeMonitor.start();
                 elements.loadMoreButton.style.display = 'block';
-                const end = start - numPosts + 1;
+                const { fragment, end } = widgetLoader.createPostScripts(start, numPosts);
+                if (prepend) {
+                    elements.widgetContainer.prepend(fragment);
+                } else {
+                    elements.widgetContainer.appendChild(fragment);
+                }
+                if (end > 1) {
+                    widgetLoader.setupLoadMoreButton(end);
+                } else {
+                    elements.loadMoreButton.style.display = 'none';
+                }
+            },
+            appendRange(fromId, toId) {
                 const fragment = document.createDocumentFragment();
-                for (let n = start; n >= end; n--) {
+                for (let n = fromId; n <= toId; n++) {
                     const script = document.createElement('script');
                     script.async = true;
                     script.src = CONFIG.WIDGET_SCRIPT_URL;
@@ -591,25 +627,114 @@
                     state.countPosts++;
                 }
                 elements.widgetContainer.appendChild(fragment);
-                if (end > 1) {
-                    widgetLoader.setupLoadMoreButton(end);
-                } else {
-                    elements.loadMoreButton.style.display = 'none';
-                }
             },
             setupLoadMoreButton(end) {
                 const newButton = elements.loadMoreButton.cloneNode(true);
                 elements.loadMoreButton.replaceWith(newButton);
                 newButton.addEventListener('click', () => {
+                    autoScroller.stop();
                     if (state.countPosts > CONFIG.MAX_POSTS_BEFORE_CLEAR) {
                         state.countPosts = 0;
                         elements.widgetContainer.innerHTML = '';
                         setTimeout(() => { window.scrollTo(0, 0); }, 100);
                     }
                     const newStart = end - 1;
-                    widgetLoader.load(newStart);
+                    widgetLoader.load(newStart, CONFIG.NUM_POSTS, true);
                 });
                 elements.loadMoreButton = newButton;
+            }
+        };
+        const autoScroller = {
+            observer: null,
+            debounce: null,
+            active: false,
+            scroll() {
+                elements.checkNewButton.scrollIntoView({ behavior: 'auto', block: 'end' });
+            },
+            scheduleScroll() {
+                clearTimeout(autoScroller.debounce);
+                autoScroller.debounce = setTimeout(autoScroller.scroll, 200);
+            },
+            start() {
+                autoScroller.stop();
+                autoScroller.active = true;
+                setTimeout(() => {
+                    if (autoScroller.active) autoScroller.scheduleScroll();
+                }, CONFIG.SCROLL_INITIAL_DELAY);
+                autoScroller.observer = new MutationObserver(mutations => {
+                    for (const mutation of mutations) {
+                        for (const node of mutation.addedNodes) {
+                            if (node.tagName === 'IFRAME') {
+                                node.addEventListener('load', () => {
+                                    if (autoScroller.active) autoScroller.scheduleScroll();
+                                }, { once: true });
+                            }
+                        }
+                    }
+                });
+                autoScroller.observer.observe(elements.widgetContainer, { childList: true });
+                // Any manual scrolling cancels the auto-scroll
+                autoScroller.cancelOnUserScroll = () => autoScroller.stop();
+                window.addEventListener('wheel', autoScroller.cancelOnUserScroll, { passive: true });
+                window.addEventListener('touchstart', autoScroller.cancelOnUserScroll, { passive: true });
+                window.addEventListener('keydown', autoScroller.cancelOnUserScroll);
+                setTimeout(() => autoScroller.stop(), CONFIG.AUTO_SCROLL_WINDOW);
+            },
+            stop() {
+                if (autoScroller.active) {
+                    // Pin position to cancel any in-flight smooth scroll
+                    window.scrollTo(window.scrollX, window.scrollY);
+                }
+                autoScroller.active = false;
+                clearTimeout(autoScroller.debounce);
+                if (autoScroller.observer) {
+                    autoScroller.observer.disconnect();
+                    autoScroller.observer = null;
+                }
+                if (autoScroller.cancelOnUserScroll) {
+                    window.removeEventListener('wheel', autoScroller.cancelOnUserScroll);
+                    window.removeEventListener('touchstart', autoScroller.cancelOnUserScroll);
+                    window.removeEventListener('keydown', autoScroller.cancelOnUserScroll);
+                    autoScroller.cancelOnUserScroll = null;
+                }
+            }
+        };
+        const newMessages = {
+            async check() {
+                if (state.isLoading || !state.currentChannel || state.lastPostId <= 0) return;
+                autoScroller.stop();
+                state.isLoading = true;
+                elements.checkNewButton.disabled = true;
+                elements.checkNewButton.textContent = t.loading;
+                try {
+                    let nextId = state.lastPostId + 1;
+                    let found = 0;
+                    while (found < CONFIG.CHECK_NEW_MAX &&
+                           await messageChecker.checkExists(state.currentChannel, nextId)) {
+                        found++;
+                        nextId++;
+                    }
+                    if (found > 0) {
+                        widgetLoader.appendRange(state.lastPostId + 1, state.lastPostId + found);
+                        state.lastPostId = state.lastPostId + found;
+                        iframeMonitor.start();
+                    } else {
+                        elements.checkNewButton.textContent = t.noNew;
+                        setTimeout(() => {
+                            if (!elements.checkNewButton.disabled) {
+                                elements.checkNewButton.textContent = t.checkNew;
+                            }
+                        }, 2000);
+                    }
+                } catch (error) {
+                    console.error('Error checking new messages:', error);
+                } finally {
+                    state.isLoading = false;
+                    elements.checkNewButton.disabled = false;
+                    if (elements.checkNewButton.textContent === t.loading) {
+                        elements.checkNewButton.textContent = t.checkNew;
+                    }
+                }
             }
         };
         const iframeMonitor = {
@@ -642,6 +767,7 @@
                 document.getElementById('byManualLabel').textContent = t.byManual;
                 document.getElementById('load-channel-btn').textContent = t.loadChannel;
                 document.getElementById('loadMoreBtn').textContent = t.loadMore;
+                document.getElementById('checkNewBtn').textContent = t.checkNew;
                 document.getElementById('quickGuideTitle').textContent = t.quickGuideTitle;
                 document.getElementById('quickGuideDescription').textContent = t.quickGuideDescription;
                 document.getElementById('searchInfoText').textContent = t.searchInfoText;
@@ -659,8 +785,13 @@
                         state.countPosts = 0;
                         const startPost = state.lastPostId + CONFIG.LOAD_MORE_POST;
                         widgetLoader.load(startPost);
+                        elements.checkNewButton.style.display = 'block';
+                        // Land at the newest message (bottom), like a chat:
+                        // scroll almost immediately, then re-adjust as iframes load
+                        autoScroller.start();
                     }
                 });
+                elements.checkNewButton.addEventListener('click', () => newMessages.check());
                 document.querySelectorAll('input[name="method"]').forEach(radio => {
                     radio.addEventListener('change', () => {
                         const isManual = document.querySelector('input[name="method"]:checked').value === 'manual';

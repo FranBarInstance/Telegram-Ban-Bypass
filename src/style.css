@@ -234,6 +234,9 @@ main {
     color: var(--accent);
     border: 1px solid var(--accent);
 }
+#checkNewBtn {
+    margin-bottom: 70px;
+}
 .widget-load-more-button:hover {
     background: var(--accent-soft);
 }
