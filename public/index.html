@@ -634,6 +634,10 @@ iframe[src*="t.me"] {
                             <span id="secondsLabel"></span>
                         </div>
                     </div>
+                    <label class="pref-row">
+                        <input type="checkbox" id="pref-deepcheck">
+                        <span id="prefDeepCheckLabel"></span>
+                    </label>
                 </details>
             </section>
             <section class="card saved-channels" style="display: none;">
@@ -652,6 +656,7 @@ iframe[src*="t.me"] {
                 <p id="quickGuideDescription"></p>
                 <div class="search-info" id="searchInfo">
                     <p id="searchInfoText"></p>
+                    <p id="deepCheckInfoText"></p>
                 </div>
                 <ul id="featuresList"></ul>
                 <p class="github-link">GitHub: <a href="https://github.com/FranBarInstance/Telegram-Ban-Bypass" target="_blank">Telegram Ban Bypass</a></p>
@@ -687,6 +692,9 @@ iframe[src*="t.me"] {
                 manualMode: "Manual, start ID",
                 autoCheckLabel: "Auto-check messages",
                 seconds: "seconds",
+                deepCheck: "Extended message check",
+                deepCheckTip: "Extends \"Check for New Messages\" to 100 posts ahead",
+                deepCheckInfo: "If new posts do not appear, enable \"Extended message check\": it scans up to 100 ahead, jumping over deleted messages.",
                 themeToDark: "Switch to dark mode",
                 themeToLight: "Switch to light mode",
                 startIdRequired: "Please enter a Start ID (or uncheck it for automatic search)",
@@ -704,7 +712,11 @@ iframe[src*="t.me"] {
                     "Use in the URL the \"channel\" parameter for the default channel: ?channel=channelname",
                     "Use in the URL the \"add\" parameter to add channels to the history, separated by commas: ?add=channel1,channel2,...",
                     "Allows you to skip the ban of any telegram channel or group.",
-                    "Alternatively you can download a HTML that works in any browser"
+                    "Alternatively you can download a HTML that works in any browser",
+                    "Light and dark themes, following your system or your choice",
+                    "Optional persistent storage keeps your data between sessions",
+                    "Automatic language detection: interface in 9 languages",
+                    "Navigate back in time with the Load Older Posts button"
                 ]
             },
             es: {
@@ -729,6 +741,9 @@ iframe[src*="t.me"] {
                 manualMode: "Manual, start ID",
                 autoCheckLabel: "Comprobación automática",
                 seconds: "segundos",
+                deepCheck: "Comprobación extendida",
+                deepCheckTip: "Extiende \"Comprobar nuevos\" hasta 100 mensajes",
+                deepCheckInfo: "Si no aparecen mensajes nuevos, activa \"Comprobación extendida\": explora hasta 100 por delante y salta borrados.",
                 themeToDark: "Cambiar a modo oscuro",
                 themeToLight: "Cambiar a modo claro",
                 startIdRequired: "Introduce un Start ID (o desmárcalo para la búsqueda automática)",
@@ -746,7 +761,11 @@ iframe[src*="t.me"] {
                     "Usa en la URL el parámetro \"channel\" para el canal por defecto: ?channel=nombrecanal",
                     "Usa en la URL el parámetro \"add\" para añadir canales al historial, separados por comas: ?add=canal1,canal2,...",
                     "Permite saltarse el bloqueo de cualquier canal o grupo de telegram.",
-                    "Puedes descargar un HTML que funciona en cualquier navegador"
+                    "Puedes descargar un HTML que funciona en cualquier navegador",
+                    "Temas claro y oscuro, según tu sistema o tu elección",
+                    "El almacenamiento persistente opcional conserva tus datos",
+                    "Detección automática de idioma: interfaz en 9 idiomas",
+                    "Vuelve atrás en el tiempo con Cargar Mensajes Anteriores"
                 ]
             },
             ru: {
@@ -771,6 +790,9 @@ iframe[src*="t.me"] {
                 manualMode: "Manual, start ID",
                 autoCheckLabel: "Автопроверка сообщений",
                 seconds: "секунд",
+                deepCheck: "Расширенная проверка",
+                deepCheckTip: "Расширяет \"Проверить новые\" до 100 сообщений",
+                deepCheckInfo: "Если новые сообщения не видны, включите \"Расширенная проверка\": ищет до 100 вперёд, пропуская удалённые.",
                 themeToDark: "Тёмная тема",
                 themeToLight: "Светлая тема",
                 startIdRequired: "Укажите Start ID (или снимите отметку для автопоиска)",
@@ -788,7 +810,11 @@ iframe[src*="t.me"] {
                     "Параметр \"channel\" в URL задаёт канал по умолчанию: ?channel=name",
                     "Параметр \"add\" в URL добавляет несколько каналов в историю через запятую: ?add=c1,c2,...",
                     "Обходит блокировку любого канала или группы Telegram.",
-                    "Можно скачать HTML, работающий в любом браузере"
+                    "Можно скачать HTML, работающий в любом браузере",
+                    "Темы светлая и тёмная: по системе или по выбору",
+                    "Необязательное постоянное хранение сохраняет ваши данные",
+                    "Автоопределение языка: интерфейс на 9 языках",
+                    "Возврат в прошлое кнопкой \"Загрузить ранее\""
                 ]
             },
             pt: {
@@ -813,6 +839,9 @@ iframe[src*="t.me"] {
                 manualMode: "Manual, start ID",
                 autoCheckLabel: "Verificação automática",
                 seconds: "segundos",
+                deepCheck: "Verificação estendida",
+                deepCheckTip: "Estende \"Verificar novas\" até 100 mensagens",
+                deepCheckInfo: "Se novas mensagens não aparecerem, ative \"Verificação estendida\": examina até 100 à frente, pulando apagadas.",
                 themeToDark: "Modo escuro",
                 themeToLight: "Modo claro",
                 startIdRequired: "Digite um Start ID (ou desmarque para busca automática)",
@@ -830,7 +859,11 @@ iframe[src*="t.me"] {
                     "Use o parâmetro \"channel\" na URL para o canal padrão: ?channel=nome",
                     "Use o parâmetro \"add\" para adicionar canais ao histórico, separados por vírgula: ?add=c1,c2,...",
                     "Permite contornar o bloqueio de qualquer canal ou grupo do Telegram.",
-                    "Você pode baixar um HTML que funciona em qualquer navegador"
+                    "Você pode baixar um HTML que funciona em qualquer navegador",
+                    "Temas claro e escuro: pelo sistema ou pela sua escolha",
+                    "O armazenamento persistente opcional guarda seus dados",
+                    "Detecção automática de idioma: interface em 9 idiomas",
+                    "Volte no tempo com o botão \"Carregar Anteriores\""
                 ]
             },
             de: {
@@ -855,6 +888,9 @@ iframe[src*="t.me"] {
                 manualMode: "Manual, start ID",
                 autoCheckLabel: "Auto-Prüfung",
                 seconds: "Sekunden",
+                deepCheck: "Erweiterte Prüfung",
+                deepCheckTip: "Erweitert \"Neue prüfen\" auf 100 Beiträge",
+                deepCheckInfo: "Falls keine neuen Nachrichten erscheinen, aktiviere \"Erweiterte Prüfung\": prüft bis 100 voraus, überspringt gelöschte.",
                 themeToDark: "Dunkler Modus",
                 themeToLight: "Heller Modus",
                 startIdRequired: "Start ID eingeben (oder Automatik ohne Start ID)",
@@ -872,7 +908,11 @@ iframe[src*="t.me"] {
                     "URL-Parameter \"channel\" setzt den Standardkanal: ?channel=name",
                     "URL-Parameter \"add\" fügt dem Verlauf Kanäle hinzu, durch Kommas getrennt: ?add=k1,k2,...",
                     "Umgeht die Sperre von Telegram-Kanälen und -Gruppen.",
-                    "Alternativ: ein HTML für jeden Browser herunterladen"
+                    "Alternativ: ein HTML für jeden Browser herunterladen",
+                    "Heller und dunkler Modus: nach System oder Wahl",
+                    "Optionaler dauerhafter Speicher behält deine Daten",
+                    "Automatische Sprachwahl: Oberfläche in 9 Sprachen",
+                    "Blättere zurück mit der Schaltfläche \"Ältere laden\""
                 ]
             },
             fr: {
@@ -897,6 +937,9 @@ iframe[src*="t.me"] {
                 manualMode: "Manual, start ID",
                 autoCheckLabel: "Vérification auto",
                 seconds: "secondes",
+                deepCheck: "Vérification étendue",
+                deepCheckTip: "Étend \"Vérifier les nouveaux\" à 100 messages",
+                deepCheckInfo: "Si aucun nouveau message n'apparaît, activez \"Vérification étendue\" : scanne jusqu'à 100 en avance, saute les supprimés.",
                 themeToDark: "Mode sombre",
                 themeToLight: "Mode clair",
                 startIdRequired: "Saisissez un Start ID (ou décochez pour la recherche auto)",
@@ -914,7 +957,11 @@ iframe[src*="t.me"] {
                     "Paramètre \"channel\" dans l'URL pour le canal par défaut: ?channel=nom",
                     "Paramètre \"add\" pour ajouter des canaux à l'historique, séparés par virgules: ?add=c1,c2,...",
                     "Contourne le bannissement de tout canal ou groupe Telegram.",
-                    "Vous pouvez aussi télécharger un HTML lisible partout"
+                    "Vous pouvez aussi télécharger un HTML lisible partout",
+                    "Thèmes clair et sombre : système ou choix manuel",
+                    "Stockage persistant optionnel : vos données sont gardées",
+                    "Détection automatique : interface en 9 langues",
+                    "Remontez le temps avec \"Messages précédents\""
                 ]
             },
             it: {
@@ -939,6 +986,9 @@ iframe[src*="t.me"] {
                 manualMode: "Manual, start ID",
                 autoCheckLabel: "Controllo automatico",
                 seconds: "secondi",
+                deepCheck: "Controllo esteso",
+                deepCheckTip: "Estende \"Controlla nuovi\" fino a 100 messaggi",
+                deepCheckInfo: "Se non compaiono nuovi messaggi, attiva \"Controllo esteso\": scansiona fino a 100 avanti, saltando gli eliminati.",
                 themeToDark: "Tema scuro",
                 themeToLight: "Tema chiaro",
                 startIdRequired: "Inserisci uno Start ID (o deseleziona per la ricerca auto)",
@@ -956,7 +1006,11 @@ iframe[src*="t.me"] {
                     "Parametro \"channel\" nell'URL per il canale predefinito: ?channel=nome",
                     "Parametro \"add\" per aggiungere canali alla cronologia, separati da virgole: ?add=c1,c2,...",
                     "Aggira il ban di qualsiasi canale o gruppo Telegram.",
-                    "Puoi scaricare un HTML che funziona in ogni browser"
+                    "Puoi scaricare un HTML che funziona in ogni browser",
+                    "Temi chiari e scuri: di sistema o a tua scelta",
+                    "L'archiviazione persistente opzionale conserva i dati",
+                    "Rilevamento automatico: interfaccia in 9 lingue",
+                    "Torna indietro nel tempo con \"Carica precedenti\""
                 ]
             },
             pl: {
@@ -981,6 +1035,9 @@ iframe[src*="t.me"] {
                 manualMode: "Manual, start ID",
                 autoCheckLabel: "Auto-sprawdzanie",
                 seconds: "sekund",
+                deepCheck: "Szersze sprawdzanie",
+                deepCheckTip: "Szerzej \"Sprawdź nowe\" do 100 wiadomości",
+                deepCheckInfo: "Gdy nowe wiadomości nie pojawiają się, włącz \"Szersze sprawdzanie\": skanuje do 100 do przodu, pomijając usunięte.",
                 themeToDark: "Tryb ciemny",
                 themeToLight: "Tryb jasny",
                 startIdRequired: "Podaj Start ID (lub odznacz dla szukania auto)",
@@ -998,7 +1055,11 @@ iframe[src*="t.me"] {
                     "Parametr \"channel\" w URL ustawia kanał domyślny: ?channel=nazwa",
                     "Parametr \"add\" dodaje kanały do historii, oddzielone przecinkami: ?add=c1,c2,...",
                     "Omija blokadę każdego kanału lub grupy Telegram.",
-                    "Możesz pobrać HTML działający w każdej przeglądarce"
+                    "Możesz pobrać HTML działający w każdej przeglądarce",
+                    "Motyw jasny i ciemny: systemowy lub twój wybór",
+                    "Opcjonalny zapis trwały zachowuje twoje dane",
+                    "Automatyczne wykrywanie: interfejs w 9 językach",
+                    "Cofnij się w czasie przyciskiem \"Wczytaj starsze\""
                 ]
             },
             nl: {
@@ -1023,6 +1084,9 @@ iframe[src*="t.me"] {
                 manualMode: "Manual, start ID",
                 autoCheckLabel: "Automatisch controleren",
                 seconds: "seconden",
+                deepCheck: "Uitgebreide controle",
+                deepCheckTip: "Breidt \"Nieuwe controleren\" uit tot 100 berichten",
+                deepCheckInfo: "Als nieuwe berichten niet verschijnen, zet \"Uitgebreide controle\" aan: scant tot 100 vooruit, springt over verwijderde.",
                 themeToDark: "Donkere modus",
                 themeToLight: "Lichte modus",
                 startIdRequired: "Voer een Start ID in (of vink uit voor automatisch zoeken)",
@@ -1040,7 +1104,11 @@ iframe[src*="t.me"] {
                     "URL-parameter \"channel\" stelt het standaardkanaal in: ?channel=naam",
                     "URL-parameter \"add\" voegt kanalen toe aan de geschiedenis, gescheiden door komma's: ?add=k1,k2,...",
                     "Omzeilt de ban van elk Telegramkanaal of -groep.",
-                    "Je kunt een HTML downloaden die in elke browser werkt"
+                    "Je kunt een HTML downloaden die in elke browser werkt",
+                    "Licht en donker thema: systeem of eigen keuze",
+                    "Optionele persistente opslag bewaart je gegevens",
+                    "Automatische taalkeuze: interface in 9 talen",
+                    "Blader terug in de tijd met \"Oudere laden\""
                 ]
             }
         };
@@ -1079,6 +1147,7 @@ iframe[src*="t.me"] {
             DELETED_POST_CHECK_INTERVAL: 10,
             WIDGET_SCRIPT_URL: 'https://telegram.org/js/telegram-widget.js?22',
             CHECK_NEW_MAX: 20,
+            DEEP_CHECK_MAX: 100,
             CHECK_NEW_BLOCK: 10,
             PROBE_POLL_INTERVAL: 50,
             PROBE_STABLE_SAMPLES: 10,
@@ -1090,6 +1159,7 @@ iframe[src*="t.me"] {
             START_ID_ENABLED_KEY: 'tgStartIdEnabled',
             AUTOCHECK_ENABLED_KEY: 'tgAutoCheckEnabled',
             AUTOCHECK_INTERVAL_KEY: 'tgAutoCheckInterval',
+            DEEP_CHECK_ENABLED_KEY: 'tgDeepCheck',
             AUTOCHECK_DEFAULT_SECONDS: 60,
             SCROLL_INITIAL_DELAY: 300,
             AUTO_SCROLL_WINDOW: 10000,
@@ -1144,7 +1214,8 @@ iframe[src*="t.me"] {
                        key.startsWith(CONFIG.START_ID_KEY_PREFIX) ||
                        ['preferredLanguage', 'telegramSavedChannels', CONFIG.THEME_KEY,
                         CONFIG.START_ID_ENABLED_KEY,
-                        CONFIG.AUTOCHECK_ENABLED_KEY, CONFIG.AUTOCHECK_INTERVAL_KEY].includes(key);
+                        CONFIG.AUTOCHECK_ENABLED_KEY, CONFIG.AUTOCHECK_INTERVAL_KEY,
+                        CONFIG.DEEP_CHECK_ENABLED_KEY].includes(key);
             },
             appKeys(store) {
                 const keys = [];
@@ -1731,20 +1802,25 @@ iframe[src*="t.me"] {
             }
         };
         const newMessages = {
-            async check() {
+            // deep: manual clicks honor the "Deep check" preference and scan
+            // up to DEEP_CHECK_MAX to jump over deleted-post gaps; the
+            // automatic check keeps the short range to spare Telegram
+            async check(deep = false) {
                 if (state.isLoading || !state.currentChannel || state.lastPostId <= 0) return;
                 autoScroller.stop();
                 state.isLoading = true;
                 elements.checkNewButton.disabled = true;
                 elements.checkNewButton.textContent = t.checking;
                 try {
-                    // Probe downwards inside two windows (+10 and +20),
+                    // Probe downwards inside windows of CHECK_NEW_BLOCK,
                     // stepping by two: the first existing target marks the
                     // boundary and everything up to it is shown. Deleted
                     // posts may hide the boundary, hence the descending scan.
                     const step = CONFIG.CHECK_NEW_BLOCK;
+                    const max = deep && document.getElementById('pref-deepcheck').checked ?
+                                CONFIG.DEEP_CHECK_MAX : CONFIG.CHECK_NEW_MAX;
                     let highest = state.lastPostId;
-                    for (let windowEnd = step; windowEnd <= CONFIG.CHECK_NEW_MAX; windowEnd += step) {
+                    for (let windowEnd = step; windowEnd <= max; windowEnd += step) {
                         for (let offset = windowEnd; offset > windowEnd - step; offset -= 2) {
                             const target = state.lastPostId + offset;
                             if (await messageChecker.checkExists(state.currentChannel, target)) {
@@ -1874,6 +1950,10 @@ iframe[src*="t.me"] {
                 document.getElementById('prefStartIdLabel').textContent = t.manualMode;
                 document.getElementById('prefAutoCheckLabel').textContent = t.autoCheckLabel;
                 document.getElementById('secondsLabel').textContent = t.seconds;
+                document.getElementById('prefDeepCheckLabel').textContent = t.deepCheck;
+                document.getElementById('prefDeepCheckLabel').title = t.deepCheckTip;
+                document.getElementById('pref-deepcheck').title = t.deepCheckTip;
+                document.getElementById('deepCheckInfoText').textContent = t.deepCheckInfo;
                 const featuresList = document.getElementById('featuresList');
                 featuresList.innerHTML = t.features.map(feature => `<li>${feature}</li>`).join('');
                 theme.updateButton();
@@ -1968,7 +2048,7 @@ iframe[src*="t.me"] {
                         autoCheck.start();
                     }
                 });
-                elements.checkNewButton.addEventListener('click', () => newMessages.check());
+                elements.checkNewButton.addEventListener('click', () => newMessages.check(true));
                 elements.themeToggle.addEventListener('click', () => theme.toggle());
                 document.getElementById('pref-cookies').addEventListener('change', (e) => {
                     storage.setPersistent(e.target.checked);
@@ -1986,6 +2066,9 @@ iframe[src*="t.me"] {
                     e.target.value = value;
                     storage.setItem(CONFIG.AUTOCHECK_INTERVAL_KEY, String(value));
                     autoCheck.start();
+                });
+                document.getElementById('pref-deepcheck').addEventListener('change', (e) => {
+                    storage.setItem(CONFIG.DEEP_CHECK_ENABLED_KEY, e.target.checked ? '1' : '0');
                 });
                 elements.startIdCheckbox.addEventListener('change', () => {
                     const on = elements.startIdCheckbox.checked;
@@ -2088,6 +2171,8 @@ iframe[src*="t.me"] {
                 const savedInterval = parseInt(storage.getItem(CONFIG.AUTOCHECK_INTERVAL_KEY), 10);
                 document.getElementById('autocheck-interval').value =
                     Number.isFinite(savedInterval) && savedInterval >= 0 ? savedInterval : CONFIG.AUTOCHECK_DEFAULT_SECONDS;
+                document.getElementById('pref-deepcheck').checked =
+                    storage.getItem(CONFIG.DEEP_CHECK_ENABLED_KEY) === '1';
                 theme.init();
             }
         };
