@@ -3,5 +3,5 @@
 .vscode
 __pycache__/
 *.py[cod]
-/public/index.min.html
-/public/index2.min.html
+.session-exports
+.session-exports/
