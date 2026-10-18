@@ -509,7 +509,6 @@
             NUM_POSTS: 25,
             TIMEOUT_DURATION: 5000,
             MIN_IFRAME_HEIGHT: 60,
-            MAX_POSTS_BEFORE_CLEAR: 200,
             DELETED_POST_CHECK_MAX_TIMES: 1500,
             DELETED_POST_CHECK_INTERVAL: 10,
             WIDGET_SCRIPT_URL: 'https://telegram.org/js/telegram-widget.js?22',
@@ -541,7 +540,6 @@
         const state = {
             countInterval: 0,
             intervalId: null,
-            countPosts: 0,
             lastPostId: 0,
             currentChannel: '',
             isLoading: false
@@ -1127,7 +1125,6 @@
                 // Ascending order: oldest first, newest last (chat-style)
                 for (let n = end; n <= start; n++) {
                     fragment.appendChild(widgetLoader.createScript(n));
-                    state.countPosts++;
                 }
                 return { fragment, end };
             },
@@ -1157,7 +1154,6 @@
                     );
                     if (stale) stale.remove();
                     fragment.appendChild(widgetLoader.createScript(n));
-                    state.countPosts++;
                 }
                 elements.widgetContainer.appendChild(fragment);
             },
@@ -1166,11 +1162,6 @@
                 elements.loadMoreButton.replaceWith(newButton);
                 newButton.addEventListener('click', () => {
                     autoScroller.stop();
-                    if (state.countPosts > CONFIG.MAX_POSTS_BEFORE_CLEAR) {
-                        state.countPosts = 0;
-                        elements.widgetContainer.innerHTML = '';
-                        setTimeout(() => { window.scrollTo(0, 0); }, 100);
-                    }
                     const previousFirst = elements.widgetContainer.querySelector('iframe');
                     const newStart = end - 1;
                     widgetLoader.load(newStart, CONFIG.NUM_POSTS, true);
@@ -1516,7 +1507,6 @@
                 updateLanguageSelector();
                 window.addEventListener('telegramLoaded', () => {
                     if (elements.widgetContainer && state.lastPostId > 0) {
-                        state.countPosts = 0;
                         // Render exactly up to lastPostId: telegram-widget.js
                         // deduplicates embeds by post ID, so any rendered ID
                         // above lastPostId would make the "check new" probes
