@@ -494,7 +494,13 @@
             AUTOCHECK_DEFAULT_SECONDS: 60,
             SCROLL_INITIAL_DELAY: 300,
             AUTO_SCROLL_WINDOW: 10000,
-            INITIAL_RANGE_MAX: 100000000
+            SEARCH_GRID_STEP: 100000,
+            SEARCH_GAP_STREAK: 10,
+            SEARCH_PARALLEL: 3,
+            SEARCH_LEVELS: [10000, 1000, 100, 10],
+            SEARCH_FINAL_WINDOW: 1000,
+            SEARCH_FINAL_STREAK: 100,
+            SEARCH_MAX_ID: 10000000
         };
         const state = {
             countInterval: 0,
@@ -820,22 +826,115 @@
                 });
             }
         };
+        // Gap-tolerant last-message search. Deleted messages break the
+        // monotonic assumption of a plain binary search, so this works in
+        // passes of decreasing resolution: a probe grid to find an anchor, a
+        // sweep upward in 100k steps to bracket the top region (crossing
+        // deletion gaps via a consecutive-failure streak limit), refinement
+        // passes at 10k/1k/100/10, and a final resolution-1 scan around the
+        // result. Probes run in parallel batches of SEARCH_PARALLEL.
         const autoSearch = {
-            testValues: [
-                1000020, 1000000, 999980,
-                500020, 500000, 499980,
-                100020, 100000, 99980,
-                80020, 80000, 79980,
-                60020, 60000, 59980,
-                40020, 40000, 39980,
-                20020, 20000, 19980,
-                10020, 10000, 9980,
-                1020, 1000, 980,
-                120, 100, 80
+            gridValues: [
+                80, 100, 120,
+                980, 1000, 1020,
+                9980, 10000, 10020,
+                19980, 20000, 20020,
+                39980, 40000, 40020,
+                59980, 60000, 60020,
+                79980, 80000, 80020,
+                99980, 100000, 100020,
+                499980, 500000, 500020,
+                999980, 1000000, 1000020
             ],
             updateInfo(message) {
                 elements.currentChannel.textContent = message;
                 elements.currentChannel.style.display = 'block';
+            },
+            async checkBatch(channelName, ids) {
+                return Promise.all(ids.map(id => messageChecker.checkExists(channelName, id)));
+            },
+            async findAnchor(channelName) {
+                const grid = autoSearch.gridValues;
+                for (let i = 0; i < grid.length; i += CONFIG.SEARCH_PARALLEL) {
+                    const batch = grid.slice(i, i + CONFIG.SEARCH_PARALLEL);
+                    autoSearch.updateInfo(`${t.testingMessage} ${batch[0]}-${batch[batch.length - 1]}...`);
+                    const results = await autoSearch.checkBatch(channelName, batch);
+                    for (let j = batch.length - 1; j >= 0; j--) {
+                        if (results[j]) return batch[j];
+                    }
+                }
+                return 0;
+            },
+            async sweepUp(channelName, anchor) {
+                const step = CONFIG.SEARCH_GRID_STEP;
+                let highest = anchor;
+                let fails = 0;
+                for (let base = anchor + step; base <= CONFIG.SEARCH_MAX_ID; base += step * CONFIG.SEARCH_PARALLEL) {
+                    const ids = [];
+                    for (let k = 0; k < CONFIG.SEARCH_PARALLEL; k++) {
+                        const id = base + k * step;
+                        if (id <= CONFIG.SEARCH_MAX_ID) ids.push(id);
+                    }
+                    autoSearch.updateInfo(`${t.testingMessage} ${ids[0]}-${ids[ids.length - 1]}...`);
+                    const results = await autoSearch.checkBatch(channelName, ids);
+                    ids.forEach((id, j) => {
+                        if (results[j]) {
+                            highest = id;
+                            fails = 0;
+                        } else if (highest > 0) {
+                            fails++;
+                        }
+                    });
+                    if (highest > 0 && fails >= CONFIG.SEARCH_GAP_STREAK) {
+                        return { highest, upper: ids[ids.length - 1] };
+                    }
+                }
+                return { highest, upper: CONFIG.SEARCH_MAX_ID };
+            },
+            async refineLevel(channelName, highest, upper, step) {
+                let fails = 0;
+                let lastProbed = highest;
+                for (let base = highest + step; base <= upper && fails < CONFIG.SEARCH_GAP_STREAK; base += step * CONFIG.SEARCH_PARALLEL) {
+                    const ids = [];
+                    for (let k = 0; k < CONFIG.SEARCH_PARALLEL; k++) {
+                        const id = base + k * step;
+                        if (id <= upper) ids.push(id);
+                    }
+                    if (!ids.length) break;
+                    autoSearch.updateInfo(`${t.testingMessage} ${ids[0]}-${ids[ids.length - 1]}...`);
+                    const results = await autoSearch.checkBatch(channelName, ids);
+                    ids.forEach((id, j) => {
+                        lastProbed = id;
+                        if (results[j]) {
+                            highest = id;
+                            fails = 0;
+                        } else {
+                            fails++;
+                        }
+                    });
+                }
+                return { highest, upper: fails >= CONFIG.SEARCH_GAP_STREAK ? lastProbed : upper };
+            },
+            async finalScan(channelName, highest) {
+                let fails = 0;
+                const limit = highest + CONFIG.SEARCH_FINAL_WINDOW;
+                for (let base = highest + 1; base <= limit && fails < CONFIG.SEARCH_FINAL_STREAK; base += CONFIG.SEARCH_PARALLEL) {
+                    const ids = [];
+                    for (let k = 0; k < CONFIG.SEARCH_PARALLEL; k++) {
+                        if (base + k <= limit) ids.push(base + k);
+                    }
+                    autoSearch.updateInfo(`${t.testingMessage} ${ids[0]}-${ids[ids.length - 1]}...`);
+                    const results = await autoSearch.checkBatch(channelName, ids);
+                    ids.forEach((id, j) => {
+                        if (results[j]) {
+                            highest = id;
+                            fails = 0;
+                        } else {
+                            fails++;
+                        }
+                    });
+                }
+                return highest;
             },
             async findLastPost(channelName) {
                 try {
@@ -849,14 +948,21 @@
                         return;
                     }
                     autoSearch.updateInfo(t.searchingInitialRange);
-                    const { lower, upper } = await autoSearch.findInitialRange(channelName);
-                    autoSearch.updateInfo(`${t.rangeFound} ${lower} - ${upper}. ${t.startingAutoSearch}`);
-                    const lastPostId = await autoSearch.performBinarySearch(channelName, lower, upper);
-                    autoSearch.updateInfo(`${t.verifyingLastMessage} ${lastPostId}`);
-                    const finalExists = await messageChecker.checkExists(channelName, lastPostId);
-                    if (!finalExists) {
+                    const anchor = await autoSearch.findAnchor(channelName);
+                    if (anchor === 0) {
                         throw new Error(t.noValidMessages);
                     }
+                    const sweep = await autoSearch.sweepUp(channelName, anchor);
+                    autoSearch.updateInfo(`${t.rangeFound} ${sweep.highest} - ${sweep.upper}. ${t.startingAutoSearch}`);
+                    let highest = sweep.highest;
+                    let upper = sweep.upper;
+                    for (const step of CONFIG.SEARCH_LEVELS) {
+                        const refined = await autoSearch.refineLevel(channelName, highest, upper, step);
+                        highest = refined.highest;
+                        upper = refined.upper;
+                    }
+                    autoSearch.updateInfo(`${t.verifyingLastMessage} ${highest}`);
+                    const lastPostId = await autoSearch.finalScan(channelName, highest);
                     autoSearch.displayResult(channelName, lastPostId);
                 } catch (error) {
                     console.error('Error in auto search:', error);
@@ -864,72 +970,6 @@
                     elements.loadChannelBtn.disabled = false;
                     utils.setLoadingState(false);
                 }
-            },
-            async findInitialRange(channelName) {
-                let lower = 1;
-                let upper = 1;
-                let foundGap = false;
-                for (const testValue of autoSearch.testValues) {
-                    autoSearch.updateInfo(`${t.testingMessage} ${testValue}...`);
-                    const exists = await messageChecker.checkExists(channelName, testValue);
-                    if (exists) {
-                        lower = testValue;
-                    } else {
-                        upper = testValue;
-                        foundGap = true;
-                        break;
-                    }
-                }
-                if (!foundGap) {
-                    // Every grid probe exists: the channel is larger than the
-                    // top probe, so expand exponentially until a gap appears.
-                    upper = lower * 2;
-                    while (await messageChecker.checkExists(channelName, upper)) {
-                        lower = upper;
-                        upper *= 2;
-                        autoSearch.updateInfo(`${t.testingMessage} ${upper}...`);
-                        if (upper >= CONFIG.INITIAL_RANGE_MAX) break;
-                    }
-                }
-                return { lower, upper };
-            },
-            async performBinarySearch(channelName, lower, upper) {
-                let lastValid = lower;
-                let quickCheckDone = false;
-                while (lower <= upper) {
-                    const mid = Math.floor((lower + upper) / 2);
-                    autoSearch.updateInfo(`Testing message ${mid}...`);
-                    const exists = await messageChecker.checkExists(channelName, mid);
-                    if (exists) {
-                        lastValid = mid;
-                        lower = mid + 1;
-                        if (upper - mid < 10 && !quickCheckDone) {
-                            quickCheckDone = true;
-                            for (let i = mid + 1; i <= upper; i++) {
-                                const quickExists = await messageChecker.checkExists(channelName, i);
-                                if (quickExists) lastValid = i;
-                                else break;
-                            }
-                            break;
-                        }
-                    } else {
-                        upper = mid - 1;
-                    }
-                }
-                if (lastValid > 0) {
-                    // Forward probes past the binary-search result. Only the
-                    // probed IDs matter for the maximum: scanning the IDs
-                    // between them could move lastValid back below an ID
-                    // already verified to exist.
-                    const forwardSteps = [10, 15, 20, 25, 30, 35, 40, 45, 50];
-                    for (const step of forwardSteps) {
-                        const nextId = lastValid + step;
-                        autoSearch.updateInfo(`${t.testingMessage} ${nextId}...`);
-                        const exists = await messageChecker.checkExists(channelName, nextId);
-                        if (exists) lastValid = nextId;
-                    }
-                }
-                return lastValid;
             },
             displayResult(channelName, lastPostId) {
                 state.lastPostId = lastPostId;
