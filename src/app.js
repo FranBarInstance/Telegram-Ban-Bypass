@@ -535,6 +535,7 @@
             SEARCH_LEVELS: [10000, 1000, 100, 10],
             SEARCH_FINAL_WINDOW: 1000,
             SEARCH_FINAL_STREAK: 100,
+            SEARCH_STREAK_ESCALATION: 3,
             SEARCH_MAX_ID: 3000000
         };
         const state = {
@@ -984,10 +985,20 @@
                 // it as too large instead of returning a silently wrong ID.
                 return { highest, upper: CONFIG.SEARCH_MAX_ID, capped: fails === 0 };
             },
-            async refineLevel(channelName, highest, upper, step) {
+            // When the first refinement pass proved the channel sparse, the
+            // 1k pass escalates its tolerance once (x3) at its failure streak
+            // instead of giving up: on purged channels the first big gap sits
+            // right above the last dense block, and stopping there would
+            // strand every post beyond it. Dense channels never set the flag,
+            // so their probe cost is unchanged.
+            async refineLevel(channelName, highest, upper, step, escalateAtStreak = false) {
+                let streak = CONFIG.SEARCH_GAP_STREAK;
+                let escalated = false;
                 let fails = 0;
+                let passHits = 0;
+                let passMisses = 0;
                 let lastProbed = highest;
-                for (let base = highest + step; base <= upper && fails < CONFIG.SEARCH_GAP_STREAK; base += step * CONFIG.SEARCH_PARALLEL) {
+                for (let base = highest + step; base <= upper; base += step * CONFIG.SEARCH_PARALLEL) {
                     autoSearch.checkStop();
                     const ids = [];
                     for (let k = 0; k < CONFIG.SEARCH_PARALLEL; k++) {
@@ -1000,19 +1011,44 @@
                     ids.forEach((id, j) => {
                         lastProbed = id;
                         if (results[j]) {
+                            passHits++;
                             highest = id;
                             fails = 0;
                         } else {
+                            passMisses++;
                             fails++;
                         }
                     });
+                    if (fails >= streak) {
+                        const canEscalate = escalateAtStreak &&
+                            !escalated &&
+                            base + step * CONFIG.SEARCH_PARALLEL <= upper;
+                        if (canEscalate) {
+                            streak *= CONFIG.SEARCH_STREAK_ESCALATION;
+                            escalated = true;
+                        } else {
+                            break;
+                        }
+                    }
                 }
-                return { highest, upper: fails >= CONFIG.SEARCH_GAP_STREAK ? lastProbed : upper };
+                return {
+                    highest,
+                    upper: fails >= CONFIG.SEARCH_GAP_STREAK ? lastProbed : upper,
+                    hits: passHits,
+                    misses: passMisses
+                };
             },
+            // If the resolution-1 scan finds a hit after a run of misses the
+            // top of the channel is sparse: escalate the streak once (x3)
+            // instead of stopping at the first 100-miss gap. Dense channels
+            // never cross a gap here, so they pay nothing extra.
             async finalScan(channelName, highest) {
+                let streak = CONFIG.SEARCH_FINAL_STREAK;
+                let escalated = false;
                 let fails = 0;
+                let pendingMisses = 0;
                 const limit = highest + CONFIG.SEARCH_FINAL_WINDOW;
-                for (let base = highest + 1; base <= limit && fails < CONFIG.SEARCH_FINAL_STREAK; base += CONFIG.SEARCH_PARALLEL) {
+                for (let base = highest + 1; base <= limit; base += CONFIG.SEARCH_PARALLEL) {
                     autoSearch.checkStop();
                     const ids = [];
                     for (let k = 0; k < CONFIG.SEARCH_PARALLEL; k++) {
@@ -1022,12 +1058,19 @@
                     const results = await autoSearch.checkBatch(channelName, ids);
                     ids.forEach((id, j) => {
                         if (results[j]) {
+                            if (pendingMisses > 0 && !escalated) {
+                                streak *= CONFIG.SEARCH_STREAK_ESCALATION;
+                                escalated = true;
+                            }
+                            pendingMisses = 0;
                             highest = id;
                             fails = 0;
                         } else {
+                            pendingMisses++;
                             fails++;
                         }
                     });
+                    if (fails >= streak) break;
                 }
                 return highest;
             },
@@ -1064,10 +1107,22 @@
                     autoSearch.updateInfo(`${t.rangeFound} ${sweep.highest} - ${sweep.upper}. ${t.startingAutoSearch}`);
                     let highest = sweep.highest;
                     let upper = sweep.upper;
+                    let sparse = false;
                     for (const step of CONFIG.SEARCH_LEVELS) {
-                        const refined = await autoSearch.refineLevel(channelName, highest, upper, step);
+                        // The 10k pass doubles as a sparsity measurement:
+                        // real hits but more misses than hits means the
+                        // channel is heavily purged, and the 1k pass must then
+                        // escalate past its first gap instead of giving up
+                        const refined = await autoSearch.refineLevel(
+                            channelName, highest, upper, step,
+                            step === 1000 && sparse
+                        );
                         highest = refined.highest;
                         upper = refined.upper;
+                        if (step === CONFIG.SEARCH_LEVELS[0]) {
+                            const total = refined.hits + refined.misses;
+                            sparse = refined.hits > 0 && refined.misses > total / 2;
+                        }
                     }
                     autoSearch.updateInfo(`${t.verifyingLastMessage} ${highest}`);
                     autoSearch.checkStop();
