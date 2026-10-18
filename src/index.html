@@ -14,7 +14,19 @@
     <link rel="manifest" href="manifest.json">
     <link rel="preload" href="https://telegram.org/js/telegram-widget.js?22" as="script">
     <script>
-        document.documentElement.lang = (navigator.language || navigator.userLanguage).startsWith('es') ? 'es' : 'en';
+        (function () {
+            var known = ['es', 'en', 'ru', 'pt', 'de', 'fr', 'it', 'pl', 'nl'];
+            var lang = '';
+            try {
+                lang = sessionStorage.getItem('preferredLanguage') ||
+                       localStorage.getItem('preferredLanguage') || '';
+            } catch (e) { /* storage unavailable */ }
+            if (known.indexOf(lang) < 0) {
+                lang = (navigator.language || 'en').split('-')[0];
+                if (known.indexOf(lang) < 0) lang = 'en';
+            }
+            document.documentElement.lang = lang;
+        })();
         try {
             // Read the stored theme preference before the stylesheet loads
             // to avoid a flash of the wrong theme. Absent value = system.
@@ -30,7 +42,7 @@
 <body>
     <header class="toolbar">
         <div class="toolbar-inner">
-            <a class="brand" href="https://github.com/FranBarInstance/Telegram-Ban-Bypass" target="_blank" rel="noopener">TGBypass</a>
+            <a class="brand" href="https://github.com/FranBarInstance/Telegram-Ban-Bypass" target="_blank" rel="noopener">TgBB</a>
             <div class="toolbar-right">
                 <span id="toolbar-channel" class="toolbar-channel" style="display: none;"></span>
                 <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Theme">
@@ -45,6 +57,13 @@
                 <select id="lang-select" class="language-selector" aria-label="Language" onchange="changeLanguage(this.value)">
                     <option value="es">Español</option>
                     <option value="en">English</option>
+                    <option value="ru">Русский</option>
+                    <option value="pt">Português</option>
+                    <option value="de">Deutsch</option>
+                    <option value="fr">Français</option>
+                    <option value="it">Italiano</option>
+                    <option value="pl">Polski</option>
+                    <option value="nl">Nederlands</option>
                 </select>
             </div>
         </div>
