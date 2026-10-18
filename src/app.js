@@ -13,6 +13,9 @@
                 verifyingLastMessage: "Verifying last message:",
                 noValidMessages: "No valid messages found",
                 channelTooLarge: "Channel too large for automatic search. Use manual Start ID mode.",
+                stopSearch: "Stop search",
+                searchStopped: "Search stopped",
+                channelProbablyMissing: "Channel not found. It may not exist or be private.",
                 currentlyViewing: "Currently viewing:",
                 latestPostId: "Latest post ID:",
                 searchCompleted: "✅ Search completed. Last message:",
@@ -63,6 +66,9 @@
                 verifyingLastMessage: "Verificando último mensaje:",
                 noValidMessages: "No hay mensajes válidos",
                 channelTooLarge: "Canal demasiado grande para la búsqueda automática. Usa Start ID manual.",
+                stopSearch: "Detener búsqueda",
+                searchStopped: "Búsqueda detenida",
+                channelProbablyMissing: "Canal no encontrado. Puede no existir o ser privado.",
                 currentlyViewing: "Viendo actualmente:",
                 latestPostId: "Último ID:",
                 searchCompleted: "✅ Búsqueda completada. Último mensaje:",
@@ -113,6 +119,9 @@
                 verifyingLastMessage: "Проверка последнего сообщения:",
                 noValidMessages: "Нет корректных сообщений",
                 channelTooLarge: "Канал слишком большой для автопоиска. Используйте Start ID вручную.",
+                stopSearch: "Остановить поиск",
+                searchStopped: "Поиск остановлен",
+                channelProbablyMissing: "Канал не найден. Возможно, не существует или приватный.",
                 currentlyViewing: "Сейчас просматривается:",
                 latestPostId: "Последний ID:",
                 searchCompleted: "✅ Поиск завершён. Последнее сообщение:",
@@ -163,6 +172,9 @@
                 verifyingLastMessage: "Verificando última mensagem:",
                 noValidMessages: "Nenhuma mensagem válida",
                 channelTooLarge: "Canal grande demais para a busca automática. Use Start ID manual.",
+                stopSearch: "Parar busca",
+                searchStopped: "Busca interrompida",
+                channelProbablyMissing: "Canal não encontrado. Pode não existir ou ser privado.",
                 currentlyViewing: "Visualizando agora:",
                 latestPostId: "ID mais recente:",
                 searchCompleted: "✅ Busca concluída. Última mensagem:",
@@ -213,6 +225,9 @@
                 verifyingLastMessage: "Letzte Nachricht prüfen:",
                 noValidMessages: "Keine gültigen Nachrichten",
                 channelTooLarge: "Kanal zu groß für die automatische Suche. Start ID manuell nutzen.",
+                stopSearch: "Suche stoppen",
+                searchStopped: "Suche gestoppt",
+                channelProbablyMissing: "Kanal nicht gefunden. Existiert er nicht oder ist privat?",
                 currentlyViewing: "Aktuell angezeigt:",
                 latestPostId: "Letzte ID:",
                 searchCompleted: "✅ Suche abgeschlossen. Letzte Nachricht:",
@@ -263,6 +278,9 @@
                 verifyingLastMessage: "Vérification du dernier message:",
                 noValidMessages: "Aucun message valide",
                 channelTooLarge: "Canal trop grand pour la recherche automatique. Utilisez Start ID.",
+                stopSearch: "Arrêter la recherche",
+                searchStopped: "Recherche arrêtée",
+                channelProbablyMissing: "Canal introuvable. Il n'existe peut-être pas ou est privé.",
                 currentlyViewing: "Consultation actuelle:",
                 latestPostId: "Dernier ID:",
                 searchCompleted: "✅ Recherche terminée. Dernier message:",
@@ -313,6 +331,9 @@
                 verifyingLastMessage: "Verifica ultimo messaggio:",
                 noValidMessages: "Nessun messaggio valido",
                 channelTooLarge: "Canale troppo grande per la ricerca automatica. Usa Start ID manuale.",
+                stopSearch: "Ferma ricerca",
+                searchStopped: "Ricerca interrotta",
+                channelProbablyMissing: "Canale non trovato. Potrebbe non esistere o essere privato.",
                 currentlyViewing: "Al momento visualizzi:",
                 latestPostId: "Ultimo ID:",
                 searchCompleted: "✅ Ricerca completata. Ultimo messaggio:",
@@ -363,6 +384,9 @@
                 verifyingLastMessage: "Sprawdzanie ostatniej wiadomości:",
                 noValidMessages: "Brak poprawnych wiadomości",
                 channelTooLarge: "Kanał zbyt duży do wyszukiwania. Użyj Start ID ręcznie.",
+                stopSearch: "Zatrzymaj szukanie",
+                searchStopped: "Wyszukiwanie zatrzymane",
+                channelProbablyMissing: "Nie znaleziono kanału. Może nie istnieć lub być prywatny.",
                 currentlyViewing: "Aktualnie oglądasz:",
                 latestPostId: "Ostatnie ID:",
                 searchCompleted: "✅ Szukanie zakończone. Ostatnia wiadomość:",
@@ -413,6 +437,9 @@
                 verifyingLastMessage: "Laatste bericht verifiëren:",
                 noValidMessages: "Geen geldige berichten",
                 channelTooLarge: "Kanaal te groot voor automatisch zoeken. Gebruik handmatige Start ID.",
+                stopSearch: "Zoeken stoppen",
+                searchStopped: "Zoeken gestopt",
+                channelProbablyMissing: "Kanaal niet gevonden. Het bestaat misschien niet of is privé.",
                 currentlyViewing: "Nu aan het bekijken:",
                 latestPostId: "Laatste ID:",
                 searchCompleted: "✅ Zoeken voltooid. Laatste bericht:",
@@ -594,6 +621,7 @@
             loading: document.getElementById('loading'),
             error: document.getElementById('error'),
             currentChannel: document.getElementById('current-channel'),
+            stopSearchBtn: document.getElementById('stop-search-btn'),
             widgetContainer: document.getElementById('widget-container'),
             loadMoreButton: document.querySelector('.widget-load-more-button'),
             channelInput: document.getElementById('channel-input'),
@@ -868,6 +896,14 @@
                 499980, 500000, 500020,
                 999980, 1000000, 1000020
             ],
+            stopRequested: false,
+            // Every search loop calls this so the Stop button aborts within
+            // one batch; findLastPost distinguishes the stop from real errors
+            checkStop() {
+                if (autoSearch.stopRequested) {
+                    throw new Error(t.searchStopped);
+                }
+            },
             updateInfo(message) {
                 elements.currentChannel.textContent = message;
                 elements.currentChannel.style.display = 'block';
@@ -892,6 +928,7 @@
             async findAnchor(channelName) {
                 const grid = autoSearch.gridValues;
                 for (let i = 0; i < grid.length; i += CONFIG.SEARCH_PARALLEL) {
+                    autoSearch.checkStop();
                     const batch = grid.slice(i, i + CONFIG.SEARCH_PARALLEL);
                     autoSearch.updateInfo(`${t.testingMessage} ${batch[0]}-${batch[batch.length - 1]}...`);
                     const results = await autoSearch.checkBatch(channelName, batch);
@@ -906,6 +943,7 @@
                 let highest = anchor;
                 let fails = 0;
                 for (let base = anchor + step; base <= CONFIG.SEARCH_MAX_ID; base += step * CONFIG.SEARCH_PARALLEL) {
+                    autoSearch.checkStop();
                     const ids = [];
                     for (let k = 0; k < CONFIG.SEARCH_PARALLEL; k++) {
                         const id = base + k * step;
@@ -934,6 +972,7 @@
                 let fails = 0;
                 let lastProbed = highest;
                 for (let base = highest + step; base <= upper && fails < CONFIG.SEARCH_GAP_STREAK; base += step * CONFIG.SEARCH_PARALLEL) {
+                    autoSearch.checkStop();
                     const ids = [];
                     for (let k = 0; k < CONFIG.SEARCH_PARALLEL; k++) {
                         const id = base + k * step;
@@ -958,6 +997,7 @@
                 let fails = 0;
                 const limit = highest + CONFIG.SEARCH_FINAL_WINDOW;
                 for (let base = highest + 1; base <= limit && fails < CONFIG.SEARCH_FINAL_STREAK; base += CONFIG.SEARCH_PARALLEL) {
+                    autoSearch.checkStop();
                     const ids = [];
                     for (let k = 0; k < CONFIG.SEARCH_PARALLEL; k++) {
                         if (base + k <= limit) ids.push(base + k);
@@ -976,6 +1016,9 @@
                 return highest;
             },
             async findLastPost(channelName) {
+                autoSearch.stopRequested = false;
+                elements.stopSearchBtn.disabled = false;
+                elements.stopSearchBtn.style.display = 'block';
                 try {
                     utils.setLoadingState(true, t.startingAutoSearch);
                     const savedId = parseInt(storage.getItem(CONFIG.LAST_ID_KEY_PREFIX + channelName), 10);
@@ -993,7 +1036,14 @@
                     }
                     const sweep = await autoSearch.sweepUp(channelName, anchor);
                     if (sweep.capped) {
-                        throw new Error(t.channelTooLarge);
+                        // A non-existent or private channel renders a preview
+                        // page instead of "post not found", so every probe
+                        // looks tall and the sweep runs to the ceiling. Probe
+                        // an ID no real channel can have: if it also "exists",
+                        // the channel itself does not.
+                        const sentinelId = CONFIG.SEARCH_MAX_ID + 97000000;
+                        const sentinel = await messageChecker.checkExists(channelName, sentinelId);
+                        throw new Error(sentinel ? t.channelProbablyMissing : t.channelTooLarge);
                     }
                     autoSearch.updateInfo(`${t.rangeFound} ${sweep.highest} - ${sweep.upper}. ${t.startingAutoSearch}`);
                     let highest = sweep.highest;
@@ -1004,13 +1054,24 @@
                         upper = refined.upper;
                     }
                     autoSearch.updateInfo(`${t.verifyingLastMessage} ${highest}`);
+                    autoSearch.checkStop();
                     const lastPostId = await autoSearch.finalScan(channelName, highest);
                     autoSearch.displayResult(channelName, lastPostId);
                 } catch (error) {
-                    console.error('Error in auto search:', error);
-                    utils.showError(`Error in auto search: ${error.message}`);
-                    elements.loadChannelBtn.disabled = false;
-                    utils.setLoadingState(false);
+                    if (autoSearch.stopRequested) {
+                        // An intentional Stop is not an error: report it as
+                        // progress and leave the channel unselected
+                        autoSearch.updateInfo(t.searchStopped);
+                        elements.loadChannelBtn.disabled = false;
+                        utils.setLoadingState(false);
+                    } else {
+                        console.error('Error in auto search:', error);
+                        utils.showError(`Error in auto search: ${error.message}`);
+                        elements.loadChannelBtn.disabled = false;
+                        utils.setLoadingState(false);
+                    }
+                } finally {
+                    elements.stopSearchBtn.style.display = 'none';
                 }
             },
             displayResult(channelName, lastPostId) {
@@ -1361,6 +1422,7 @@
                 loadBtn.setAttribute('aria-label', t.loadChannel);
                 document.getElementById('loadMoreBtn').textContent = t.loadMore;
                 document.getElementById('checkNewBtn').textContent = t.checkNew;
+                document.getElementById('stop-search-btn').textContent = t.stopSearch;
                 document.getElementById('quickGuideTitle').textContent = t.quickGuideTitle;
                 document.getElementById('quickGuideDescription').textContent = t.quickGuideDescription;
                 document.getElementById('searchInfoText').textContent = t.searchInfoText;
@@ -1468,6 +1530,12 @@
                     }
                 });
                 elements.checkNewButton.addEventListener('click', () => newMessages.check(true));
+                elements.stopSearchBtn.addEventListener('click', () => {
+                    if (!autoSearch.stopRequested) {
+                        autoSearch.stopRequested = true;
+                        elements.stopSearchBtn.disabled = true;
+                    }
+                });
                 elements.themeToggle.addEventListener('click', () => theme.toggle());
                 document.getElementById('pref-cookies').addEventListener('change', (e) => {
                     storage.setPersistent(e.target.checked);

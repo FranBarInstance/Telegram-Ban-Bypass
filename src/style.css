@@ -351,6 +351,28 @@ main {
     opacity: 0.6;
     cursor: default;
 }
+.stop-search-btn {
+    display: block;
+    width: 100%;
+    margin: 12px 0 18px;
+    padding: 13px 16px;
+    font-size: 16px;
+    font-family: inherit;
+    font-weight: 600;
+    color: #ffffff;
+    background: var(--danger);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+.stop-search-btn:hover {
+    filter: brightness(0.92);
+}
+.stop-search-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
 #saved-channels-list {
     list-style: none;
     padding: 0;
