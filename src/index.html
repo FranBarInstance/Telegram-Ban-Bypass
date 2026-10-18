@@ -104,10 +104,16 @@
                             <span id="secondsLabel"></span>
                         </div>
                     </div>
-                    <label class="pref-row">
-                        <input type="checkbox" id="pref-deepcheck">
-                        <span id="prefDeepCheckLabel"></span>
-                    </label>
+                    <div class="pref-row pref-deepcheck-row">
+                        <label class="pref-check">
+                            <input type="checkbox" id="pref-deepcheck">
+                            <span id="prefDeepCheckLabel"></span>
+                        </label>
+                        <div class="deepcheck-max">
+                            <input type="number" id="deepcheck-max" min="1" max="1000" step="1" value="100">
+                            <span id="deepCheckMaxLabel"></span>
+                        </div>
+                    </div>
                 </details>
             </section>
             <section class="card saved-channels" style="display: none;">

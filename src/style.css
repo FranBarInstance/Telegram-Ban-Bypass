@@ -253,12 +253,14 @@ main {
     cursor: pointer;
 }
 .pref-autocheck-row,
-.pref-startid-row {
+.pref-startid-row,
+.pref-deepcheck-row {
     flex-wrap: wrap;
     cursor: default;
 }
 .autocheck-interval,
-.startid-value {
+.startid-value,
+.deepcheck-max {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -267,7 +269,8 @@ main {
     color: var(--text-soft);
 }
 .autocheck-interval input,
-.startid-value input {
+.startid-value input,
+.deepcheck-max input {
     padding: 6px 8px;
     font-size: 14px;
     font-family: inherit;
@@ -277,6 +280,9 @@ main {
     border-radius: 8px;
 }
 .autocheck-interval input {
+    width: 70px;
+}
+.deepcheck-max input {
     width: 70px;
 }
 .startid-value input {

@@ -17,7 +17,7 @@ No installation required. You can:
 - **No login required** - No Telegram account needed to read channels
 - **Gap-tolerant multi-pass search** - Finds the latest post even across deleted-message gaps
 - **Resume where you left off** - Revisiting a channel opens instantly from the saved last ID
-- **Check for new messages** - Manual button, optional auto-check timer, and an extended check that jumps larger gaps
+- **Check for new messages** - Manual button, optional auto-check timer, and an extended check with a configurable limit (up to 1000 posts ahead) that jumps larger gaps
 - **Manual Start ID mode** - For channels where the automatic search struggles, start from a known message ID
 - **Real-Time Feedback** - Shows search progress
 - **Light & dark themes, 9 languages** - Follows system preferences, installable as a PWA

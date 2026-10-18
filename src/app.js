@@ -30,6 +30,7 @@
                 deepCheck: "Extended message check",
                 deepCheckTip: "Extends \"Check for New Messages\" to 100 posts ahead",
                 deepCheckInfo: "If new posts do not appear, enable \"Extended message check\": it scans up to 100 ahead, jumping over deleted messages.",
+                deepCheckMaxLabel: "posts ahead",
                 themeToDark: "Switch to dark mode",
                 themeToLight: "Switch to light mode",
                 startIdRequired: "Please enter a Start ID (or uncheck it for automatic search)",
@@ -83,6 +84,7 @@
                 deepCheck: "Comprobación extendida",
                 deepCheckTip: "Extiende \"Comprobar nuevos\" hasta 100 mensajes",
                 deepCheckInfo: "Si no aparecen mensajes nuevos, activa \"Comprobación extendida\": explora hasta 100 por delante y salta borrados.",
+                deepCheckMaxLabel: "mensajes",
                 themeToDark: "Cambiar a modo oscuro",
                 themeToLight: "Cambiar a modo claro",
                 startIdRequired: "Introduce un Start ID (o desmárcalo para la búsqueda automática)",
@@ -136,6 +138,7 @@
                 deepCheck: "Расширенная проверка",
                 deepCheckTip: "Расширяет \"Проверить новые\" до 100 сообщений",
                 deepCheckInfo: "Если новые сообщения не видны, включите \"Расширенная проверка\": ищет до 100 вперёд, пропуская удалённые.",
+                deepCheckMaxLabel: "сообщений",
                 themeToDark: "Тёмная тема",
                 themeToLight: "Светлая тема",
                 startIdRequired: "Укажите Start ID (или снимите отметку для автопоиска)",
@@ -189,6 +192,7 @@
                 deepCheck: "Verificação estendida",
                 deepCheckTip: "Estende \"Verificar novas\" até 100 mensagens",
                 deepCheckInfo: "Se novas mensagens não aparecerem, ative \"Verificação estendida\": examina até 100 à frente, pulando apagadas.",
+                deepCheckMaxLabel: "mensagens",
                 themeToDark: "Modo escuro",
                 themeToLight: "Modo claro",
                 startIdRequired: "Digite um Start ID (ou desmarque para busca automática)",
@@ -242,6 +246,7 @@
                 deepCheck: "Erweiterte Prüfung",
                 deepCheckTip: "Erweitert \"Neue prüfen\" auf 100 Beiträge",
                 deepCheckInfo: "Falls keine neuen Nachrichten erscheinen, aktiviere \"Erweiterte Prüfung\": prüft bis 100 voraus, überspringt gelöschte.",
+                deepCheckMaxLabel: "Beiträge",
                 themeToDark: "Dunkler Modus",
                 themeToLight: "Heller Modus",
                 startIdRequired: "Start ID eingeben (oder Automatik ohne Start ID)",
@@ -295,6 +300,7 @@
                 deepCheck: "Vérification étendue",
                 deepCheckTip: "Étend \"Vérifier les nouveaux\" à 100 messages",
                 deepCheckInfo: "Si aucun nouveau message n'apparaît, activez \"Vérification étendue\" : scanne jusqu'à 100 en avance, saute les supprimés.",
+                deepCheckMaxLabel: "messages",
                 themeToDark: "Mode sombre",
                 themeToLight: "Mode clair",
                 startIdRequired: "Saisissez un Start ID (ou décochez pour la recherche auto)",
@@ -348,6 +354,7 @@
                 deepCheck: "Controllo esteso",
                 deepCheckTip: "Estende \"Controlla nuovi\" fino a 100 messaggi",
                 deepCheckInfo: "Se non compaiono nuovi messaggi, attiva \"Controllo esteso\": scansiona fino a 100 avanti, saltando gli eliminati.",
+                deepCheckMaxLabel: "messaggi",
                 themeToDark: "Tema scuro",
                 themeToLight: "Tema chiaro",
                 startIdRequired: "Inserisci uno Start ID (o deseleziona per la ricerca auto)",
@@ -401,6 +408,7 @@
                 deepCheck: "Szersze sprawdzanie",
                 deepCheckTip: "Szerzej \"Sprawdź nowe\" do 100 wiadomości",
                 deepCheckInfo: "Gdy nowe wiadomości nie pojawiają się, włącz \"Szersze sprawdzanie\": skanuje do 100 do przodu, pomijając usunięte.",
+                deepCheckMaxLabel: "wiadomości",
                 themeToDark: "Tryb ciemny",
                 themeToLight: "Tryb jasny",
                 startIdRequired: "Podaj Start ID (lub odznacz dla szukania auto)",
@@ -454,6 +462,7 @@
                 deepCheck: "Uitgebreide controle",
                 deepCheckTip: "Breidt \"Nieuwe controleren\" uit tot 100 berichten",
                 deepCheckInfo: "Als nieuwe berichten niet verschijnen, zet \"Uitgebreide controle\" aan: scant tot 100 vooruit, springt over verwijderde.",
+                deepCheckMaxLabel: "berichten",
                 themeToDark: "Donkere modus",
                 themeToLight: "Lichte modus",
                 startIdRequired: "Voer een Start ID in (of vink uit voor automatisch zoeken)",
@@ -526,6 +535,8 @@
             AUTOCHECK_ENABLED_KEY: 'tgAutoCheckEnabled',
             AUTOCHECK_INTERVAL_KEY: 'tgAutoCheckInterval',
             DEEP_CHECK_ENABLED_KEY: 'tgDeepCheck',
+            DEEP_CHECK_MAX_KEY: 'tgDeepCheckMax',
+            DEEP_CHECK_MAX_LIMIT: 1000,
             AUTOCHECK_DEFAULT_SECONDS: 60,
             SCROLL_INITIAL_DELAY: 300,
             AUTO_SCROLL_WINDOW: 10000,
@@ -587,7 +598,8 @@
                        ['preferredLanguage', 'telegramSavedChannels', CONFIG.THEME_KEY,
                         CONFIG.START_ID_ENABLED_KEY,
                         CONFIG.AUTOCHECK_ENABLED_KEY, CONFIG.AUTOCHECK_INTERVAL_KEY,
-                        CONFIG.DEEP_CHECK_ENABLED_KEY].includes(key);
+                        CONFIG.DEEP_CHECK_ENABLED_KEY,
+                        CONFIG.DEEP_CHECK_MAX_KEY].includes(key);
             },
             appKeys(store) {
                 const keys = [];
@@ -637,6 +649,14 @@
         const utils = {
             isValidChannelName(name) {
                 return /^[A-Za-z0-9_]{5,32}$/.test(name);
+            },
+            // The extended-check limit comes from the preferences input,
+            // clamped to 1..DEEP_CHECK_MAX_LIMIT so a mistyped value can
+            // never make a check hammer Telegram
+            getDeepCheckMax() {
+                const value = parseInt(document.getElementById('deepcheck-max').value, 10);
+                if (!Number.isFinite(value) || value < 1) return CONFIG.DEEP_CHECK_MAX;
+                return Math.min(value, CONFIG.DEEP_CHECK_MAX_LIMIT);
             },
             extractChannelName(input) {
                 const cleanInput = input.trim();
@@ -1362,7 +1382,7 @@
                     // posts may hide the boundary, hence the descending scan.
                     const step = CONFIG.CHECK_NEW_BLOCK;
                     const max = deep && document.getElementById('pref-deepcheck').checked ?
-                                CONFIG.DEEP_CHECK_MAX : CONFIG.CHECK_NEW_MAX;
+                                utils.getDeepCheckMax() : CONFIG.CHECK_NEW_MAX;
                     let highest = state.lastPostId;
                     for (let windowEnd = step; windowEnd <= max; windowEnd += step) {
                         for (let offset = windowEnd; offset > windowEnd - step; offset -= 2) {
@@ -1498,9 +1518,15 @@
                 document.getElementById('prefAutoCheckLabel').textContent = t.autoCheckLabel;
                 document.getElementById('secondsLabel').textContent = t.seconds;
                 document.getElementById('prefDeepCheckLabel').textContent = t.deepCheck;
-                document.getElementById('prefDeepCheckLabel').title = t.deepCheckTip;
-                document.getElementById('pref-deepcheck').title = t.deepCheckTip;
-                document.getElementById('deepCheckInfoText').textContent = t.deepCheckInfo;
+                // The tip and info texts embed the default limit ("100");
+                // swap it for the configured one so they stay truthful
+                const deepTip = t.deepCheckTip.replace('100', utils.getDeepCheckMax());
+                document.getElementById('prefDeepCheckLabel').title = deepTip;
+                document.getElementById('pref-deepcheck').title = deepTip;
+                document.getElementById('deepCheckInfoText').textContent =
+                    t.deepCheckInfo.replace('100', utils.getDeepCheckMax());
+                document.getElementById('deepCheckMaxLabel').textContent = t.deepCheckMaxLabel;
+                document.getElementById('deepcheck-max').setAttribute('aria-label', t.deepCheckMaxLabel);
                 const featuresList = document.getElementById('featuresList');
                 featuresList.innerHTML = t.features.map(feature => `<li>${feature}</li>`).join('');
                 theme.updateButton();
@@ -1622,6 +1648,13 @@
                 document.getElementById('pref-deepcheck').addEventListener('change', (e) => {
                     storage.setItem(CONFIG.DEEP_CHECK_ENABLED_KEY, e.target.checked ? '1' : '0');
                 });
+                document.getElementById('deepcheck-max').addEventListener('change', (e) => {
+                    const value = Math.min(CONFIG.DEEP_CHECK_MAX_LIMIT,
+                        Math.max(1, parseInt(e.target.value, 10) || CONFIG.DEEP_CHECK_MAX));
+                    e.target.value = value;
+                    storage.setItem(CONFIG.DEEP_CHECK_MAX_KEY, String(value));
+                    i18n.updateUITexts();
+                });
                 elements.startIdCheckbox.addEventListener('change', () => {
                     const on = elements.startIdCheckbox.checked;
                     storage.setItem(CONFIG.START_ID_ENABLED_KEY, on ? '1' : '0');
@@ -1725,6 +1758,13 @@
                     Number.isFinite(savedInterval) && savedInterval >= 0 ? savedInterval : CONFIG.AUTOCHECK_DEFAULT_SECONDS;
                 document.getElementById('pref-deepcheck').checked =
                     storage.getItem(CONFIG.DEEP_CHECK_ENABLED_KEY) === '1';
+                const savedDeepMax = parseInt(storage.getItem(CONFIG.DEEP_CHECK_MAX_KEY), 10);
+                document.getElementById('deepcheck-max').value =
+                    Number.isFinite(savedDeepMax) && savedDeepMax >= 1 && savedDeepMax <= CONFIG.DEEP_CHECK_MAX_LIMIT ?
+                        savedDeepMax : CONFIG.DEEP_CHECK_MAX;
+                // The tip/info texts quote the limit, so refresh them once
+                // the saved value is in the input
+                i18n.updateUITexts();
                 theme.init();
             }
         };
