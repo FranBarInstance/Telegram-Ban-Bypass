@@ -2169,37 +2169,26 @@ iframe[src*="t.me"] {
                 elements.checkNewButton.disabled = true;
                 elements.checkNewButton.textContent = t.checking;
                 try {
-                    // Probe downwards inside windows of CHECK_NEW_BLOCK,
-                    // stepping by two: the first existing target marks the
-                    // boundary and everything up to it is shown. Deleted
-                    // posts may hide the boundary, hence the descending scan.
-                    const step = CONFIG.CHECK_NEW_BLOCK;
+                    // Scan upward one ID at a time so a lone new post is found
+                    // at any offset even when its neighbors were deleted (a
+                    // stride > 1 hides it behind a skipped offset). The short
+                    // check stops at the first deletion gap because recent
+                    // posts are contiguous and this keeps the automatic check
+                    // cheap; the deep check scans the whole range to jump over
+                    // large purges.
+                    const gap = CONFIG.CHECK_NEW_BLOCK;
                     const max = deep && document.getElementById('pref-deepcheck').checked ?
                                 utils.getDeepCheckMax() : CONFIG.CHECK_NEW_MAX;
                     let highest = state.lastPostId;
-                    for (let windowEnd = step; windowEnd <= max; windowEnd += step) {
-                        for (let offset = windowEnd; offset > windowEnd - step; offset -= 2) {
-                            const target = state.lastPostId + offset;
-                            if (await messageChecker.checkExists(state.currentChannel, target)) {
-                                // Descending hit: every higher even offset
-                                // already failed (except when target is the
-                                // window's first probe; then the next check
-                                // recovers anything higher), so the maximum
-                                // is target or target+1: one probe pins it down
-                                highest = target;
-                                if (await messageChecker.checkExists(state.currentChannel, target + 1)) {
-                                    highest = target + 1;
-                                }
-                                break;
-                            }
+                    let fails = 0;
+                    for (let offset = 1; offset <= max; offset++) {
+                        if (await messageChecker.checkExists(state.currentChannel, state.lastPostId + offset)) {
+                            highest = state.lastPostId + offset;
+                            fails = 0;
+                        } else {
+                            fails++;
+                            if (!deep && fails >= gap) break;
                         }
-                        if (highest > state.lastPostId) break;
-                    }
-                    // A lone new post at an odd offset is invisible to every
-                    // even-offset probe: check the immediate next ID
-                    if (highest === state.lastPostId &&
-                        await messageChecker.checkExists(state.currentChannel, state.lastPostId + 1)) {
-                        highest = state.lastPostId + 1;
                     }
                     if (highest > state.lastPostId) {
                         widgetLoader.appendRange(state.lastPostId + 1, highest);
