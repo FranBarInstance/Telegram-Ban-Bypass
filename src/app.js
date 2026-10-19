@@ -1165,10 +1165,12 @@
                     elements.stopSearchBtn.style.display = 'none';
                 }
             },
-            displayResult(channelName, lastPostId) {
+            displayResult(channelName, lastPostId, save = true) {
                 state.lastPostId = lastPostId;
                 state.currentChannel = channelName;
-                utils.saveLastId(channelName, lastPostId);
+                if (save) {
+                    utils.saveLastId(channelName, lastPostId);
+                }
                 elements.toolbarChannel.textContent = `@${channelName}`;
                 elements.toolbarChannel.style.display = 'inline-block';
                 elements.currentChannel.textContent = '';
@@ -1192,11 +1194,16 @@
             }
         };
         const manualSearch = {
-            // Manual mode displays starting exactly from the entered Start ID
+            // Manual mode displays starting exactly from the entered Start ID.
+            // The ID may name a deleted or not-yet-reached post, so it is
+            // probed once: only a Start ID that really exists becomes the
+            // channel's saved last ID. The stored value is therefore always
+            // the highest ID verified to exist (saveLastId keeps the max).
             async findLastPost(channelName, startId) {
                 const start = parseInt(startId, 10);
                 if (isNaN(start) || start <= 0) throw new Error(t.invalidStartId);
-                autoSearch.displayResult(channelName, start);
+                const exists = await messageChecker.checkExists(channelName, start);
+                autoSearch.displayResult(channelName, start, exists);
             }
         };
         const widgetLoader = {
