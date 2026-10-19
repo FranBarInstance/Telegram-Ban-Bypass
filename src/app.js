@@ -565,6 +565,7 @@
             DEEP_CHECK_MAX_KEY: 'tgDeepCheckMax',
             DEEP_CHECK_MAX_LIMIT: 1000,
             AUTOCHECK_DEFAULT_SECONDS: 60,
+            AUTOCHECK_MIN_SECONDS: 10,
             SCROLL_INITIAL_DELAY: 300,
             AUTO_SCROLL_WINDOW: 10000,
             SEARCH_GRID_STEP: 100000,
@@ -1826,7 +1827,8 @@
                     autoCheck.start();
                 });
                 document.getElementById('autocheck-interval').addEventListener('change', (e) => {
-                    const value = Math.max(0, parseInt(e.target.value, 10) || 0);
+                    const value = Math.max(CONFIG.AUTOCHECK_MIN_SECONDS,
+                                           parseInt(e.target.value, 10) || CONFIG.AUTOCHECK_MIN_SECONDS);
                     e.target.value = value;
                     storage.setItem(CONFIG.AUTOCHECK_INTERVAL_KEY, String(value));
                     autoCheck.start();
@@ -1941,7 +1943,9 @@
                     storage.getItem(CONFIG.AUTOCHECK_ENABLED_KEY) === '1';
                 const savedInterval = parseInt(storage.getItem(CONFIG.AUTOCHECK_INTERVAL_KEY), 10);
                 document.getElementById('autocheck-interval').value =
-                    Number.isFinite(savedInterval) && savedInterval >= 0 ? savedInterval : CONFIG.AUTOCHECK_DEFAULT_SECONDS;
+                    Number.isFinite(savedInterval) ?
+                        Math.max(CONFIG.AUTOCHECK_MIN_SECONDS, savedInterval) :
+                        CONFIG.AUTOCHECK_DEFAULT_SECONDS;
                 document.getElementById('pref-deepcheck').checked =
                     storage.getItem(CONFIG.DEEP_CHECK_ENABLED_KEY) === '1';
                 const savedDeepMax = parseInt(storage.getItem(CONFIG.DEEP_CHECK_MAX_KEY), 10);
