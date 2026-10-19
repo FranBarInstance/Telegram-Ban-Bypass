@@ -17,7 +17,7 @@ No installation required. You can:
 - **No login required** - No Telegram account needed to read channels
 - **Gap-tolerant multi-pass search** - Finds the latest post even across deleted-message gaps
 - **Resume where you left off** - Revisiting a channel opens instantly from the saved last ID; a stopped search saves its progress and the next search continues from it, and "Search again" forces a fresh search
-- **Check for new messages** - Manual button, optional auto-check timer, and an extended check with a configurable limit (up to 1000 posts ahead) that jumps larger gaps
+- **Check for new messages** - The next posts appear instantly while the check keeps running in the background; manual button, optional auto-check timer, and an extended check with a configurable limit (up to 1000 posts ahead) that jumps larger gaps
 - **Manual Start ID mode** - For channels where the automatic search struggles, start from a known message ID
 - **Real-Time Feedback** - Shows search progress
 - **Light & dark themes, 9 languages** - Follows system preferences, installable as a PWA
@@ -63,7 +63,7 @@ Every probe is a real embed request to t.me, and a single answer takes roughly 0
 - **Telegram rate-limiting.** After many requests, t.me starts dropping embed responses (the ambiguous ~150 px case above). Probes then take the full wait plus a retry, and the whole search can stretch to minutes. The limits are per IP and lift on their own after a while.
 - **Deleted-message gaps.** Larger gaps force more refinement probes before the streak threshold is reached.
 
-Revisiting a channel you already opened is instant: the last message ID is stored and reused, with zero probes. "Check for new messages" then only probes the few IDs above it.
+Revisiting a channel you already opened is instant: the last message ID is stored and reused, with zero probes. "Check for new messages" then only works on the few IDs above it: the next ten IDs are rendered in the feed right away (nonexistent posts hide themselves), so anything new shows up at once while the scan keeps determining the real last message in the background. Those ten embeds double as the existence probes for their IDs, so the check costs no extra requests.
 
 #### Known Search Problems
 

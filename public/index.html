@@ -2159,6 +2159,88 @@ iframe[src*="t.me"] {
             }
         };
         const newMessages = {
+            // Feed embeds render an iframe whose src contains "/channel/id?",
+            // the same handle appendRange uses to deduplicate
+            findFeedIframe(id) {
+                return elements.widgetContainer.querySelector(
+                    `iframe[src*="/${state.currentChannel}/${id}?"]`
+                );
+            },
+            // Judge an immediately-appended feed iframe with the same height
+            // rules as messageChecker.probe: >160 exists; "post not found"
+            // (<60, or already hidden by iframeMonitor) is missing; 145-155 is
+            // the throttled default size, abandoned after a stable period or a
+            // deadline after the page loaded. Ambiguous counts as missing: the
+            // ID is not saved, so a later check tries that post again.
+            judgeIframe(id, deadline) {
+                return new Promise(resolve => {
+                    let hooked = false;
+                    let loadedAt = 0;
+                    let bandSince = 0;
+                    let lastHeight = -1;
+                    let stableCount = 0;
+                    const poll = () => {
+                        const iframe = newMessages.findFeedIframe(id);
+                        if (iframe) {
+                            if (!hooked) {
+                                hooked = true;
+                                iframe.addEventListener('load', () => { loadedAt = Date.now(); });
+                            }
+                            if (iframe.style.display === 'none') {
+                                resolve(false);
+                                return;
+                            }
+                            const height = iframe.offsetHeight;
+                            if (height > 160) {
+                                resolve(true);
+                                return;
+                            }
+                            if (height > 0 && height < CONFIG.MIN_IFRAME_HEIGHT) {
+                                resolve(false);
+                                return;
+                            }
+                            if (height >= 145 && height <= 155) {
+                                bandSince = bandSince || Date.now();
+                                if (height === lastHeight) {
+                                    stableCount++;
+                                } else {
+                                    stableCount = 0;
+                                    lastHeight = height;
+                                }
+                                const bandStart = loadedAt || bandSince;
+                                if (stableCount >= CONFIG.PROBE_BAND_STABLE_SAMPLES ||
+                                    Date.now() - bandStart >= CONFIG.PROBE_BAND_TIMEOUT) {
+                                    resolve(false);
+                                    return;
+                                }
+                            } else if (height >= CONFIG.MIN_IFRAME_HEIGHT) {
+                                resolve(true);
+                                return;
+                            }
+                        }
+                        if (Date.now() >= deadline) {
+                            resolve(false);
+                            return;
+                        }
+                        setTimeout(poll, CONFIG.PROBE_POLL_INTERVAL);
+                    };
+                    poll();
+                });
+            },
+            // Drop the immediately-appended embeds that sit above the
+            // confirmed boundary: they do not exist (or were never judged)
+            // and would otherwise pile up hidden iframes across repeated
+            // checks. Gaps at or below the boundary stay, exactly like the
+            // deleted posts inside a search-result range.
+            removeEmbeds(fromId, toId) {
+                for (let id = fromId; id <= toId; id++) {
+                    const iframe = newMessages.findFeedIframe(id);
+                    if (iframe) iframe.remove();
+                    elements.widgetContainer
+                        .querySelectorAll(`script[data-telegram-post="${state.currentChannel}/${id}"]`)
+                        .forEach(script => script.remove());
+                }
+            },
             // deep: manual clicks honor the "Deep check" preference and scan
             // up to DEEP_CHECK_MAX to jump over deleted-post gaps; the
             // automatic check keeps the short range to spare Telegram
@@ -2168,30 +2250,53 @@ iframe[src*="t.me"] {
                 state.isLoading = true;
                 elements.checkNewButton.disabled = true;
                 elements.checkNewButton.textContent = t.checking;
+                const base = state.lastPostId;
                 try {
-                    // Scan upward one ID at a time so a lone new post is found
-                    // at any offset even when its neighbors were deleted (a
-                    // stride > 1 hides it behind a skipped offset). The short
-                    // check stops at the first deletion gap because recent
-                    // posts are contiguous and this keeps the automatic check
-                    // cheap; the deep check scans the whole range to jump over
-                    // large purges.
+                    // The next CHECK_NEW_BLOCK IDs are appended to the feed
+                    // right away: new posts show up instantly while the scan
+                    // is still running, and missing ones are hidden by
+                    // iframeMonitor. Those iframes double as the probes for
+                    // their offsets, so these IDs cost a single request each
+                    // instead of a hidden probe plus a feed embed.
                     const gap = CONFIG.CHECK_NEW_BLOCK;
                     const max = deep && document.getElementById('pref-deepcheck').checked ?
                                 utils.getDeepCheckMax() : CONFIG.CHECK_NEW_MAX;
-                    let highest = state.lastPostId;
+                    const shown = Math.min(gap, max);
+                    const deadline = Date.now() + CONFIG.TIMEOUT_DURATION;
+                    let highest = base;
                     let fails = 0;
-                    for (let offset = 1; offset <= max; offset++) {
-                        if (await messageChecker.checkExists(state.currentChannel, state.lastPostId + offset)) {
-                            highest = state.lastPostId + offset;
+                    widgetLoader.appendRange(base + 1, base + shown);
+                    iframeMonitor.start();
+                    for (let offset = 1; offset <= shown; offset++) {
+                        if (await newMessages.judgeIframe(base + offset, deadline)) {
+                            highest = base + offset;
                             fails = 0;
                         } else {
                             fails++;
                             if (!deep && fails >= gap) break;
                         }
                     }
-                    if (highest > state.lastPostId) {
-                        widgetLoader.appendRange(state.lastPostId + 1, highest);
+                    // Beyond the appended window the scan falls back to hidden
+                    // probes. It steps one ID at a time so a lone new post is
+                    // found at any offset even when its neighbors were deleted
+                    // (a stride > 1 hides it behind a skipped offset). The
+                    // short check stops at the first deletion gap because
+                    // recent posts are contiguous and this keeps the automatic
+                    // check cheap; the deep check scans the whole range to
+                    // jump over large purges.
+                    for (let offset = shown + 1; offset <= max && (deep || fails < gap); offset++) {
+                        if (await messageChecker.checkExists(state.currentChannel, base + offset)) {
+                            highest = base + offset;
+                            fails = 0;
+                        } else {
+                            fails++;
+                            if (!deep && fails >= gap) break;
+                        }
+                    }
+                    if (highest > base) {
+                        if (highest > base + shown) {
+                            widgetLoader.appendRange(base + shown + 1, highest);
+                        }
                         state.lastPostId = highest;
                         utils.saveLastId(state.currentChannel, highest);
                         iframeMonitor.start();
@@ -2203,6 +2308,7 @@ iframe[src*="t.me"] {
                             }
                         }, 2000);
                     }
+                    newMessages.removeEmbeds(highest + 1, base + shown);
                 } catch (error) {
                     console.error('Error checking new messages:', error);
                 } finally {
