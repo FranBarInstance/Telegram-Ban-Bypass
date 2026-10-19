@@ -1663,7 +1663,11 @@
         };
         const iframeMonitor = {
             checkHeight() {
-                const iframes = document.querySelectorAll('iframe[src*="t.me"]');
+                // Only feed embeds: hidden probes live in throwaway containers
+                // outside the feed, and hiding their "post not found" iframe
+                // would rob probe() of its fast missing signal (offsetHeight
+                // becomes 0 and the probe waits out the full timeout)
+                const iframes = elements.widgetContainer.querySelectorAll('iframe');
                 iframes.forEach(iframe => {
                     const { offsetHeight } = iframe;
                     if (offsetHeight < CONFIG.MIN_IFRAME_HEIGHT && offsetHeight > 0) {
