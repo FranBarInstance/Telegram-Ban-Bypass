@@ -1270,7 +1270,7 @@ iframe[src*="t.me"] {
             DELETED_POST_CHECK_MAX_TIMES: 1500,
             DELETED_POST_CHECK_INTERVAL: 10,
             WIDGET_SCRIPT_URL: 'https://telegram.org/js/telegram-widget.js?22',
-            CHECK_NEW_MAX: 20,
+            CHECK_NEW_MAX: 10,
             DEEP_CHECK_MAX: 100,
             CHECK_NEW_BLOCK: 10,
             PROBE_POLL_INTERVAL: 50,
@@ -2280,13 +2280,12 @@ iframe[src*="t.me"] {
                         }
                     }
                     // Beyond the appended window the scan falls back to hidden
-                    // probes. It steps one ID at a time so a lone new post is
-                    // found at any offset even when its neighbors were deleted
-                    // (a stride > 1 hides it behind a skipped offset). The
-                    // short check stops at the first deletion gap because
-                    // recent posts are contiguous and this keeps the automatic
-                    // check cheap; the deep check scans the whole range to
-                    // jump over large purges.
+                    // probes; only the deep check gets there, since the short
+                    // check's range is exactly the appended window. It steps
+                    // one ID at a time so a lone new post is found at any
+                    // offset even when its neighbors were deleted (a stride
+                    // > 1 hides it behind a skipped offset). The deep check
+                    // scans the whole range to jump over large purges.
                     for (let offset = shown + 1; offset <= max && (deep || fails < gap); offset++) {
                         if (await messageChecker.checkExists(state.currentChannel, base + offset)) {
                             highest = base + offset;
