@@ -566,6 +566,7 @@
             DEEP_CHECK_MAX_LIMIT: 1000,
             AUTOCHECK_DEFAULT_SECONDS: 60,
             AUTOCHECK_MIN_SECONDS: 10,
+            AUTO_CHECK_LABEL_HOLD: 2000,
             SCROLL_INITIAL_DELAY: 300,
             AUTO_SCROLL_WINDOW: 10000,
             SEARCH_GRID_STEP: 100000,
@@ -1530,6 +1531,7 @@
                 elements.checkNewButton.disabled = true;
                 elements.checkNewButton.textContent = t.checking;
                 const base = state.lastPostId;
+                const startedAt = Date.now();
                 try {
                     // The next CHECK_NEW_BLOCK IDs are appended to the feed
                     // right away: new posts show up instantly while the scan
@@ -1572,28 +1574,44 @@
                             if (!deep && fails >= gap) break;
                         }
                     }
-                    if (highest > base) {
+                    const found = highest > base;
+                    if (found) {
                         if (highest > base + shown) {
                             widgetLoader.appendRange(base + shown + 1, highest);
                         }
                         state.lastPostId = highest;
                         utils.saveLastId(state.currentChannel, highest);
                         iframeMonitor.start();
-                    } else {
-                        elements.checkNewButton.textContent = t.noNew;
-                        setTimeout(() => {
-                            if (!elements.checkNewButton.disabled) {
-                                elements.checkNewButton.textContent = t.checkNew;
-                            }
-                        }, 2000);
                     }
                     newMessages.removeEmbeds(highest + 1, base + shown);
+                    // An automatic check finishes in a blink (its ten embeds
+                    // resolve as fast as they load), so keep its "Checking..."
+                    // label up for a moment before showing the result:
+                    // otherwise the user never sees that the check ran.
+                    const hold = deep ? 0 :
+                        Math.max(0, CONFIG.AUTO_CHECK_LABEL_HOLD - (Date.now() - startedAt));
+                    autoCheck.labelHoldUntil = Date.now() + hold;
+                    setTimeout(() => {
+                        if (elements.checkNewButton.disabled) return;
+                        if (!found) {
+                            elements.checkNewButton.textContent = t.noNew;
+                            autoCheck.labelHoldUntil = Date.now() + 2000;
+                            setTimeout(() => {
+                                if (!elements.checkNewButton.disabled) {
+                                    elements.checkNewButton.textContent = t.checkNew;
+                                }
+                            }, 2000);
+                        } else if (elements.checkNewButton.textContent === t.checking) {
+                            elements.checkNewButton.textContent = t.checkNew;
+                        }
+                    }, hold);
                 } catch (error) {
                     console.error('Error checking new messages:', error);
                 } finally {
                     state.isLoading = false;
                     elements.checkNewButton.disabled = false;
-                    if (elements.checkNewButton.textContent === t.checking) {
+                    if (Date.now() >= autoCheck.labelHoldUntil &&
+                        elements.checkNewButton.textContent === t.checking) {
                         elements.checkNewButton.textContent = t.checkNew;
                     }
                     autoCheck.reschedule();
@@ -1603,6 +1621,9 @@
         const autoCheck = {
             intervalId: null,
             nextAt: 0,
+            // Until this timestamp the countdown must not overwrite the
+            // "Checking..." label left by a finished automatic check
+            labelHoldUntil: 0,
             seconds() {
                 const checkbox = document.getElementById('pref-autocheck');
                 const value = parseInt(document.getElementById('autocheck-interval').value, 10);
@@ -1631,7 +1652,7 @@
                 }
             },
             tick() {
-                if (state.isLoading) return;
+                if (state.isLoading || Date.now() < autoCheck.labelHoldUntil) return;
                 const remaining = Math.ceil((autoCheck.nextAt - Date.now()) / 1000);
                 if (remaining <= 0) {
                     newMessages.check();
