@@ -379,6 +379,24 @@ main {
     opacity: 0.6;
     cursor: default;
 }
+.research-btn {
+    display: block;
+    width: 100%;
+    margin: 0 0 18px;
+    padding: 11px 16px;
+    font-size: 14px;
+    font-family: inherit;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+.research-btn:hover {
+    background: var(--accent-soft);
+}
 #saved-channels-list {
     list-style: none;
     padding: 0;

@@ -15,6 +15,9 @@
                 channelTooLarge: "Channel too large for automatic search. Use manual Start ID mode.",
                 stopSearch: "Stop search",
                 searchStopped: "Search stopped",
+                reSearch: "Search again",
+                progressSaved: "Progress saved:",
+                resumingProgress: "Resuming from saved progress:",
                 channelProbablyMissing: "Channel not found. It may not exist or be private.",
                 currentlyViewing: "Currently viewing:",
                 latestPostId: "Latest post ID:",
@@ -69,6 +72,9 @@
                 channelTooLarge: "Canal demasiado grande para la búsqueda automática. Usa Start ID manual.",
                 stopSearch: "Detener búsqueda",
                 searchStopped: "Búsqueda detenida",
+                reSearch: "Buscar de nuevo",
+                progressSaved: "Progreso guardado:",
+                resumingProgress: "Continuando desde el progreso:",
                 channelProbablyMissing: "Canal no encontrado. Puede no existir o ser privado.",
                 currentlyViewing: "Viendo actualmente:",
                 latestPostId: "Último ID:",
@@ -123,6 +129,9 @@
                 channelTooLarge: "Канал слишком большой для автопоиска. Используйте Start ID вручную.",
                 stopSearch: "Остановить поиск",
                 searchStopped: "Поиск остановлен",
+                reSearch: "Искать заново",
+                progressSaved: "Прогресс сохранён:",
+                resumingProgress: "Продолжаю с сохранённого прогресса:",
                 channelProbablyMissing: "Канал не найден. Возможно, не существует или приватный.",
                 currentlyViewing: "Сейчас просматривается:",
                 latestPostId: "Последний ID:",
@@ -177,6 +186,9 @@
                 channelTooLarge: "Canal grande demais para a busca automática. Use Start ID manual.",
                 stopSearch: "Parar busca",
                 searchStopped: "Busca interrompida",
+                reSearch: "Buscar novamente",
+                progressSaved: "Progresso salvo:",
+                resumingProgress: "Continuando do progresso salvo:",
                 channelProbablyMissing: "Canal não encontrado. Pode não existir ou ser privado.",
                 currentlyViewing: "Visualizando agora:",
                 latestPostId: "ID mais recente:",
@@ -231,6 +243,9 @@
                 channelTooLarge: "Kanal zu groß für die automatische Suche. Start ID manuell nutzen.",
                 stopSearch: "Suche stoppen",
                 searchStopped: "Suche gestoppt",
+                reSearch: "Erneut suchen",
+                progressSaved: "Fortschritt gespeichert:",
+                resumingProgress: "Fortsetzung bei gespeichertem Stand:",
                 channelProbablyMissing: "Kanal nicht gefunden. Existiert er nicht oder ist privat?",
                 currentlyViewing: "Aktuell angezeigt:",
                 latestPostId: "Letzte ID:",
@@ -285,6 +300,9 @@
                 channelTooLarge: "Canal trop grand pour la recherche automatique. Utilisez Start ID.",
                 stopSearch: "Arrêter la recherche",
                 searchStopped: "Recherche arrêtée",
+                reSearch: "Chercher à nouveau",
+                progressSaved: "Progression enregistrée :",
+                resumingProgress: "Reprise depuis la progression :",
                 channelProbablyMissing: "Canal introuvable. Il n'existe peut-être pas ou est privé.",
                 currentlyViewing: "Consultation actuelle:",
                 latestPostId: "Dernier ID:",
@@ -339,6 +357,9 @@
                 channelTooLarge: "Canale troppo grande per la ricerca automatica. Usa Start ID manuale.",
                 stopSearch: "Ferma ricerca",
                 searchStopped: "Ricerca interrotta",
+                reSearch: "Cerca di nuovo",
+                progressSaved: "Progresso salvato:",
+                resumingProgress: "Ripresa dal progresso salvato:",
                 channelProbablyMissing: "Canale non trovato. Potrebbe non esistere o essere privato.",
                 currentlyViewing: "Al momento visualizzi:",
                 latestPostId: "Ultimo ID:",
@@ -393,6 +414,9 @@
                 channelTooLarge: "Kanał zbyt duży do wyszukiwania. Użyj Start ID ręcznie.",
                 stopSearch: "Zatrzymaj szukanie",
                 searchStopped: "Wyszukiwanie zatrzymane",
+                reSearch: "Szukaj ponownie",
+                progressSaved: "Zapisano postęp:",
+                resumingProgress: "Wznawiam od zapisanego postępu:",
                 channelProbablyMissing: "Nie znaleziono kanału. Może nie istnieć lub być prywatny.",
                 currentlyViewing: "Aktualnie oglądasz:",
                 latestPostId: "Ostatnie ID:",
@@ -447,6 +471,9 @@
                 channelTooLarge: "Kanaal te groot voor automatisch zoeken. Gebruik handmatige Start ID.",
                 stopSearch: "Zoeken stoppen",
                 searchStopped: "Zoeken gestopt",
+                reSearch: "Opnieuw zoeken",
+                progressSaved: "Voortgang opgeslagen:",
+                resumingProgress: "Hervatten bij opgeslagen voortgang:",
                 channelProbablyMissing: "Kanaal niet gevonden. Het bestaat misschien niet of is privé.",
                 currentlyViewing: "Nu aan het bekijken:",
                 latestPostId: "Laatste ID:",
@@ -547,7 +574,8 @@
             SEARCH_FINAL_WINDOW: 1000,
             SEARCH_FINAL_STREAK: 100,
             SEARCH_STREAK_ESCALATION: 3,
-            SEARCH_MAX_ID: 3000000
+            SEARCH_MAX_ID: 3000000,
+            SEARCH_PROGRESS_KEY: 'tgSearchProgress:'
         };
         const state = {
             countInterval: 0,
@@ -595,6 +623,7 @@
             isAppKey(key) {
                 return key.startsWith(CONFIG.LAST_ID_KEY_PREFIX) ||
                        key.startsWith(CONFIG.START_ID_KEY_PREFIX) ||
+                       key.startsWith(CONFIG.SEARCH_PROGRESS_KEY) ||
                        ['preferredLanguage', 'telegramSavedChannels', CONFIG.THEME_KEY,
                         CONFIG.START_ID_ENABLED_KEY,
                         CONFIG.AUTOCHECK_ENABLED_KEY, CONFIG.AUTOCHECK_INTERVAL_KEY,
@@ -633,6 +662,7 @@
             error: document.getElementById('error'),
             currentChannel: document.getElementById('current-channel'),
             stopSearchBtn: document.getElementById('stop-search-btn'),
+            reSearchBtn: document.getElementById('reSearchBtn'),
             widgetContainer: document.getElementById('widget-container'),
             loadMoreButton: document.querySelector('.widget-load-more-button'),
             channelInput: document.getElementById('channel-input'),
@@ -684,6 +714,7 @@
                 elements.widgetContainer.innerHTML = '';
                 elements.loadMoreButton.style.display = 'none';
                 elements.checkNewButton.style.display = 'none';
+                elements.reSearchBtn.style.display = 'none';
                 autoCheck.stop();
                 elements.currentChannel.style.display = 'none';
                 elements.toolbarChannel.textContent = '';
@@ -1098,35 +1129,55 @@
                 autoSearch.stopRequested = false;
                 elements.stopSearchBtn.disabled = false;
                 elements.stopSearchBtn.style.display = 'block';
+                // Highest ID verified so far and the bracket above it: on
+                // Stop they become the progress the next search resumes from
+                let highest = 0;
+                let upper = 0;
+                const progressKey = CONFIG.SEARCH_PROGRESS_KEY + channelName;
                 try {
                     utils.setLoadingState(true, t.startingAutoSearch);
-                    const savedId = parseInt(storage.getItem(CONFIG.LAST_ID_KEY_PREFIX + channelName), 10);
-                    if (savedId > 0) {
-                        // Resume exactly where the user left off, without any
-                        // probe: "check new" catches up with what was published
-                        // after that ID
-                        autoSearch.displayResult(channelName, savedId);
-                        return;
+                    const progressParts = (storage.getItem(progressKey) || '').split('|');
+                    const progressHighest = parseInt(progressParts[0], 10);
+                    const progressUpper = parseInt(progressParts[1], 10);
+                    if (progressHighest > 0) {
+                        // A stopped search left a verified partial top:
+                        // continue from it instead of starting over. If the
+                        // bracket above it was already found, skip the sweep
+                        autoSearch.updateInfo(`${t.resumingProgress} ${progressHighest}`);
+                        highest = progressHighest;
+                        upper = Number.isFinite(progressUpper) && progressUpper > highest ? progressUpper : 0;
+                    } else {
+                        const savedId = parseInt(storage.getItem(CONFIG.LAST_ID_KEY_PREFIX + channelName), 10);
+                        if (savedId > 0) {
+                            // Resume exactly where the user left off, without any
+                            // probe: "check new" catches up with what was published
+                            // after that ID
+                            autoSearch.displayResult(channelName, savedId);
+                            return;
+                        }
+                        autoSearch.updateInfo(t.searchingInitialRange);
+                        const anchor = await autoSearch.findAnchor(channelName);
+                        if (anchor === 0) {
+                            throw new Error(t.noValidMessages);
+                        }
+                        highest = anchor;
                     }
-                    autoSearch.updateInfo(t.searchingInitialRange);
-                    const anchor = await autoSearch.findAnchor(channelName);
-                    if (anchor === 0) {
-                        throw new Error(t.noValidMessages);
+                    if (upper === 0) {
+                        const sweep = await autoSearch.sweepUp(channelName, highest);
+                        highest = sweep.highest;
+                        if (sweep.capped) {
+                            // A non-existent or private channel renders a preview
+                            // page instead of "post not found", so every probe
+                            // looks tall and the sweep runs to the ceiling. Probe
+                            // an ID no real channel can have: if it also "exists",
+                            // the channel itself does not.
+                            const sentinelId = CONFIG.SEARCH_MAX_ID + 97000000;
+                            const sentinel = await messageChecker.checkExists(channelName, sentinelId);
+                            throw new Error(sentinel ? t.channelProbablyMissing : t.channelTooLarge);
+                        }
+                        autoSearch.updateInfo(`${t.rangeFound} ${sweep.highest} - ${sweep.upper}. ${t.startingAutoSearch}`);
+                        upper = sweep.upper;
                     }
-                    const sweep = await autoSearch.sweepUp(channelName, anchor);
-                    if (sweep.capped) {
-                        // A non-existent or private channel renders a preview
-                        // page instead of "post not found", so every probe
-                        // looks tall and the sweep runs to the ceiling. Probe
-                        // an ID no real channel can have: if it also "exists",
-                        // the channel itself does not.
-                        const sentinelId = CONFIG.SEARCH_MAX_ID + 97000000;
-                        const sentinel = await messageChecker.checkExists(channelName, sentinelId);
-                        throw new Error(sentinel ? t.channelProbablyMissing : t.channelTooLarge);
-                    }
-                    autoSearch.updateInfo(`${t.rangeFound} ${sweep.highest} - ${sweep.upper}. ${t.startingAutoSearch}`);
-                    let highest = sweep.highest;
-                    let upper = sweep.upper;
                     let sparse = false;
                     for (const step of CONFIG.SEARCH_LEVELS) {
                         // The 10k pass doubles as a sparsity measurement:
@@ -1147,15 +1198,27 @@
                     autoSearch.updateInfo(`${t.verifyingLastMessage} ${highest}`);
                     autoSearch.checkStop();
                     const lastPostId = await autoSearch.finalScan(channelName, highest);
+                    storage.removeItem(progressKey);
                     autoSearch.displayResult(channelName, lastPostId);
                 } catch (error) {
                     if (autoSearch.stopRequested) {
                         // An intentional Stop is not an error: report it as
-                        // progress and leave the channel unselected
-                        autoSearch.updateInfo(t.searchStopped);
+                        // progress and leave the channel unselected. The
+                        // verified partial top is stored so the next search
+                        // of this channel continues from it
+                        if (highest > 0) {
+                            storage.setItem(progressKey,
+                                upper > highest ? `${highest}|${upper}` : String(highest));
+                            autoSearch.updateInfo(`${t.searchStopped}. ${t.progressSaved} ${highest}`);
+                        } else {
+                            autoSearch.updateInfo(t.searchStopped);
+                        }
                         elements.loadChannelBtn.disabled = false;
                         utils.setLoadingState(false);
                     } else {
+                        // A finished (even if failed) search invalidates any
+                        // leftover partial progress
+                        storage.removeItem(progressKey);
                         console.error('Error in auto search:', error);
                         utils.showError(`Error in auto search: ${error.message}`);
                         elements.loadChannelBtn.disabled = false;
@@ -1182,6 +1245,7 @@
                     ` (${t.latestPostId} ${lastPostId})`
                 );
                 elements.currentChannel.style.display = 'block';
+                elements.reSearchBtn.style.display = 'block';
                 autoSearch.updateInfo(`${t.searchCompleted} ${lastPostId}`);
                 elements.currentChannel.classList.add('flash-ok');
                 setTimeout(() => {
@@ -1516,6 +1580,7 @@
                 document.getElementById('loadMoreBtn').textContent = t.loadMore;
                 document.getElementById('checkNewBtn').textContent = t.checkNew;
                 document.getElementById('stop-search-btn').textContent = t.stopSearch;
+                document.getElementById('reSearchBtn').textContent = t.reSearch;
                 document.getElementById('quickGuideTitle').textContent = t.quickGuideTitle;
                 document.getElementById('quickGuideDescription').textContent = t.quickGuideDescription;
                 document.getElementById('searchInfoText').textContent = t.searchInfoText;
@@ -1632,6 +1697,25 @@
                     if (!autoSearch.stopRequested) {
                         autoSearch.stopRequested = true;
                         elements.stopSearchBtn.disabled = true;
+                    }
+                });
+                elements.reSearchBtn.addEventListener('click', async () => {
+                    if (state.isLoading || !state.currentChannel) return;
+                    // Force a fresh automatic search: drop the saved resume
+                    // point and any partial progress from a stopped search
+                    storage.removeItem(CONFIG.LAST_ID_KEY_PREFIX + state.currentChannel);
+                    storage.removeItem(CONFIG.SEARCH_PROGRESS_KEY + state.currentChannel);
+                    utils.clearContainer();
+                    elements.tipsCard.style.display = 'none';
+                    elements.loadChannelBtn.disabled = true;
+                    elements.error.style.display = 'none';
+                    try {
+                        await autoSearch.findLastPost(state.currentChannel);
+                    } catch (error) {
+                        console.error('Error in re-search:', error);
+                        utils.showError(error.message);
+                    } finally {
+                        elements.loadChannelBtn.disabled = false;
                     }
                 });
                 elements.themeToggle.addEventListener('click', () => theme.toggle());

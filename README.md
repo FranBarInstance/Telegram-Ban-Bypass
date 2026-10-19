@@ -16,7 +16,7 @@ No installation required. You can:
 
 - **No login required** - No Telegram account needed to read channels
 - **Gap-tolerant multi-pass search** - Finds the latest post even across deleted-message gaps
-- **Resume where you left off** - Revisiting a channel opens instantly from the saved last ID
+- **Resume where you left off** - Revisiting a channel opens instantly from the saved last ID; a stopped search saves its progress and the next search continues from it, and "Search again" forces a fresh search
 - **Check for new messages** - Manual button, optional auto-check timer, and an extended check with a configurable limit (up to 1000 posts ahead) that jumps larger gaps
 - **Manual Start ID mode** - For channels where the automatic search struggles, start from a known message ID
 - **Real-Time Feedback** - Shows search progress
@@ -54,7 +54,7 @@ With existence detection in place, the search works in passes of decreasing reso
 3. Refinement – Successive passes at 10k, 1k, 100 and 10 narrow the region.
 4. Final scan – A resolution-1 scan pins down the exact last message ID.
 
-Each pass walks forward and stops after a streak of consecutive misses (10 by default), which is what lets it jump over deletion gaps: at the 1k pass it can cross a gap of up to ~10,000 deleted messages, at the 100 pass ~1,000, and so on. Probes run in parallel batches of 3. A Stop button aborts the search at any moment.
+Each pass walks forward and stops after a streak of consecutive misses (10 by default), which is what lets it jump over deletion gaps: at the 1k pass it can cross a gap of up to ~10,000 deleted messages, at the 100 pass ~1,000, and so on. Probes run in parallel batches of 3. A Stop button aborts the search at any moment; the highest ID verified so far is saved, and the next search of that channel continues from it instead of starting over.
 
 #### Why the Search Can Be Slow
 
