@@ -387,14 +387,8 @@ main {
     color: var(--accent);
     border: 1px solid var(--accent);
 }
-/* Keep "Check for new messages" pinned to the bottom of the viewport while
-   scrolling long feeds: at the end of a long channel it was easy to miss */
 #checkNewBtn {
-    position: sticky;
-    bottom: 12px;
-    z-index: 30;
-    margin-bottom: 70px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+    margin-bottom: 12px;
 }
 .widget-load-more-button:hover {
     background: var(--accent-soft);
@@ -428,7 +422,7 @@ main {
 .research-btn {
     display: block;
     width: 100%;
-    margin: 0 0 18px;
+    margin: 0 0 70px;
     padding: 11px 16px;
     font-size: 14px;
     font-family: inherit;
@@ -704,10 +698,10 @@ iframe[src*="t.me"] {
         <div class="content">
             <div id="current-channel" class="current-channel" style="display: none;"></div>
             <button type="button" class="stop-search-btn" id="stop-search-btn" style="display: none;"></button>
-            <button type="button" class="research-btn" id="reSearchBtn" style="display: none;"></button>
             <button class="widget-load-more-button" style="display: none;" id="loadMoreBtn"></button>
             <div id="widget-container"></div>
             <button class="widget-load-more-button" style="display: none;" id="checkNewBtn"></button>
+            <button type="button" class="research-btn" id="reSearchBtn" style="display: none;"></button>
             <div id="loading" class="loading" style="display: none;"></div>
             <div id="error" class="error" style="display: none;"></div>
             <section class="card tips" id="tips-card">
