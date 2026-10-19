@@ -347,8 +347,14 @@ main {
     color: var(--accent);
     border: 1px solid var(--accent);
 }
+/* Keep "Check for new messages" pinned to the bottom of the viewport while
+   scrolling long feeds: at the end of a long channel it was easy to miss */
 #checkNewBtn {
+    position: sticky;
+    bottom: 12px;
+    z-index: 30;
     margin-bottom: 70px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
 }
 .widget-load-more-button:hover {
     background: var(--accent-soft);
