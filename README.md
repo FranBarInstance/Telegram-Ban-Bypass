@@ -91,3 +91,7 @@ Revisiting a channel you already opened is instant: the last message ID is store
 ## License
 
 MIT License - Free for personal and commercial use
+
+---
+
+**[README](https://franbarinstance.github.io/Telegram-Ban-Bypass/)** | **[Repository](https://github.com/FranBarInstance/Telegram-Ban-Bypass)** | **[Demo](https://franbarinstance.github.io/Telegram-Ban-Bypass/public/)**
