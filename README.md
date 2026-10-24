@@ -1,5 +1,7 @@
 # Telegram Ban Bypass
 
+**Read in:** **English** | [Español](README.es.md) | [Русский](README.ru.md) | [Português](README.pt.md) | [Deutsch](README.de.md) | [Français](README.fr.md) | [Italiano](README.it.md) | [Polski](README.pl.md) | [Nederlands](README.nl.md)
+
 ## Overview
 
 An enhanced web-based tool that lets you view content from any public Telegram channel—even if your account is banned in that particular channel. Includes performance optimizations and upgraded features.
