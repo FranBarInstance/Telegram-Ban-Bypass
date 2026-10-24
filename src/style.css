@@ -107,15 +107,23 @@ main {
     min-height: 52px;
 }
 .brand {
-    font-size: 1.2em;
-    font-weight: 800;
-    color: var(--accent);
-    letter-spacing: 0.3px;
-    white-space: nowrap;
-    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 36px;
+    height: 36px;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    transition: border-color 0.15s ease, color 0.15s ease;
 }
-.brand:hover {
-    text-decoration: underline;
+.brand:hover,
+.brand:focus {
+    outline: none;
+    border-color: var(--accent);
+    color: var(--accent);
 }
 .toolbar-right {
     display: flex;
@@ -124,32 +132,66 @@ main {
     min-width: 0;
 }
 .toolbar-channel {
+    /* Takes all the room left by the toolbar icons; the ellipsis
+       only kicks in when the name actually collides with them */
+    flex: 1;
+    min-width: 0;
     font-weight: 700;
     color: var(--text);
-    max-width: 40vw;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.language-selector {
-    font-family: inherit;
-    font-size: 0.9em;
-    color: var(--text);
+.lang-wrap {
+    position: relative;
+    flex: none;
+}
+.lang-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 150px;
+    max-height: 60vh;
+    overflow-y: auto;
+    margin: 0;
+    padding: 4px;
+    list-style: none;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 5px 8px;
-    min-height: 36px;
-    cursor: pointer;
-    max-width: 130px;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    z-index: 20;
 }
-.language-selector:hover,
-.language-selector:focus {
-    outline: none;
-    border-color: var(--accent);
+.lang-menu button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 0.9em;
+    text-align: left;
+    white-space: nowrap;
+    color: var(--text);
+    background: none;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.lang-menu button:hover {
+    background: var(--accent-soft);
     color: var(--accent);
 }
-.theme-toggle {
+.lang-menu button.is-active {
+    color: var(--accent);
+    font-weight: 700;
+}
+.lang-menu button.is-active::after {
+    content: "\2713";
+}
+.theme-toggle,
+.lang-toggle {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -165,7 +207,9 @@ main {
     transition: border-color 0.15s ease, color 0.15s ease;
 }
 .theme-toggle:hover,
-.theme-toggle:focus {
+.theme-toggle:focus,
+.lang-toggle:hover,
+.lang-toggle:focus {
     outline: none;
     border-color: var(--accent);
     color: var(--accent);
@@ -347,7 +391,37 @@ main {
     color: var(--accent);
     border: 1px solid var(--accent);
 }
-#checkNewBtn {
+.button-row {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    margin: 18px 0;
+}
+.button-row .widget-load-more-button {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+    margin: 0;
+}
+.scroll-arrow-btn {
+    flex: none;
+    width: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-family: inherit;
+    color: var(--accent);
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+.scroll-arrow-btn:hover {
+    background: var(--accent-soft);
+}
+#check-new-row {
     margin-bottom: 12px;
 }
 .widget-load-more-button:hover {
@@ -428,13 +502,15 @@ main {
     min-width: 44px;
     padding: 8px 14px;
     font-size: 14px;
-    color: var(--danger);
+    color: var(--text-soft);
     background: transparent;
-    border: 1px solid var(--danger);
+    border: 1px solid var(--border);
     border-radius: 8px;
     cursor: pointer;
 }
 #saved-channels-list button:hover {
+    color: var(--danger);
+    border-color: var(--danger);
     background: var(--danger-soft);
 }
 .current-channel {
@@ -558,14 +634,8 @@ iframe[src*="t.me"] {
     .toolbar-inner {
         min-height: 48px;
     }
-    .brand {
-        font-size: 1.1em;
-    }
     .toolbar-right {
         gap: 8px;
-    }
-    .toolbar-channel {
-        max-width: 26vw;
     }
     .card {
         padding: 16px;

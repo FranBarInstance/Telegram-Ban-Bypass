@@ -22,8 +22,10 @@
                 currentlyViewing: "Currently viewing:",
                 latestPostId: "Latest post ID:",
                 searchCompleted: "✅ Search completed. Last message:",
-                loadMore: "Load Older Posts",
-                checkNew: "Check for New Messages",
+                loadMore: "Load Older",
+                checkNew: "Check New",
+                goDown: "Scroll down",
+                goUp: "Scroll up",
                 noNew: "No new messages",
                 prefs: "Preferences",
                 allowCookies: "Persistent cookies",
@@ -36,6 +38,7 @@
                 deepCheckMaxLabel: "posts ahead",
                 themeToDark: "Switch to dark mode",
                 themeToLight: "Switch to light mode",
+                languageLabel: "Language",
                 startIdRequired: "Please enter a Start ID (or uncheck it for automatic search)",
                 invalidStartId: "Invalid start ID",
                 invalidChannel: "Please enter a valid channel name",
@@ -79,8 +82,10 @@
                 currentlyViewing: "Viendo actualmente:",
                 latestPostId: "Último ID:",
                 searchCompleted: "✅ Búsqueda completada. Último mensaje:",
-                loadMore: "Cargar Mensajes Anteriores",
-                checkNew: "Comprobar Nuevos Mensajes",
+                loadMore: "Cargar Anteriores",
+                checkNew: "Comprobar Nuevos",
+                goDown: "Ir abajo",
+                goUp: "Ir arriba",
                 noNew: "No hay mensajes nuevos",
                 prefs: "Preferencias",
                 allowCookies: "Cookies persistentes",
@@ -93,6 +98,7 @@
                 deepCheckMaxLabel: "mensajes",
                 themeToDark: "Cambiar a modo oscuro",
                 themeToLight: "Cambiar a modo claro",
+                languageLabel: "Idioma",
                 startIdRequired: "Introduce un Start ID (o desmárcalo para la búsqueda automática)",
                 invalidStartId: "Start ID inválido",
                 invalidChannel: "Introduce un nombre de canal válido",
@@ -137,7 +143,9 @@
                 latestPostId: "Последний ID:",
                 searchCompleted: "✅ Поиск завершён. Последнее сообщение:",
                 loadMore: "Загрузить ранее",
-                checkNew: "Проверить новые сообщения",
+                checkNew: "Проверить новые",
+                goDown: "Вниз",
+                goUp: "Вверх",
                 noNew: "Нет новых сообщений",
                 prefs: "Настройки",
                 allowCookies: "Постоянные cookies",
@@ -150,6 +158,7 @@
                 deepCheckMaxLabel: "сообщений",
                 themeToDark: "Тёмная тема",
                 themeToLight: "Светлая тема",
+                languageLabel: "Язык",
                 startIdRequired: "Укажите Start ID (или снимите отметку для автопоиска)",
                 invalidStartId: "Неверный Start ID",
                 invalidChannel: "Укажите корректное имя канала",
@@ -194,7 +203,9 @@
                 latestPostId: "ID mais recente:",
                 searchCompleted: "✅ Busca concluída. Última mensagem:",
                 loadMore: "Carregar Anteriores",
-                checkNew: "Verificar Novas Mensagens",
+                checkNew: "Verificar Novas",
+                goDown: "Descer",
+                goUp: "Subir",
                 noNew: "Sem mensagens novas",
                 prefs: "Preferências",
                 allowCookies: "Cookies persistentes",
@@ -207,6 +218,7 @@
                 deepCheckMaxLabel: "mensagens",
                 themeToDark: "Modo escuro",
                 themeToLight: "Modo claro",
+                languageLabel: "Idioma",
                 startIdRequired: "Digite um Start ID (ou desmarque para busca automática)",
                 invalidStartId: "Start ID inválido",
                 invalidChannel: "Digite um nome de canal válido",
@@ -251,7 +263,9 @@
                 latestPostId: "Letzte ID:",
                 searchCompleted: "✅ Suche abgeschlossen. Letzte Nachricht:",
                 loadMore: "Ältere laden",
-                checkNew: "Neue Nachrichten prüfen",
+                checkNew: "Neue prüfen",
+                goDown: "Nach unten",
+                goUp: "Nach oben",
                 noNew: "Keine neuen Nachrichten",
                 prefs: "Einstellungen",
                 allowCookies: "Persistente Cookies",
@@ -264,6 +278,7 @@
                 deepCheckMaxLabel: "Beiträge",
                 themeToDark: "Dunkler Modus",
                 themeToLight: "Heller Modus",
+                languageLabel: "Sprache",
                 startIdRequired: "Start ID eingeben (oder Automatik ohne Start ID)",
                 invalidStartId: "Ungültige Start ID",
                 invalidChannel: "Bitte gültigen Kanalnamen eingeben",
@@ -307,8 +322,10 @@
                 currentlyViewing: "Consultation actuelle:",
                 latestPostId: "Dernier ID:",
                 searchCompleted: "✅ Recherche terminée. Dernier message:",
-                loadMore: "Messages précédents",
-                checkNew: "Vérifier les nouveaux messages",
+                loadMore: "Précédents",
+                checkNew: "Vérifier les nouveaux",
+                goDown: "Descendre",
+                goUp: "Monter",
                 noNew: "Aucun nouveau message",
                 prefs: "Préférences",
                 allowCookies: "Cookies persistants",
@@ -321,6 +338,7 @@
                 deepCheckMaxLabel: "messages",
                 themeToDark: "Mode sombre",
                 themeToLight: "Mode clair",
+                languageLabel: "Langue",
                 startIdRequired: "Saisissez un Start ID (ou décochez pour la recherche auto)",
                 invalidStartId: "Start ID invalide",
                 invalidChannel: "Saisissez un nom de canal valide",
@@ -365,7 +383,9 @@
                 latestPostId: "Ultimo ID:",
                 searchCompleted: "✅ Ricerca completata. Ultimo messaggio:",
                 loadMore: "Carica precedenti",
-                checkNew: "Controlla nuovi messaggi",
+                checkNew: "Controlla nuovi",
+                goDown: "Vai giù",
+                goUp: "Vai su",
                 noNew: "Nessun nuovo messaggio",
                 prefs: "Preferenze",
                 allowCookies: "Cookie persistenti",
@@ -378,6 +398,7 @@
                 deepCheckMaxLabel: "messaggi",
                 themeToDark: "Tema scuro",
                 themeToLight: "Tema chiaro",
+                languageLabel: "Lingua",
                 startIdRequired: "Inserisci uno Start ID (o deseleziona per la ricerca auto)",
                 invalidStartId: "Start ID non valido",
                 invalidChannel: "Inserisci un nome canale valido",
@@ -422,7 +443,9 @@
                 latestPostId: "Ostatnie ID:",
                 searchCompleted: "✅ Szukanie zakończone. Ostatnia wiadomość:",
                 loadMore: "Wczytaj starsze",
-                checkNew: "Sprawdź nowe wiadomości",
+                checkNew: "Sprawdź nowe",
+                goDown: "W dół",
+                goUp: "W górę",
                 noNew: "Brak nowych wiadomości",
                 prefs: "Preferencje",
                 allowCookies: "Stałe cookies",
@@ -435,6 +458,7 @@
                 deepCheckMaxLabel: "wiadomości",
                 themeToDark: "Tryb ciemny",
                 themeToLight: "Tryb jasny",
+                languageLabel: "Język",
                 startIdRequired: "Podaj Start ID (lub odznacz dla szukania auto)",
                 invalidStartId: "Nieprawidłowe Start ID",
                 invalidChannel: "Podaj poprawną nazwę kanału",
@@ -479,7 +503,9 @@
                 latestPostId: "Laatste ID:",
                 searchCompleted: "✅ Zoeken voltooid. Laatste bericht:",
                 loadMore: "Oudere laden",
-                checkNew: "Nieuwe berichten controleren",
+                checkNew: "Nieuwe controleren",
+                goDown: "Omlaag",
+                goUp: "Omhoog",
                 noNew: "Geen nieuwe berichten",
                 prefs: "Voorkeuren",
                 allowCookies: "Blijvende cookies",
@@ -492,6 +518,7 @@
                 deepCheckMaxLabel: "berichten",
                 themeToDark: "Donkere modus",
                 themeToLight: "Lichte modus",
+                languageLabel: "Taal",
                 startIdRequired: "Voer een Start ID in (of vink uit voor automatisch zoeken)",
                 invalidStartId: "Ongeldig Start ID",
                 invalidChannel: "Voer een geldige kanaalnaam in",
@@ -539,7 +566,9 @@
             updateLanguageSelector();
         }
         function updateLanguageSelector() {
-            document.getElementById('lang-select').value = currentLang;
+            elements.langMenu.querySelectorAll('button[data-lang]').forEach((btn) => {
+                btn.classList.toggle('is-active', btn.dataset.lang === currentLang);
+            });
         }
         const CONFIG = {
             NUM_POSTS: 25,
@@ -666,6 +695,7 @@
             stopSearchBtn: document.getElementById('stop-search-btn'),
             reSearchBtn: document.getElementById('reSearchBtn'),
             widgetContainer: document.getElementById('widget-container'),
+            loadMoreRow: document.getElementById('load-more-row'),
             loadMoreButton: document.querySelector('.widget-load-more-button'),
             channelInput: document.getElementById('channel-input'),
             loadChannelBtn: document.getElementById('load-channel-btn'),
@@ -674,8 +704,13 @@
             searchInfo: document.getElementById('searchInfo'),
             searchInfoText: document.getElementById('searchInfoText'),
             toolbarChannel: document.getElementById('toolbar-channel'),
+            checkNewRow: document.getElementById('check-new-row'),
             checkNewButton: document.getElementById('checkNewBtn'),
+            scrollDownBtn: document.getElementById('scroll-down-btn'),
+            scrollUpBtn: document.getElementById('scroll-up-btn'),
             themeToggle: document.getElementById('theme-toggle'),
+            langToggle: document.getElementById('lang-toggle'),
+            langMenu: document.getElementById('lang-menu'),
             tipsCard: document.getElementById('tips-card')
         };
         const utils = {
@@ -714,13 +749,15 @@
             },
             clearContainer() {
                 elements.widgetContainer.innerHTML = '';
-                elements.loadMoreButton.style.display = 'none';
-                elements.checkNewButton.style.display = 'none';
+                elements.loadMoreRow.style.display = 'none';
+                elements.checkNewRow.style.display = 'none';
                 elements.reSearchBtn.style.display = 'none';
                 autoCheck.stop();
                 elements.currentChannel.style.display = 'none';
-                elements.toolbarChannel.textContent = '';
-                elements.toolbarChannel.style.display = 'none';
+                // Back to the app name: the toolbar slot doubles as a brand
+                // placeholder while no channel is being viewed
+                elements.toolbarChannel.textContent = 'TGBanBypass';
+                elements.toolbarChannel.style.display = '';
             },
             createTestElement() {
                 const testContainer = document.createElement('div');
@@ -1297,7 +1334,7 @@
             load(start, numPosts = CONFIG.NUM_POSTS, prepend = false) {
                 if (!elements.widgetContainer) return;
                 iframeMonitor.start();
-                elements.loadMoreButton.style.display = 'block';
+                elements.loadMoreRow.style.display = 'flex';
                 const { fragment, end } = widgetLoader.createPostScripts(start, numPosts);
                 if (prepend) {
                     elements.widgetContainer.prepend(fragment);
@@ -1307,7 +1344,7 @@
                 if (end > 1) {
                     widgetLoader.setupLoadMoreButton(end);
                 } else {
-                    elements.loadMoreButton.style.display = 'none';
+                    elements.loadMoreRow.style.display = 'none';
                 }
             },
             appendRange(fromId, toId) {
@@ -1699,6 +1736,10 @@
                 loadBtn.setAttribute('aria-label', t.loadChannel);
                 document.getElementById('loadMoreBtn').textContent = t.loadMore;
                 document.getElementById('checkNewBtn').textContent = t.checkNew;
+                elements.scrollDownBtn.title = t.goDown;
+                elements.scrollDownBtn.setAttribute('aria-label', t.goDown);
+                elements.scrollUpBtn.title = t.goUp;
+                elements.scrollUpBtn.setAttribute('aria-label', t.goUp);
                 document.getElementById('stop-search-btn').textContent = t.stopSearch;
                 document.getElementById('reSearchBtn').textContent = t.reSearch;
                 document.getElementById('quickGuideTitle').textContent = t.quickGuideTitle;
@@ -1719,6 +1760,8 @@
                     t.deepCheckInfo.replace('100', utils.getDeepCheckMax());
                 document.getElementById('deepCheckMaxLabel').textContent = t.deepCheckMaxLabel;
                 document.getElementById('deepcheck-max').setAttribute('aria-label', t.deepCheckMaxLabel);
+                elements.langToggle.title = t.languageLabel;
+                elements.langToggle.setAttribute('aria-label', t.languageLabel);
                 const featuresList = document.getElementById('featuresList');
                 featuresList.innerHTML = t.features.map(feature => `<li>${feature}</li>`).join('');
                 theme.updateButton();
@@ -1805,7 +1848,7 @@
                         // above lastPostId would make the "check new" probes
                         // (lastPostId+1…) silently resolve to false
                         widgetLoader.load(state.lastPostId);
-                        elements.checkNewButton.style.display = 'block';
+                        elements.checkNewRow.style.display = 'flex';
                         // Land at the newest message (bottom), like a chat:
                         // scroll almost immediately, then re-adjust as iframes load
                         autoScroller.start();
@@ -1813,6 +1856,14 @@
                     }
                 });
                 elements.checkNewButton.addEventListener('click', () => newMessages.check(true));
+                // Jump helpers: down from the "load older" row to the newest
+                // message, up from the "check new" row back to the oldest
+                elements.scrollDownBtn.addEventListener('click', () => {
+                    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+                });
+                elements.scrollUpBtn.addEventListener('click', () => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
                 elements.stopSearchBtn.addEventListener('click', () => {
                     if (!autoSearch.stopRequested) {
                         autoSearch.stopRequested = true;
@@ -1839,6 +1890,29 @@
                     }
                 });
                 elements.themeToggle.addEventListener('click', () => theme.toggle());
+                // Language menu: the globe toggles the dropdown; choosing a
+                // language, clicking outside or pressing Escape closes it
+                const setLangMenu = (open) => {
+                    elements.langMenu.hidden = !open;
+                    elements.langToggle.setAttribute('aria-expanded', String(open));
+                };
+                elements.langToggle.addEventListener('click', () => {
+                    setLangMenu(elements.langMenu.hidden);
+                });
+                elements.langMenu.addEventListener('click', (e) => {
+                    const btn = e.target.closest('button[data-lang]');
+                    if (!btn) return;
+                    changeLanguage(btn.dataset.lang);
+                    setLangMenu(false);
+                });
+                document.addEventListener('click', (e) => {
+                    if (!elements.langMenu.hidden && !e.target.closest('.lang-wrap')) {
+                        setLangMenu(false);
+                    }
+                });
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') setLangMenu(false);
+                });
                 document.getElementById('pref-cookies').addEventListener('change', (e) => {
                     storage.setPersistent(e.target.checked);
                     // Reflect the real state: with storage disabled (Firefox

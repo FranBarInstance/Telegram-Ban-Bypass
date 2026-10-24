@@ -147,15 +147,23 @@ main {
     min-height: 52px;
 }
 .brand {
-    font-size: 1.2em;
-    font-weight: 800;
-    color: var(--accent);
-    letter-spacing: 0.3px;
-    white-space: nowrap;
-    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 36px;
+    height: 36px;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    transition: border-color 0.15s ease, color 0.15s ease;
 }
-.brand:hover {
-    text-decoration: underline;
+.brand:hover,
+.brand:focus {
+    outline: none;
+    border-color: var(--accent);
+    color: var(--accent);
 }
 .toolbar-right {
     display: flex;
@@ -164,32 +172,66 @@ main {
     min-width: 0;
 }
 .toolbar-channel {
+    /* Takes all the room left by the toolbar icons; the ellipsis
+       only kicks in when the name actually collides with them */
+    flex: 1;
+    min-width: 0;
     font-weight: 700;
     color: var(--text);
-    max-width: 40vw;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.language-selector {
-    font-family: inherit;
-    font-size: 0.9em;
-    color: var(--text);
+.lang-wrap {
+    position: relative;
+    flex: none;
+}
+.lang-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 150px;
+    max-height: 60vh;
+    overflow-y: auto;
+    margin: 0;
+    padding: 4px;
+    list-style: none;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 5px 8px;
-    min-height: 36px;
-    cursor: pointer;
-    max-width: 130px;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    z-index: 20;
 }
-.language-selector:hover,
-.language-selector:focus {
-    outline: none;
-    border-color: var(--accent);
+.lang-menu button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 0.9em;
+    text-align: left;
+    white-space: nowrap;
+    color: var(--text);
+    background: none;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.lang-menu button:hover {
+    background: var(--accent-soft);
     color: var(--accent);
 }
-.theme-toggle {
+.lang-menu button.is-active {
+    color: var(--accent);
+    font-weight: 700;
+}
+.lang-menu button.is-active::after {
+    content: "\2713";
+}
+.theme-toggle,
+.lang-toggle {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -205,7 +247,9 @@ main {
     transition: border-color 0.15s ease, color 0.15s ease;
 }
 .theme-toggle:hover,
-.theme-toggle:focus {
+.theme-toggle:focus,
+.lang-toggle:hover,
+.lang-toggle:focus {
     outline: none;
     border-color: var(--accent);
     color: var(--accent);
@@ -387,7 +431,37 @@ main {
     color: var(--accent);
     border: 1px solid var(--accent);
 }
-#checkNewBtn {
+.button-row {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    margin: 18px 0;
+}
+.button-row .widget-load-more-button {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+    margin: 0;
+}
+.scroll-arrow-btn {
+    flex: none;
+    width: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-family: inherit;
+    color: var(--accent);
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+.scroll-arrow-btn:hover {
+    background: var(--accent-soft);
+}
+#check-new-row {
     margin-bottom: 12px;
 }
 .widget-load-more-button:hover {
@@ -468,13 +542,15 @@ main {
     min-width: 44px;
     padding: 8px 14px;
     font-size: 14px;
-    color: var(--danger);
+    color: var(--text-soft);
     background: transparent;
-    border: 1px solid var(--danger);
+    border: 1px solid var(--border);
     border-radius: 8px;
     cursor: pointer;
 }
 #saved-channels-list button:hover {
+    color: var(--danger);
+    border-color: var(--danger);
     background: var(--danger-soft);
 }
 .current-channel {
@@ -598,14 +674,8 @@ iframe[src*="t.me"] {
     .toolbar-inner {
         min-height: 48px;
     }
-    .brand {
-        font-size: 1.1em;
-    }
     .toolbar-right {
         gap: 8px;
-    }
-    .toolbar-channel {
-        max-width: 26vw;
     }
     .card {
         padding: 16px;
@@ -617,9 +687,13 @@ iframe[src*="t.me"] {
 <body>
     <header class="toolbar">
         <div class="toolbar-inner">
-            <a class="brand" href="https://github.com/FranBarInstance/Telegram-Ban-Bypass" target="_blank" rel="noopener">TgBB</a>
+            <span id="toolbar-channel" class="toolbar-channel">TGBanBypass</span>
             <div class="toolbar-right">
-                <span id="toolbar-channel" class="toolbar-channel" style="display: none;"></span>
+                <a class="brand" href="https://github.com/FranBarInstance/Telegram-Ban-Bypass" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
+                    <svg viewBox="0 0 16 16" width="20" height="20" fill="currentColor" aria-hidden="true">
+                        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+                    </svg>
+                </a>
                 <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Theme">
                     <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
                         <circle cx="12" cy="12" r="4"></circle>
@@ -629,17 +703,26 @@ iframe[src*="t.me"] {
                         <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
                     </svg>
                 </button>
-                <select id="lang-select" class="language-selector" aria-label="Language" onchange="changeLanguage(this.value)">
-                    <option value="es">Español</option>
-                    <option value="en">English</option>
-                    <option value="ru">Русский</option>
-                    <option value="pt">Português</option>
-                    <option value="de">Deutsch</option>
-                    <option value="fr">Français</option>
-                    <option value="it">Italiano</option>
-                    <option value="pl">Polski</option>
-                    <option value="nl">Nederlands</option>
-                </select>
+                <div class="lang-wrap">
+                    <button type="button" id="lang-toggle" class="lang-toggle" aria-label="Language" aria-haspopup="true" aria-expanded="false">
+                        <svg class="icon-globe" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M2 12h20"></path>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                        </svg>
+                    </button>
+                    <ul id="lang-menu" class="lang-menu" hidden>
+                        <li><button type="button" data-lang="es">Español</button></li>
+                        <li><button type="button" data-lang="en">English</button></li>
+                        <li><button type="button" data-lang="ru">Русский</button></li>
+                        <li><button type="button" data-lang="pt">Português</button></li>
+                        <li><button type="button" data-lang="de">Deutsch</button></li>
+                        <li><button type="button" data-lang="fr">Français</button></li>
+                        <li><button type="button" data-lang="it">Italiano</button></li>
+                        <li><button type="button" data-lang="pl">Polski</button></li>
+                        <li><button type="button" data-lang="nl">Nederlands</button></li>
+                    </ul>
+                </div>
             </div>
         </div>
     </header>
@@ -698,9 +781,23 @@ iframe[src*="t.me"] {
         <div class="content">
             <div id="current-channel" class="current-channel" style="display: none;"></div>
             <button type="button" class="stop-search-btn" id="stop-search-btn" style="display: none;"></button>
-            <button class="widget-load-more-button" style="display: none;" id="loadMoreBtn"></button>
+            <div class="button-row" id="load-more-row" style="display: none;">
+                <button class="widget-load-more-button" id="loadMoreBtn"></button>
+                <button type="button" id="scroll-down-btn" class="scroll-arrow-btn" aria-label="Scroll down" title="Scroll down">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 5v14M5 12l7 7 7-7"></path>
+                    </svg>
+                </button>
+            </div>
             <div id="widget-container"></div>
-            <button class="widget-load-more-button" style="display: none;" id="checkNewBtn"></button>
+            <div class="button-row" id="check-new-row" style="display: none;">
+                <button class="widget-load-more-button" id="checkNewBtn"></button>
+                <button type="button" id="scroll-up-btn" class="scroll-arrow-btn" aria-label="Scroll up" title="Scroll up">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 19V5M5 12l7-7 7 7"></path>
+                    </svg>
+                </button>
+            </div>
             <button type="button" class="research-btn" id="reSearchBtn" style="display: none;"></button>
             <div id="loading" class="loading" style="display: none;"></div>
             <div id="error" class="error" style="display: none;"></div>
@@ -744,8 +841,10 @@ iframe[src*="t.me"] {
                 currentlyViewing: "Currently viewing:",
                 latestPostId: "Latest post ID:",
                 searchCompleted: "✅ Search completed. Last message:",
-                loadMore: "Load Older Posts",
-                checkNew: "Check for New Messages",
+                loadMore: "Load Older",
+                checkNew: "Check New",
+                goDown: "Scroll down",
+                goUp: "Scroll up",
                 noNew: "No new messages",
                 prefs: "Preferences",
                 allowCookies: "Persistent cookies",
@@ -758,6 +857,7 @@ iframe[src*="t.me"] {
                 deepCheckMaxLabel: "posts ahead",
                 themeToDark: "Switch to dark mode",
                 themeToLight: "Switch to light mode",
+                languageLabel: "Language",
                 startIdRequired: "Please enter a Start ID (or uncheck it for automatic search)",
                 invalidStartId: "Invalid start ID",
                 invalidChannel: "Please enter a valid channel name",
@@ -801,8 +901,10 @@ iframe[src*="t.me"] {
                 currentlyViewing: "Viendo actualmente:",
                 latestPostId: "Último ID:",
                 searchCompleted: "✅ Búsqueda completada. Último mensaje:",
-                loadMore: "Cargar Mensajes Anteriores",
-                checkNew: "Comprobar Nuevos Mensajes",
+                loadMore: "Cargar Anteriores",
+                checkNew: "Comprobar Nuevos",
+                goDown: "Ir abajo",
+                goUp: "Ir arriba",
                 noNew: "No hay mensajes nuevos",
                 prefs: "Preferencias",
                 allowCookies: "Cookies persistentes",
@@ -815,6 +917,7 @@ iframe[src*="t.me"] {
                 deepCheckMaxLabel: "mensajes",
                 themeToDark: "Cambiar a modo oscuro",
                 themeToLight: "Cambiar a modo claro",
+                languageLabel: "Idioma",
                 startIdRequired: "Introduce un Start ID (o desmárcalo para la búsqueda automática)",
                 invalidStartId: "Start ID inválido",
                 invalidChannel: "Introduce un nombre de canal válido",
@@ -859,7 +962,9 @@ iframe[src*="t.me"] {
                 latestPostId: "Последний ID:",
                 searchCompleted: "✅ Поиск завершён. Последнее сообщение:",
                 loadMore: "Загрузить ранее",
-                checkNew: "Проверить новые сообщения",
+                checkNew: "Проверить новые",
+                goDown: "Вниз",
+                goUp: "Вверх",
                 noNew: "Нет новых сообщений",
                 prefs: "Настройки",
                 allowCookies: "Постоянные cookies",
@@ -872,6 +977,7 @@ iframe[src*="t.me"] {
                 deepCheckMaxLabel: "сообщений",
                 themeToDark: "Тёмная тема",
                 themeToLight: "Светлая тема",
+                languageLabel: "Язык",
                 startIdRequired: "Укажите Start ID (или снимите отметку для автопоиска)",
                 invalidStartId: "Неверный Start ID",
                 invalidChannel: "Укажите корректное имя канала",
@@ -916,7 +1022,9 @@ iframe[src*="t.me"] {
                 latestPostId: "ID mais recente:",
                 searchCompleted: "✅ Busca concluída. Última mensagem:",
                 loadMore: "Carregar Anteriores",
-                checkNew: "Verificar Novas Mensagens",
+                checkNew: "Verificar Novas",
+                goDown: "Descer",
+                goUp: "Subir",
                 noNew: "Sem mensagens novas",
                 prefs: "Preferências",
                 allowCookies: "Cookies persistentes",
@@ -929,6 +1037,7 @@ iframe[src*="t.me"] {
                 deepCheckMaxLabel: "mensagens",
                 themeToDark: "Modo escuro",
                 themeToLight: "Modo claro",
+                languageLabel: "Idioma",
                 startIdRequired: "Digite um Start ID (ou desmarque para busca automática)",
                 invalidStartId: "Start ID inválido",
                 invalidChannel: "Digite um nome de canal válido",
@@ -973,7 +1082,9 @@ iframe[src*="t.me"] {
                 latestPostId: "Letzte ID:",
                 searchCompleted: "✅ Suche abgeschlossen. Letzte Nachricht:",
                 loadMore: "Ältere laden",
-                checkNew: "Neue Nachrichten prüfen",
+                checkNew: "Neue prüfen",
+                goDown: "Nach unten",
+                goUp: "Nach oben",
                 noNew: "Keine neuen Nachrichten",
                 prefs: "Einstellungen",
                 allowCookies: "Persistente Cookies",
@@ -986,6 +1097,7 @@ iframe[src*="t.me"] {
                 deepCheckMaxLabel: "Beiträge",
                 themeToDark: "Dunkler Modus",
                 themeToLight: "Heller Modus",
+                languageLabel: "Sprache",
                 startIdRequired: "Start ID eingeben (oder Automatik ohne Start ID)",
                 invalidStartId: "Ungültige Start ID",
                 invalidChannel: "Bitte gültigen Kanalnamen eingeben",
@@ -1029,8 +1141,10 @@ iframe[src*="t.me"] {
                 currentlyViewing: "Consultation actuelle:",
                 latestPostId: "Dernier ID:",
                 searchCompleted: "✅ Recherche terminée. Dernier message:",
-                loadMore: "Messages précédents",
-                checkNew: "Vérifier les nouveaux messages",
+                loadMore: "Précédents",
+                checkNew: "Vérifier les nouveaux",
+                goDown: "Descendre",
+                goUp: "Monter",
                 noNew: "Aucun nouveau message",
                 prefs: "Préférences",
                 allowCookies: "Cookies persistants",
@@ -1043,6 +1157,7 @@ iframe[src*="t.me"] {
                 deepCheckMaxLabel: "messages",
                 themeToDark: "Mode sombre",
                 themeToLight: "Mode clair",
+                languageLabel: "Langue",
                 startIdRequired: "Saisissez un Start ID (ou décochez pour la recherche auto)",
                 invalidStartId: "Start ID invalide",
                 invalidChannel: "Saisissez un nom de canal valide",
@@ -1087,7 +1202,9 @@ iframe[src*="t.me"] {
                 latestPostId: "Ultimo ID:",
                 searchCompleted: "✅ Ricerca completata. Ultimo messaggio:",
                 loadMore: "Carica precedenti",
-                checkNew: "Controlla nuovi messaggi",
+                checkNew: "Controlla nuovi",
+                goDown: "Vai giù",
+                goUp: "Vai su",
                 noNew: "Nessun nuovo messaggio",
                 prefs: "Preferenze",
                 allowCookies: "Cookie persistenti",
@@ -1100,6 +1217,7 @@ iframe[src*="t.me"] {
                 deepCheckMaxLabel: "messaggi",
                 themeToDark: "Tema scuro",
                 themeToLight: "Tema chiaro",
+                languageLabel: "Lingua",
                 startIdRequired: "Inserisci uno Start ID (o deseleziona per la ricerca auto)",
                 invalidStartId: "Start ID non valido",
                 invalidChannel: "Inserisci un nome canale valido",
@@ -1144,7 +1262,9 @@ iframe[src*="t.me"] {
                 latestPostId: "Ostatnie ID:",
                 searchCompleted: "✅ Szukanie zakończone. Ostatnia wiadomość:",
                 loadMore: "Wczytaj starsze",
-                checkNew: "Sprawdź nowe wiadomości",
+                checkNew: "Sprawdź nowe",
+                goDown: "W dół",
+                goUp: "W górę",
                 noNew: "Brak nowych wiadomości",
                 prefs: "Preferencje",
                 allowCookies: "Stałe cookies",
@@ -1157,6 +1277,7 @@ iframe[src*="t.me"] {
                 deepCheckMaxLabel: "wiadomości",
                 themeToDark: "Tryb ciemny",
                 themeToLight: "Tryb jasny",
+                languageLabel: "Język",
                 startIdRequired: "Podaj Start ID (lub odznacz dla szukania auto)",
                 invalidStartId: "Nieprawidłowe Start ID",
                 invalidChannel: "Podaj poprawną nazwę kanału",
@@ -1201,7 +1322,9 @@ iframe[src*="t.me"] {
                 latestPostId: "Laatste ID:",
                 searchCompleted: "✅ Zoeken voltooid. Laatste bericht:",
                 loadMore: "Oudere laden",
-                checkNew: "Nieuwe berichten controleren",
+                checkNew: "Nieuwe controleren",
+                goDown: "Omlaag",
+                goUp: "Omhoog",
                 noNew: "Geen nieuwe berichten",
                 prefs: "Voorkeuren",
                 allowCookies: "Blijvende cookies",
@@ -1214,6 +1337,7 @@ iframe[src*="t.me"] {
                 deepCheckMaxLabel: "berichten",
                 themeToDark: "Donkere modus",
                 themeToLight: "Lichte modus",
+                languageLabel: "Taal",
                 startIdRequired: "Voer een Start ID in (of vink uit voor automatisch zoeken)",
                 invalidStartId: "Ongeldig Start ID",
                 invalidChannel: "Voer een geldige kanaalnaam in",
@@ -1261,7 +1385,9 @@ iframe[src*="t.me"] {
             updateLanguageSelector();
         }
         function updateLanguageSelector() {
-            document.getElementById('lang-select').value = currentLang;
+            elements.langMenu.querySelectorAll('button[data-lang]').forEach((btn) => {
+                btn.classList.toggle('is-active', btn.dataset.lang === currentLang);
+            });
         }
         const CONFIG = {
             NUM_POSTS: 25,
@@ -1388,6 +1514,7 @@ iframe[src*="t.me"] {
             stopSearchBtn: document.getElementById('stop-search-btn'),
             reSearchBtn: document.getElementById('reSearchBtn'),
             widgetContainer: document.getElementById('widget-container'),
+            loadMoreRow: document.getElementById('load-more-row'),
             loadMoreButton: document.querySelector('.widget-load-more-button'),
             channelInput: document.getElementById('channel-input'),
             loadChannelBtn: document.getElementById('load-channel-btn'),
@@ -1396,8 +1523,13 @@ iframe[src*="t.me"] {
             searchInfo: document.getElementById('searchInfo'),
             searchInfoText: document.getElementById('searchInfoText'),
             toolbarChannel: document.getElementById('toolbar-channel'),
+            checkNewRow: document.getElementById('check-new-row'),
             checkNewButton: document.getElementById('checkNewBtn'),
+            scrollDownBtn: document.getElementById('scroll-down-btn'),
+            scrollUpBtn: document.getElementById('scroll-up-btn'),
             themeToggle: document.getElementById('theme-toggle'),
+            langToggle: document.getElementById('lang-toggle'),
+            langMenu: document.getElementById('lang-menu'),
             tipsCard: document.getElementById('tips-card')
         };
         const utils = {
@@ -1436,13 +1568,15 @@ iframe[src*="t.me"] {
             },
             clearContainer() {
                 elements.widgetContainer.innerHTML = '';
-                elements.loadMoreButton.style.display = 'none';
-                elements.checkNewButton.style.display = 'none';
+                elements.loadMoreRow.style.display = 'none';
+                elements.checkNewRow.style.display = 'none';
                 elements.reSearchBtn.style.display = 'none';
                 autoCheck.stop();
                 elements.currentChannel.style.display = 'none';
-                elements.toolbarChannel.textContent = '';
-                elements.toolbarChannel.style.display = 'none';
+                // Back to the app name: the toolbar slot doubles as a brand
+                // placeholder while no channel is being viewed
+                elements.toolbarChannel.textContent = 'TGBanBypass';
+                elements.toolbarChannel.style.display = '';
             },
             createTestElement() {
                 const testContainer = document.createElement('div');
@@ -2019,7 +2153,7 @@ iframe[src*="t.me"] {
             load(start, numPosts = CONFIG.NUM_POSTS, prepend = false) {
                 if (!elements.widgetContainer) return;
                 iframeMonitor.start();
-                elements.loadMoreButton.style.display = 'block';
+                elements.loadMoreRow.style.display = 'flex';
                 const { fragment, end } = widgetLoader.createPostScripts(start, numPosts);
                 if (prepend) {
                     elements.widgetContainer.prepend(fragment);
@@ -2029,7 +2163,7 @@ iframe[src*="t.me"] {
                 if (end > 1) {
                     widgetLoader.setupLoadMoreButton(end);
                 } else {
-                    elements.loadMoreButton.style.display = 'none';
+                    elements.loadMoreRow.style.display = 'none';
                 }
             },
             appendRange(fromId, toId) {
@@ -2421,6 +2555,10 @@ iframe[src*="t.me"] {
                 loadBtn.setAttribute('aria-label', t.loadChannel);
                 document.getElementById('loadMoreBtn').textContent = t.loadMore;
                 document.getElementById('checkNewBtn').textContent = t.checkNew;
+                elements.scrollDownBtn.title = t.goDown;
+                elements.scrollDownBtn.setAttribute('aria-label', t.goDown);
+                elements.scrollUpBtn.title = t.goUp;
+                elements.scrollUpBtn.setAttribute('aria-label', t.goUp);
                 document.getElementById('stop-search-btn').textContent = t.stopSearch;
                 document.getElementById('reSearchBtn').textContent = t.reSearch;
                 document.getElementById('quickGuideTitle').textContent = t.quickGuideTitle;
@@ -2441,6 +2579,8 @@ iframe[src*="t.me"] {
                     t.deepCheckInfo.replace('100', utils.getDeepCheckMax());
                 document.getElementById('deepCheckMaxLabel').textContent = t.deepCheckMaxLabel;
                 document.getElementById('deepcheck-max').setAttribute('aria-label', t.deepCheckMaxLabel);
+                elements.langToggle.title = t.languageLabel;
+                elements.langToggle.setAttribute('aria-label', t.languageLabel);
                 const featuresList = document.getElementById('featuresList');
                 featuresList.innerHTML = t.features.map(feature => `<li>${feature}</li>`).join('');
                 theme.updateButton();
@@ -2527,7 +2667,7 @@ iframe[src*="t.me"] {
                         // above lastPostId would make the "check new" probes
                         // (lastPostId+1…) silently resolve to false
                         widgetLoader.load(state.lastPostId);
-                        elements.checkNewButton.style.display = 'block';
+                        elements.checkNewRow.style.display = 'flex';
                         // Land at the newest message (bottom), like a chat:
                         // scroll almost immediately, then re-adjust as iframes load
                         autoScroller.start();
@@ -2535,6 +2675,14 @@ iframe[src*="t.me"] {
                     }
                 });
                 elements.checkNewButton.addEventListener('click', () => newMessages.check(true));
+                // Jump helpers: down from the "load older" row to the newest
+                // message, up from the "check new" row back to the oldest
+                elements.scrollDownBtn.addEventListener('click', () => {
+                    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+                });
+                elements.scrollUpBtn.addEventListener('click', () => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
                 elements.stopSearchBtn.addEventListener('click', () => {
                     if (!autoSearch.stopRequested) {
                         autoSearch.stopRequested = true;
@@ -2561,6 +2709,29 @@ iframe[src*="t.me"] {
                     }
                 });
                 elements.themeToggle.addEventListener('click', () => theme.toggle());
+                // Language menu: the globe toggles the dropdown; choosing a
+                // language, clicking outside or pressing Escape closes it
+                const setLangMenu = (open) => {
+                    elements.langMenu.hidden = !open;
+                    elements.langToggle.setAttribute('aria-expanded', String(open));
+                };
+                elements.langToggle.addEventListener('click', () => {
+                    setLangMenu(elements.langMenu.hidden);
+                });
+                elements.langMenu.addEventListener('click', (e) => {
+                    const btn = e.target.closest('button[data-lang]');
+                    if (!btn) return;
+                    changeLanguage(btn.dataset.lang);
+                    setLangMenu(false);
+                });
+                document.addEventListener('click', (e) => {
+                    if (!elements.langMenu.hidden && !e.target.closest('.lang-wrap')) {
+                        setLangMenu(false);
+                    }
+                });
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') setLangMenu(false);
+                });
                 document.getElementById('pref-cookies').addEventListener('change', (e) => {
                     storage.setPersistent(e.target.checked);
                     // Reflect the real state: with storage disabled (Firefox
