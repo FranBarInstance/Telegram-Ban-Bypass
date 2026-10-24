@@ -91,3 +91,7 @@ Volver a un canal que ya abriste es instantáneo: el ID del último mensaje qued
 ## Licencia
 
 Licencia MIT - Libre para uso personal y comercial
+
+---
+
+**[README](https://franbarinstance.github.io/Telegram-Ban-Bypass/)** | **[Repositorio](https://github.com/FranBarInstance/Telegram-Ban-Bypass)** | **[Demo](https://franbarinstance.github.io/Telegram-Ban-Bypass/public/)**

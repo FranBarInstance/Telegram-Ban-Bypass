@@ -91,3 +91,7 @@ Ponowne otwarcie kanału, który już otworzyłeś, jest natychmiastowe: ID osta
 ## Licencja
 
 Licencja MIT - darmowa do użytku osobistego i komercyjnego
+
+---
+
+**[README](https://franbarinstance.github.io/Telegram-Ban-Bypass/)** | **[Repozytorium](https://github.com/FranBarInstance/Telegram-Ban-Bypass)** | **[Demo](https://franbarinstance.github.io/Telegram-Ban-Bypass/public/)**

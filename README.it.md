@@ -91,3 +91,7 @@ Riaprire un canale già aperto è istantaneo: l'ID dell'ultimo messaggio è salv
 ## Licenza
 
 Licenza MIT - libera per uso personale e commerciale
+
+---
+
+**[README](https://franbarinstance.github.io/Telegram-Ban-Bypass/)** | **[Repository](https://github.com/FranBarInstance/Telegram-Ban-Bypass)** | **[Demo](https://franbarinstance.github.io/Telegram-Ban-Bypass/public/)**

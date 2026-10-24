@@ -91,3 +91,7 @@ Een kanaal dat je al geopend hebt opnieuw bezoeken is meteen klaar: het laatste 
 ## Licentie
 
 MIT-licentie - vrij voor persoonlijk en commercieel gebruik
+
+---
+
+**[README](https://franbarinstance.github.io/Telegram-Ban-Bypass/)** | **[Repository](https://github.com/FranBarInstance/Telegram-Ban-Bypass)** | **[Demo](https://franbarinstance.github.io/Telegram-Ban-Bypass/public/)**

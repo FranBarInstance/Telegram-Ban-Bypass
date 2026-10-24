@@ -91,3 +91,7 @@ Rouvrir un canal déjà ouvert est instantané : l'ID du dernier message est enr
 ## Licence
 
 Licence MIT - libre pour un usage personnel et commercial
+
+---
+
+**[README](https://franbarinstance.github.io/Telegram-Ban-Bypass/)** | **[Dépôt](https://github.com/FranBarInstance/Telegram-Ban-Bypass)** | **[Démo](https://franbarinstance.github.io/Telegram-Ban-Bypass/public/)**

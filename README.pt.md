@@ -91,3 +91,7 @@ Reabrir um canal que você já abriu é instantâneo: o ID da última mensagem f
 ## Licença
 
 Licença MIT - livre para uso pessoal e comercial
+
+---
+
+**[README](https://franbarinstance.github.io/Telegram-Ban-Bypass/)** | **[Repositório](https://github.com/FranBarInstance/Telegram-Ban-Bypass)** | **[Demonstração](https://franbarinstance.github.io/Telegram-Ban-Bypass/public/)**
