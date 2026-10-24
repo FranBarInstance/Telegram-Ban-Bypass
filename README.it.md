@@ -94,4 +94,4 @@ Licenza MIT - libera per uso personale e commerciale
 
 ---
 
-**[README](https://franbarinstance.github.io/Telegram-Ban-Bypass/)** | **[Repository](https://github.com/FranBarInstance/Telegram-Ban-Bypass)** | **[Demo](https://franbarinstance.github.io/Telegram-Ban-Bypass/public/)**
+**[README](https://franbarinstance.github.io/Telegram-Ban-Bypass/)** | **[Repository](https://github.com/FranBarInstance/Telegram-Ban-Bypass)** | **[Versione web dal vivo](https://franbarinstance.github.io/Telegram-Ban-Bypass/public/)**

@@ -94,4 +94,4 @@
 
 ---
 
-**[README](https://franbarinstance.github.io/Telegram-Ban-Bypass/)** | **[Репозиторий](https://github.com/FranBarInstance/Telegram-Ban-Bypass)** | **[Демо](https://franbarinstance.github.io/Telegram-Ban-Bypass/public/)**
+**[README](https://franbarinstance.github.io/Telegram-Ban-Bypass/)** | **[Репозиторий](https://github.com/FranBarInstance/Telegram-Ban-Bypass)** | **[Живая веб-версия](https://franbarinstance.github.io/Telegram-Ban-Bypass/public/)**
