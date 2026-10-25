@@ -1602,7 +1602,6 @@ iframe[src*="t.me"] {
             loadChannelBtn: document.getElementById('load-channel-btn'),
             startIdInput: document.getElementById('start-id-input'),
             startIdCheckbox: document.getElementById('pref-startid'),
-            searchInfo: document.getElementById('searchInfo'),
             searchInfoText: document.getElementById('searchInfoText'),
             toolbarChannel: document.getElementById('toolbar-channel'),
             checkNewRow: document.getElementById('check-new-row'),
@@ -1956,7 +1955,9 @@ iframe[src*="t.me"] {
                 const step = CONFIG.SEARCH_GRID_STEP;
                 let highest = anchor;
                 let fails = 0;
+                let probed = false;
                 for (let base = anchor + step + offset; base <= maxId; base += step * CONFIG.SEARCH_PARALLEL) {
+                    probed = true;
                     autoSearch.checkStop();
                     const ids = [];
                     for (let k = 0; k < CONFIG.SEARCH_PARALLEL; k++) {
@@ -1981,8 +1982,12 @@ iframe[src*="t.me"] {
                 // beyond it. With the standard ceiling refinement cannot
                 // bracket it, so report it as too large instead of returning
                 // a silently wrong ID; a custom, lower ceiling is not a size
-                // verdict and lets the caller keep the bracket.
-                return { highest, upper: maxId, capped: fails === 0 };
+                // verdict and lets the caller keep the bracket. Zero probes
+                // run (anchor already within one step of the ceiling) is
+                // "unknown", never "too large": capped needs at least one
+                // probe, or a re-search near SEARCH_MAX_ID would error out
+                // instead of settling the top from the saved anchor.
+                return { highest, upper: maxId, capped: fails === 0 && probed };
             },
             // When the first refinement pass proved the channel sparse, the
             // 1k pass escalates its tolerance once (x3) at its failure streak
@@ -2343,13 +2348,15 @@ iframe[src*="t.me"] {
         const manualSearch = {
             // Manual mode displays starting exactly from the entered Start ID.
             // The ID may name a deleted or not-yet-reached post, so it is
-            // probed once: only a Start ID that really exists becomes the
-            // channel's saved last ID. The stored value is therefore always
-            // the highest ID verified to exist (saveLastId keeps the max).
+            // probed with the search-grade retry (a single throttled answer
+            // must not discard a valid ID): only a Start ID that really
+            // exists becomes the channel's saved last ID. The stored value
+            // is therefore always the highest ID verified to exist
+            // (saveLastId keeps the max).
             async findLastPost(channelName, startId) {
                 const start = parseInt(startId, 10);
                 if (isNaN(start) || start <= 0) throw new Error(t.invalidStartId);
-                const exists = await messageChecker.checkExists(channelName, start);
+                const [exists] = await autoSearch.checkBatch(channelName, [start]);
                 autoSearch.displayResult(channelName, start, exists);
             }
         };
@@ -2367,7 +2374,9 @@ iframe[src*="t.me"] {
                 return script;
             },
             createPostScripts(start, numPosts) {
-                const end = start - numPosts + 1;
+                // IDs start at 1: a channel with fewer posts than the batch
+                // must not request embeds for IDs below 1
+                const end = Math.max(1, start - numPosts + 1);
                 const fragment = document.createDocumentFragment();
                 // Ascending order: oldest first, newest last (chat-style)
                 for (let n = end; n <= start; n++) {
@@ -2431,7 +2440,7 @@ iframe[src*="t.me"] {
                 }
             },
             // Keep the button in a busy state until most of the new batch is
-            // rendered (or 15 s max), so the user sees the loading progress
+            // rendered (or 6 s max), so the user sees the loading progress
             trackBatchReady(fromId, toId) {
                 const button = elements.loadMoreButton;
                 const total = toId - fromId + 1;
@@ -2630,13 +2639,28 @@ iframe[src*="t.me"] {
                     const max = deep && document.getElementById('pref-deepcheck').checked ?
                                 utils.getDeepCheckMax() : CONFIG.CHECK_NEW_MAX;
                     const shown = Math.min(gap, max);
-                    const deadline = Date.now() + CONFIG.TIMEOUT_DURATION;
+                    // A scan beyond the appended window walks IDs one by one
+                    // and can run for minutes: the Stop button must be
+                    // reachable while it does, or the whole app locks with no
+                    // way out. Stop keeps the partial result — the IDs
+                    // confirmed so far are saved, the rest is retried on the
+                    // next check
+                    if (max > shown) {
+                        autoSearch.stopRequested = false;
+                        elements.stopSearchBtn.disabled = false;
+                        elements.stopSearchBtn.style.display = 'block';
+                    }
                     let highest = base;
                     let fails = 0;
                     widgetLoader.appendRange(base + 1, base + shown);
                     iframeMonitor.start();
                     for (let offset = 1; offset <= shown; offset++) {
-                        if (await newMessages.judgeIframe(base + offset, deadline)) {
+                        if (autoSearch.stopRequested) break;
+                        // A per-embed deadline, not a shared one: a few
+                        // throttled early embeds would eat the whole window
+                        // and the rest would auto-resolve as missing,
+                        // dropping real posts from the feed
+                        if (await newMessages.judgeIframe(base + offset, Date.now() + CONFIG.TIMEOUT_DURATION)) {
                             highest = base + offset;
                             fails = 0;
                         } else {
@@ -2652,6 +2676,7 @@ iframe[src*="t.me"] {
                     // > 1 hides it behind a skipped offset). The deep check
                     // scans the whole range to jump over large purges.
                     for (let offset = shown + 1; offset <= max && (deep || fails < gap); offset++) {
+                        if (autoSearch.stopRequested) break;
                         if (await messageChecker.checkExists(state.currentChannel, base + offset)) {
                             highest = base + offset;
                             fails = 0;
@@ -2694,6 +2719,8 @@ iframe[src*="t.me"] {
                 } catch (error) {
                     console.error('Error checking new messages:', error);
                 } finally {
+                    elements.stopSearchBtn.style.display = 'none';
+                    elements.stopSearchBtn.disabled = false;
                     state.isLoading = false;
                     elements.checkNewButton.disabled = false;
                     if (Date.now() >= autoCheck.labelHoldUntil &&
