@@ -18,7 +18,7 @@ Instalacja nie jest potrzebna. Możesz:
 
 - **Bez logowania** - do czytania kanałów nie jest potrzebne konto Telegram
 - **Wieloprzebiegowe szukanie odporne na luki** - znajduje najnowszy post nawet przez luki po usuniętych wiadomościach
-- **Wznawianie od miejsca, w którym skończyłeś** - ponowne otwarcie kanału uruchamia się natychmiast od zapisanego ostatniego ID; zatrzymane szukanie zapisuje postęp i kolejne szukanie kontynuuje od niego, a „Szukaj ponownie" wymusza nowe szukanie
+- **Wznawianie od miejsca, w którym skończyłeś** - ponowne otwarcie kanału uruchamia się natychmiast od zapisanego ostatniego ID; zatrzymane szukanie zapisuje postęp i kolejne szukanie kontynuuje od niego, a „Szukaj ponownie" weryfikuje od zapisanego ostatniego ID i poprawia go, jeśli wiadomości zostały usunięte, za każdym razem sondując inne ID
 - **Sprawdź nowe wiadomości** - następne posty pojawiają się natychmiast, gdy sprawdzanie nadal działa w tle; przycisk ręczny, opcjonalny timer automatycznego sprawdzania oraz sprawdzanie rozszerzone z konfigurowalnym limitem (do 1000 postów do przodu), które przeskakuje większe luki
 - **Tryb Start ID ręcznie** - dla kanałów, w których automatyczne szukanie sobie nie radzi, zacznij od znanego ID wiadomości
 - **Informacje zwrotne w czasie rzeczywistym** - pokazują postęp szukania

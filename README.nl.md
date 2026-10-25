@@ -18,7 +18,7 @@ Geen installatie nodig. Je kunt:
 
 - **Geen login nodig** - je hebt geen Telegram-account nodig om kanalen te lezen
 - **Gap-tolerante zoektocht in meerdere passes** - vindt het nieuwste bericht ook over gaten van verwijderde berichten heen
-- **Hervat waar je was** - een kanaal opnieuw openen gebeurt direct vanaf het opgeslagen laatste ID; een gestopte zoektocht slaat haar voortgang op en de volgende zoektocht gaat vanaf daar verder, en "Opnieuw zoeken" forceert een verse zoektocht
+- **Hervat waar je was** - een kanaal opnieuw openen gebeurt direct vanaf het opgeslagen laatste ID; een gestopte zoektocht slaat haar voortgang op en de volgende zoektocht gaat vanaf daar verder, en "Opnieuw zoeken" hercontroleert vanaf het opgeslagen laatste ID en corrigeert het als berichten zijn verwijderd, bij elke klik andere IDs sonderend
 - **Nieuwe berichten controleren** - de volgende berichten verschijnen meteen terwijl de controle op de achtergrond doorloopt; handmatige knop, optionele automatische controletimer en een uitgebreide controle met instelbare limiet (tot 1000 berichten vooruit) die grotere gaten overslaat
 - **Handmatige Start ID-modus** - voor kanalen waar de automatische zoektocht struikelt, start vanaf een bekend bericht-ID
 - **Realtime feedback** - toont de voortgang van de zoektocht

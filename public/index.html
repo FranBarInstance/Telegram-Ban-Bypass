@@ -837,6 +837,8 @@ iframe[src*="t.me"] {
                 reSearch: "Search again",
                 progressSaved: "Progress saved:",
                 resumingProgress: "Resuming from saved progress:",
+                reSearchingFrom: "Searching from last known message:",
+                savedIdGone: "Saved message no longer exists, searching downward...",
                 channelProbablyMissing: "Channel not found. It may not exist or be private.",
                 currentlyViewing: "Currently viewing:",
                 latestPostId: "Latest post ID:",
@@ -897,6 +899,8 @@ iframe[src*="t.me"] {
                 reSearch: "Buscar de nuevo",
                 progressSaved: "Progreso guardado:",
                 resumingProgress: "Continuando desde el progreso:",
+                reSearchingFrom: "Buscando desde el último mensaje conocido:",
+                savedIdGone: "El mensaje guardado ya no existe, buscando hacia abajo...",
                 channelProbablyMissing: "Canal no encontrado. Puede no existir o ser privado.",
                 currentlyViewing: "Viendo actualmente:",
                 latestPostId: "Último ID:",
@@ -957,6 +961,8 @@ iframe[src*="t.me"] {
                 reSearch: "Искать заново",
                 progressSaved: "Прогресс сохранён:",
                 resumingProgress: "Продолжаю с сохранённого прогресса:",
+                reSearchingFrom: "Поиск от последнего известного сообщения:",
+                savedIdGone: "Сохранённое сообщение удалено, ищу ниже...",
                 channelProbablyMissing: "Канал не найден. Возможно, не существует или приватный.",
                 currentlyViewing: "Сейчас просматривается:",
                 latestPostId: "Последний ID:",
@@ -1017,6 +1023,8 @@ iframe[src*="t.me"] {
                 reSearch: "Buscar novamente",
                 progressSaved: "Progresso salvo:",
                 resumingProgress: "Continuando do progresso salvo:",
+                reSearchingFrom: "Pesquisando desde a última mensagem conhecida:",
+                savedIdGone: "A mensagem guardada já não existe, pesquisando para baixo...",
                 channelProbablyMissing: "Canal não encontrado. Pode não existir ou ser privado.",
                 currentlyViewing: "Visualizando agora:",
                 latestPostId: "ID mais recente:",
@@ -1077,6 +1085,8 @@ iframe[src*="t.me"] {
                 reSearch: "Erneut suchen",
                 progressSaved: "Fortschritt gespeichert:",
                 resumingProgress: "Fortsetzung bei gespeichertem Stand:",
+                reSearchingFrom: "Suche ab letzter bekannter Nachricht:",
+                savedIdGone: "Gespeicherte Nachricht existiert nicht mehr, suche nach unten...",
                 channelProbablyMissing: "Kanal nicht gefunden. Existiert er nicht oder ist privat?",
                 currentlyViewing: "Aktuell angezeigt:",
                 latestPostId: "Letzte ID:",
@@ -1137,6 +1147,8 @@ iframe[src*="t.me"] {
                 reSearch: "Chercher à nouveau",
                 progressSaved: "Progression enregistrée :",
                 resumingProgress: "Reprise depuis la progression :",
+                reSearchingFrom: "Recherche depuis le dernier message connu :",
+                savedIdGone: "Le message enregistré n'existe plus, recherche vers le bas...",
                 channelProbablyMissing: "Canal introuvable. Il n'existe peut-être pas ou est privé.",
                 currentlyViewing: "Consultation actuelle:",
                 latestPostId: "Dernier ID:",
@@ -1197,6 +1209,8 @@ iframe[src*="t.me"] {
                 reSearch: "Cerca di nuovo",
                 progressSaved: "Progresso salvato:",
                 resumingProgress: "Ripresa dal progresso salvato:",
+                reSearchingFrom: "Ricerca dall'ultimo messaggio noto:",
+                savedIdGone: "Il messaggio salvato non esiste più, ricerca verso il basso...",
                 channelProbablyMissing: "Canale non trovato. Potrebbe non esistere o essere privato.",
                 currentlyViewing: "Al momento visualizzi:",
                 latestPostId: "Ultimo ID:",
@@ -1257,6 +1271,8 @@ iframe[src*="t.me"] {
                 reSearch: "Szukaj ponownie",
                 progressSaved: "Zapisano postęp:",
                 resumingProgress: "Wznawiam od zapisanego postępu:",
+                reSearchingFrom: "Wyszukiwanie od ostatniej znanej wiadomości:",
+                savedIdGone: "Zapisana wiadomość już nie istnieje, szukam w dół...",
                 channelProbablyMissing: "Nie znaleziono kanału. Może nie istnieć lub być prywatny.",
                 currentlyViewing: "Aktualnie oglądasz:",
                 latestPostId: "Ostatnie ID:",
@@ -1317,6 +1333,8 @@ iframe[src*="t.me"] {
                 reSearch: "Opnieuw zoeken",
                 progressSaved: "Voortgang opgeslagen:",
                 resumingProgress: "Hervatten bij opgeslagen voortgang:",
+                reSearchingFrom: "Zoeken vanaf laatst bekende bericht:",
+                savedIdGone: "Opgeslagen bericht bestaat niet meer, zoeken naar beneden...",
                 channelProbablyMissing: "Kanaal niet gevonden. Het bestaat misschien niet of is privé.",
                 currentlyViewing: "Nu aan het bekijken:",
                 latestPostId: "Laatste ID:",
@@ -1425,7 +1443,10 @@ iframe[src*="t.me"] {
             SEARCH_FINAL_STREAK: 100,
             SEARCH_STREAK_ESCALATION: 3,
             SEARCH_MAX_ID: 3000000,
-            SEARCH_PROGRESS_KEY: 'tgSearchProgress:'
+            SEARCH_PROGRESS_KEY: 'tgSearchProgress:',
+            // How far below a dead saved ID "Search again" scans before
+            // falling back to the from-zero search (IDs, not probes)
+            RESEARCH_DESCEND_WINDOW: 300
         };
         const state = {
             countInterval: 0,
@@ -1864,16 +1885,22 @@ iframe[src*="t.me"] {
                 }
                 return 0;
             },
-            async sweepUp(channelName, anchor) {
+            // maxId caps the sweep. The re-search fallback passes the dead
+            // saved ID so it never re-probes the region already discarded.
+            // offset shifts every probe of the pass by the same amount below
+            // one step: the uniform spacing (and with it the guarantee that
+            // a block wider than the step cannot hide between probes) is
+            // preserved, but the probes land elsewhere
+            async sweepUp(channelName, anchor, maxId = CONFIG.SEARCH_MAX_ID, offset = 0) {
                 const step = CONFIG.SEARCH_GRID_STEP;
                 let highest = anchor;
                 let fails = 0;
-                for (let base = anchor + step; base <= CONFIG.SEARCH_MAX_ID; base += step * CONFIG.SEARCH_PARALLEL) {
+                for (let base = anchor + step + offset; base <= maxId; base += step * CONFIG.SEARCH_PARALLEL) {
                     autoSearch.checkStop();
                     const ids = [];
                     for (let k = 0; k < CONFIG.SEARCH_PARALLEL; k++) {
                         const id = base + k * step;
-                        if (id <= CONFIG.SEARCH_MAX_ID) ids.push(id);
+                        if (id <= maxId) ids.push(id);
                     }
                     autoSearch.updateInfo(`${t.testingMessage} ${ids[0]}-${ids[ids.length - 1]}...`);
                     const results = await autoSearch.checkBatch(channelName, ids);
@@ -1890,9 +1917,11 @@ iframe[src*="t.me"] {
                     }
                 }
                 // Posts still existed at the sweep ceiling: the channel extends
-                // beyond SEARCH_MAX_ID. Refinement cannot bracket it, so report
-                // it as too large instead of returning a silently wrong ID.
-                return { highest, upper: CONFIG.SEARCH_MAX_ID, capped: fails === 0 };
+                // beyond it. With the standard ceiling refinement cannot
+                // bracket it, so report it as too large instead of returning
+                // a silently wrong ID; a custom, lower ceiling is not a size
+                // verdict and lets the caller keep the bracket.
+                return { highest, upper: maxId, capped: fails === 0 };
             },
             // When the first refinement pass proved the channel sparse, the
             // 1k pass escalates its tolerance once (x3) at its failure streak
@@ -1900,14 +1929,14 @@ iframe[src*="t.me"] {
             // right above the last dense block, and stopping there would
             // strand every post beyond it. Dense channels never set the flag,
             // so their probe cost is unchanged.
-            async refineLevel(channelName, highest, upper, step, escalateAtStreak = false) {
+            async refineLevel(channelName, highest, upper, step, escalateAtStreak = false, offset = 0) {
                 let streak = CONFIG.SEARCH_GAP_STREAK;
                 let escalated = false;
                 let fails = 0;
                 let passHits = 0;
                 let passMisses = 0;
                 let lastProbed = highest;
-                for (let base = highest + step; base <= upper; base += step * CONFIG.SEARCH_PARALLEL) {
+                for (let base = highest + step + offset; base <= upper; base += step * CONFIG.SEARCH_PARALLEL) {
                     autoSearch.checkStop();
                     const ids = [];
                     for (let k = 0; k < CONFIG.SEARCH_PARALLEL; k++) {
@@ -1983,14 +2012,89 @@ iframe[src*="t.me"] {
                 }
                 return highest;
             },
-            async findLastPost(channelName) {
+            // Shared pipeline above a starting bracket: the coarse sweep
+            // when no upper bound is known yet, the refinement passes and
+            // the resolution-1 scan. st carries the verified bracket in and
+            // out (highest = existing ID, upper = bracket above it) so a
+            // Stop mid-pipeline can save the progress from the caller.
+            // maxId caps the sweep for callers that already discarded the
+            // region above it. With randomize, every pass gets a fresh
+            // random probe offset: a retry must not replay the positions of
+            // the failed attempt, or it fails identically — the whole point
+            // of clicking again is to sample different IDs.
+            async searchCore(channelName, st, maxId = CONFIG.SEARCH_MAX_ID, randomize = false) {
+                const jitter = (step) => randomize ? Math.floor(Math.random() * step) : 0;
+                if (st.upper === 0) {
+                    const sweep = await autoSearch.sweepUp(channelName, st.highest, maxId, jitter(CONFIG.SEARCH_GRID_STEP));
+                    st.highest = sweep.highest;
+                    if (sweep.capped && maxId >= CONFIG.SEARCH_MAX_ID) {
+                        // A non-existent or private channel renders a preview
+                        // page instead of "post not found", so every probe
+                        // looks tall and the sweep runs to the ceiling. Probe
+                        // an ID no real channel can have: if it also "exists",
+                        // the channel itself does not.
+                        const sentinelId = CONFIG.SEARCH_MAX_ID + 97000000;
+                        const sentinel = await messageChecker.checkExists(channelName, sentinelId);
+                        throw new Error(sentinel ? t.channelProbablyMissing : t.channelTooLarge);
+                    }
+                    st.upper = sweep.upper;
+                    autoSearch.updateInfo(`${t.rangeFound} ${st.highest} - ${st.upper}. ${t.startingAutoSearch}`);
+                }
+                let sparse = false;
+                for (const step of CONFIG.SEARCH_LEVELS) {
+                    // The 10k pass doubles as a sparsity measurement:
+                    // real hits but more misses than hits means the
+                    // channel is heavily purged, and the 1k pass must then
+                    // escalate past its first gap instead of giving up
+                    const refined = await autoSearch.refineLevel(
+                        channelName, st.highest, st.upper, step,
+                        step === 1000 && sparse,
+                        jitter(step)
+                    );
+                    st.highest = refined.highest;
+                    st.upper = refined.upper;
+                    if (step === CONFIG.SEARCH_LEVELS[0]) {
+                        const total = refined.hits + refined.misses;
+                        sparse = refined.hits > 0 && refined.misses > total / 2;
+                    }
+                }
+                autoSearch.updateInfo(`${t.verifyingLastMessage} ${st.highest}`);
+                autoSearch.checkStop();
+                return await autoSearch.finalScan(channelName, st.highest);
+            },
+            // Contiguous downward scan from fromId: the first existing ID
+            // found is the highest message below fromId. Contiguity is what
+            // makes it exact — no live block between fromId and the hit can
+            // be skipped — and the batch loop reuses the search-grade
+            // probes (ambiguous answers are retried). Returns 0 when the
+            // window is exhausted.
+            async descendFrom(channelName, fromId, window) {
+                // Inclusive floor: exactly `window` IDs get probed, from
+                // fromId - window up to fromId - 1 (message IDs start at 1,
+                // so 0 is never probed)
+                const floor = Math.max(1, fromId - window);
+                for (let base = fromId - 1; base >= floor; base -= CONFIG.SEARCH_PARALLEL) {
+                    autoSearch.checkStop();
+                    const ids = [];
+                    for (let k = 0; k < CONFIG.SEARCH_PARALLEL && base - k >= floor; k++) {
+                        ids.push(base - k);
+                    }
+                    autoSearch.updateInfo(`${t.testingMessage} ${ids[ids.length - 1]}-${ids[0]}...`);
+                    const results = await autoSearch.checkBatch(channelName, ids);
+                    // ids descend, so the first hit in order is the highest
+                    for (let j = 0; j < ids.length; j++) {
+                        if (results[j]) return ids[j];
+                    }
+                }
+                return 0;
+            },
+            async findLastPost(channelName, maxId = CONFIG.SEARCH_MAX_ID, randomize = false) {
                 autoSearch.stopRequested = false;
                 elements.stopSearchBtn.disabled = false;
                 elements.stopSearchBtn.style.display = 'block';
                 // Highest ID verified so far and the bracket above it: on
                 // Stop they become the progress the next search resumes from
-                let highest = 0;
-                let upper = 0;
+                const st = { highest: 0, upper: 0 };
                 const progressKey = CONFIG.SEARCH_PROGRESS_KEY + channelName;
                 try {
                     utils.setLoadingState(true, t.startingAutoSearch);
@@ -2002,8 +2106,8 @@ iframe[src*="t.me"] {
                         // continue from it instead of starting over. If the
                         // bracket above it was already found, skip the sweep
                         autoSearch.updateInfo(`${t.resumingProgress} ${progressHighest}`);
-                        highest = progressHighest;
-                        upper = Number.isFinite(progressUpper) && progressUpper > highest ? progressUpper : 0;
+                        st.highest = progressHighest;
+                        st.upper = Number.isFinite(progressUpper) && progressUpper > st.highest ? progressUpper : 0;
                     } else {
                         const savedId = parseInt(storage.getItem(CONFIG.LAST_ID_KEY_PREFIX + channelName), 10);
                         if (savedId > 0) {
@@ -2018,44 +2122,16 @@ iframe[src*="t.me"] {
                         if (anchor === 0) {
                             throw new Error(t.noValidMessages);
                         }
-                        highest = anchor;
-                    }
-                    if (upper === 0) {
-                        const sweep = await autoSearch.sweepUp(channelName, highest);
-                        highest = sweep.highest;
-                        if (sweep.capped) {
-                            // A non-existent or private channel renders a preview
-                            // page instead of "post not found", so every probe
-                            // looks tall and the sweep runs to the ceiling. Probe
-                            // an ID no real channel can have: if it also "exists",
-                            // the channel itself does not.
-                            const sentinelId = CONFIG.SEARCH_MAX_ID + 97000000;
-                            const sentinel = await messageChecker.checkExists(channelName, sentinelId);
-                            throw new Error(sentinel ? t.channelProbablyMissing : t.channelTooLarge);
-                        }
-                        autoSearch.updateInfo(`${t.rangeFound} ${sweep.highest} - ${sweep.upper}. ${t.startingAutoSearch}`);
-                        upper = sweep.upper;
-                    }
-                    let sparse = false;
-                    for (const step of CONFIG.SEARCH_LEVELS) {
-                        // The 10k pass doubles as a sparsity measurement:
-                        // real hits but more misses than hits means the
-                        // channel is heavily purged, and the 1k pass must then
-                        // escalate past its first gap instead of giving up
-                        const refined = await autoSearch.refineLevel(
-                            channelName, highest, upper, step,
-                            step === 1000 && sparse
-                        );
-                        highest = refined.highest;
-                        upper = refined.upper;
-                        if (step === CONFIG.SEARCH_LEVELS[0]) {
-                            const total = refined.hits + refined.misses;
-                            sparse = refined.hits > 0 && refined.misses > total / 2;
+                        st.highest = anchor;
+                        // An anchor above the cap falsifies the cap's premise
+                        // (nothing exists above the dead saved ID): the hit
+                        // is verified live evidence, so search from it
+                        // uncapped, with the sentinel active again
+                        if (anchor > maxId) {
+                            maxId = CONFIG.SEARCH_MAX_ID;
                         }
                     }
-                    autoSearch.updateInfo(`${t.verifyingLastMessage} ${highest}`);
-                    autoSearch.checkStop();
-                    const lastPostId = await autoSearch.finalScan(channelName, highest);
+                    const lastPostId = await autoSearch.searchCore(channelName, st, maxId, randomize);
                     storage.removeItem(progressKey);
                     autoSearch.displayResult(channelName, lastPostId);
                 } catch (error) {
@@ -2064,10 +2140,10 @@ iframe[src*="t.me"] {
                         // progress and leave the channel unselected. The
                         // verified partial top is stored so the next search
                         // of this channel continues from it
-                        if (highest > 0) {
+                        if (st.highest > 0) {
                             storage.setItem(progressKey,
-                                upper > highest ? `${highest}|${upper}` : String(highest));
-                            autoSearch.updateInfo(`${t.searchStopped}. ${t.progressSaved} ${highest}`);
+                                st.upper > st.highest ? `${st.highest}|${st.upper}` : String(st.highest));
+                            autoSearch.updateInfo(`${t.searchStopped}. ${t.progressSaved} ${st.highest}`);
                         } else {
                             autoSearch.updateInfo(t.searchStopped);
                         }
@@ -2079,6 +2155,94 @@ iframe[src*="t.me"] {
                         storage.removeItem(progressKey);
                         console.error('Error in auto search:', error);
                         utils.showError(`Error in auto search: ${error.message}`);
+                        elements.loadChannelBtn.disabled = false;
+                        utils.setLoadingState(false);
+                    }
+                } finally {
+                    elements.stopSearchBtn.style.display = 'none';
+                }
+            },
+            // Re-check anchored at the saved last ID. That ID existed once,
+            // so unless messages were deleted the channel's last message is
+            // at least that high: search upward from it (phase 1). Only when
+            // nothing above it is found is the saved ID itself probed: alive
+            // means it still is the last message; dead means a purge lowered
+            // the top, so the stale key is dropped — saveLastId keeps the max
+            // and would block the correction — and the search continues
+            // downward from it (phase 2). A deletion wider than the descent
+            // window falls back to the from-zero search with its sweep
+            // capped below the dead saved ID; the anchor grid may still
+            // probe a few points inside the discarded region — a hit there
+            // is verified evidence above the dead ID and drops the cap.
+            // Every run draws fresh random probe offsets: someone clicking
+            // "Search again" is unhappy with the current result, so an
+            // identical retry would be a waste — each click must sample
+            // different IDs and get a new chance at crossing what the
+            // previous one missed.
+            async reSearch(channelName, savedId) {
+                autoSearch.stopRequested = false;
+                elements.stopSearchBtn.disabled = false;
+                elements.stopSearchBtn.style.display = 'block';
+                // Same contract as findLastPost's progress: only verified
+                // hits are stored, so a Stop before anything above the
+                // anchor was found saves nothing
+                const st = { highest: savedId, upper: 0 };
+                const progressKey = CONFIG.SEARCH_PROGRESS_KEY + channelName;
+                try {
+                    utils.setLoadingState(true, t.startingAutoSearch);
+                    autoSearch.updateInfo(`${t.reSearchingFrom} ${savedId}`);
+                    const lastPostId = await autoSearch.searchCore(channelName, st, CONFIG.SEARCH_MAX_ID, true);
+                    if (lastPostId > savedId) {
+                        storage.removeItem(progressKey);
+                        autoSearch.displayResult(channelName, lastPostId);
+                        return;
+                    }
+                    autoSearch.checkStop();
+                    // checkBatch retries ambiguous answers: declaring the
+                    // saved ID dead on a throttled probe would wrongly drop
+                    // a good key and descend
+                    const [savedAlive] = await autoSearch.checkBatch(channelName, [savedId]);
+                    autoSearch.checkStop();
+                    if (savedAlive) {
+                        storage.removeItem(progressKey);
+                        autoSearch.displayResult(channelName, savedId);
+                        return;
+                    }
+                    storage.removeItem(CONFIG.LAST_ID_KEY_PREFIX + channelName);
+                    autoSearch.updateInfo(t.savedIdGone);
+                    const found = await autoSearch.descendFrom(channelName, savedId, CONFIG.RESEARCH_DESCEND_WINDOW);
+                    if (found > 0) {
+                        storage.removeItem(progressKey);
+                        autoSearch.displayResult(channelName, found);
+                        return;
+                    }
+                    // Wide purge: from-zero search with the sweep capped below
+                    // the dead ID (a live anchor above it drops the cap)
+                    await autoSearch.findLastPost(channelName, savedId, true);
+                } catch (error) {
+                    if (autoSearch.stopRequested) {
+                        // Only phase 1 can leave a resume point: during the
+                        // descent nothing above savedId was found and the
+                        // saved ID itself proved dead, so no verified-live
+                        // ID exists to store — the next search of this
+                        // channel rightly starts from zero
+                        if (st.highest > savedId) {
+                            storage.setItem(progressKey,
+                                st.upper > st.highest ? `${st.highest}|${st.upper}` : String(st.highest));
+                            autoSearch.updateInfo(`${t.searchStopped}. ${t.progressSaved} ${st.highest}`);
+                        } else {
+                            autoSearch.updateInfo(t.searchStopped);
+                        }
+                        elements.loadChannelBtn.disabled = false;
+                        utils.setLoadingState(false);
+                    } else {
+                        // A failed run invalidates only the progress: a
+                        // last-ID key still present was never disproven and
+                        // stays, and one already dropped just means the next
+                        // search starts from zero — both are safe states
+                        storage.removeItem(progressKey);
+                        console.error('Error in re-search:', error);
+                        utils.showError(`Error in re-search: ${error.message}`);
                         elements.loadChannelBtn.disabled = false;
                         utils.setLoadingState(false);
                     }
@@ -2242,7 +2406,13 @@ iframe[src*="t.me"] {
             windowTimer: null,
             active: false,
             scroll() {
-                elements.checkNewButton.scrollIntoView({ behavior: 'auto', block: 'end' });
+                // Scroll past "Check new" down to "Search again" when a result
+                // is displayed: it sits below it in the page and is the
+                // natural next action, so it must not stay cut off below the
+                // fold
+                const target = elements.reSearchBtn.style.display !== 'none'
+                    ? elements.reSearchBtn : elements.checkNewButton;
+                target.scrollIntoView({ behavior: 'auto', block: 'end' });
             },
             scheduleScroll() {
                 clearTimeout(autoScroller.debounce);
@@ -2691,16 +2861,24 @@ iframe[src*="t.me"] {
                 });
                 elements.reSearchBtn.addEventListener('click', async () => {
                     if (state.isLoading || !state.currentChannel) return;
-                    // Force a fresh automatic search: drop the saved resume
-                    // point and any partial progress from a stopped search
-                    storage.removeItem(CONFIG.LAST_ID_KEY_PREFIX + state.currentChannel);
+                    // Re-check anchored at the saved last ID when there is
+                    // one: it existed once, so the last message is at least
+                    // that high unless posts were deleted. The partial
+                    // progress of a stopped search is the untrusted state
+                    // and is dropped; without a saved ID this stays a plain
+                    // from-zero search
                     storage.removeItem(CONFIG.SEARCH_PROGRESS_KEY + state.currentChannel);
+                    const savedId = parseInt(storage.getItem(CONFIG.LAST_ID_KEY_PREFIX + state.currentChannel), 10);
                     utils.clearContainer();
                     elements.tipsCard.style.display = 'none';
                     elements.loadChannelBtn.disabled = true;
                     elements.error.style.display = 'none';
                     try {
-                        await autoSearch.findLastPost(state.currentChannel);
+                        if (savedId > 0) {
+                            await autoSearch.reSearch(state.currentChannel, savedId);
+                        } else {
+                            await autoSearch.findLastPost(state.currentChannel, CONFIG.SEARCH_MAX_ID, true);
+                        }
                     } catch (error) {
                         console.error('Error in re-search:', error);
                         utils.showError(error.message);

@@ -18,7 +18,7 @@ Keine Installation nötig. Du kannst:
 
 - **Kein Login nötig** - zum Lesen von Kanälen ist kein Telegram-Konto nötig
 - **Mehrpassesuche mit Lückentoleranz** - findet den neuesten Beitrag auch über Lücken gelöschter Nachrichten hinweg
-- **Setzt dort fort, wo du aufgehört hast** - ein Kanal, den du erneut besuchst, öffnet sofort ab der gespeicherten letzten ID; eine gestoppte Suche speichert ihren Fortschritt und die nächste Suche setzt dort fort, während „Erneut suchen" eine neue Suche erzwingt
+- **Setzt dort fort, wo du aufgehört hast** - ein Kanal, den du erneut besuchst, öffnet sofort ab der gespeicherten letzten ID; eine gestoppte Suche speichert ihren Fortschritt und die nächste Suche setzt dort fort, während „Erneut suchen" ab der gespeicherten letzten ID neu prüft und sie korrigiert, falls Nachrichten gelöscht wurden, bei jedem Klick andere IDs testend
 - **Neue Nachrichten prüfen** - die nächsten Beiträge erscheinen sofort, während die Prüfung im Hintergrund weiterläuft; manueller Button, optionaler Auto-Prüf-Timer und eine erweiterte Prüfung mit einstellbarem Limit (bis zu 1000 Beiträge voraus), die größere Lücken überspringt
 - **Manueller Start-ID-Modus** - für Kanäle, in denen die automatische Suche scheitert, starte bei einer bekannten Nachrichten-ID
 - **Rückmeldung in Echtzeit** - zeigt den Suchfortschritt

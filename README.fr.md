@@ -18,7 +18,7 @@ Aucune installation requise. Vous pouvez :
 
 - **Aucune connexion requise** - pas de compte Telegram nécessaire pour lire les canaux
 - **Recherche multi-passe tolérante aux trous** - trouve la dernière publication même à travers des trous de messages supprimés
-- **Reprise là où vous vous êtes arrêté** - rouvrir un canal s'affiche instantanément à partir du dernier ID enregistré ; une recherche interrompue enregistre sa progression et la recherche suivante reprend depuis ce point, tandis que « Rechercher à nouveau » force une recherche complète
+- **Reprise là où vous vous êtes arrêté** - rouvrir un canal s'affiche instantanément à partir du dernier ID enregistré ; une recherche interrompue enregistre sa progression et la recherche suivante reprend depuis ce point, tandis que « Rechercher à nouveau » revérifie à partir du dernier ID enregistré et le corrige si des messages ont été supprimés, en sondant des ID différents à chaque clic
 - **Vérifier les nouveaux messages** - les publications suivantes apparaissent instantanément pendant que la vérification continue en arrière-plan ; bouton manuel, minuteur de vérification automatique optionnel et vérification étendue avec limite configurable (jusqu'à 1000 publications en avant) qui franchit les plus grands trous
 - **Mode Start ID manuel** - pour les canaux où la recherche automatique peine, partez d'un ID de message connu
 - **Retour en temps réel** - affiche la progression de la recherche

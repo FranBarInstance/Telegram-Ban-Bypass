@@ -18,7 +18,7 @@ Non serve installare nulla. Puoi:
 
 - **Niente login** - per leggere i canali non serve un account Telegram
 - **Ricerca multi-pass tollerante ai buchi** - trova l'ultimo post anche attraverso buchi di messaggi eliminati
-- **Riprende da dove eri** - riaprire un canale si apre istantaneamente dall'ultimo ID salvato; una ricerca interrotta salva il progresso e la ricerca successiva riparte da lì, mentre "Cerca di nuovo" forza una ricerca completa
+- **Riprende da dove eri** - riaprire un canale si apre istantaneamente dall'ultimo ID salvato; una ricerca interrotta salva il progresso e la ricerca successiva riparte da lì, mentre "Cerca di nuovo" ricontrolla dall'ultimo ID salvato, correggendolo se sono stati eliminati messaggi, sondando ID diversi a ogni clic
 - **Controlla nuovi messaggi** - i post successivi appaiono subito mentre il controllo continua in background; pulsante manuale, timer di controllo automatico opzionale e un controllo esteso con limite configurabile (fino a 1000 post più avanti) che salta buchi più grandi
 - **Modalità Start ID manuale** - per i canali dove la ricerca automatica si inceppa, parti da un ID di messaggio noto
 - **Feedback in tempo reale** - mostra l'avanzamento della ricerca

@@ -18,7 +18,7 @@ Não é preciso instalar nada. Você pode:
 
 - **Sem login** - não é preciso conta do Telegram para ler canais
 - **Busca multipassagem tolerante a lacunas** - encontra a publicação mais recente mesmo através de lacunas de mensagens apagadas
-- **Retoma de onde parou** - reabrir um canal abre instantaneamente a partir do último ID salvo; uma busca interrompida salva o progresso e a próxima busca continua dele, e "Buscar de novo" força uma busca nova
+- **Retoma de onde parou** - reabrir um canal abre instantaneamente a partir do último ID salvo; uma busca interrompida salva o progresso e a próxima busca continua dele, e "Buscar de novo" reverifica a partir do último ID salvo, corrigindo-o se mensagens forem apagadas, sondando IDs diferentes a cada clique
 - **Verificar Novas Mensagens** - as próximas publicações aparecem na hora enquanto a verificação continua em segundo plano; botão manual, temporizador opcional de verificação automática e uma verificação estendida com limite configurável (até 1000 publicações à frente) que salta lacunas maiores
 - **Modo Start ID manual** - para canais onde a busca automática trava, comece a partir de um ID de mensagem conhecido
 - **Feedback em tempo real** - mostra o progresso da busca

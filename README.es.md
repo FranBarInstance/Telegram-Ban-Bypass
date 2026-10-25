@@ -18,7 +18,7 @@ No requiere instalación. Puedes:
 
 - **Sin inicio de sesión** - No se necesita cuenta de Telegram para leer canales
 - **Búsqueda multipase tolerante a huecos** - Encuentra la última publicación incluso a través de huecos de mensajes borrados
-- **Retoma donde lo dejaste** - Al volver a un canal se abre al instante desde el último ID guardado; una búsqueda detenida guarda su progreso y la siguiente búsqueda continúa desde ahí, y "Buscar de nuevo" fuerza una búsqueda nueva
+- **Retoma donde lo dejaste** - Al volver a un canal se abre al instante desde el último ID guardado; una búsqueda detenida guarda su progreso y la siguiente búsqueda continúa desde ahí, y "Buscar de nuevo" recomprueba desde el último ID guardado, corrigiéndolo si se borraron mensajes, sondeando IDs distintos en cada pulsación
 - **Comprobar Nuevos Mensajes** - Las siguientes publicaciones aparecen al instante mientras la comprobación sigue ejecutándose en segundo plano; botón manual, temporizador de comprobación automática opcional y una comprobación extendida con límite configurable (hasta 1000 publicaciones por delante) que salta huecos más grandes
 - **Modo Start ID manual** - Para canales donde la búsqueda automática se atasca, empieza desde un ID de mensaje conocido
 - **Retroalimentación en tiempo real** - Muestra el progreso de la búsqueda
