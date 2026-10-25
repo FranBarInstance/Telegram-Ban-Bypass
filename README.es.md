@@ -56,7 +56,7 @@ Con la detección de existencia resuelta, la búsqueda avanza en pasadas de reso
 3. Refinamiento – Pasadas sucesivas de 10k, 1k, 100 y 10 estrechan la región.
 4. Escaneo final – Un escaneo de resolución 1 fija el ID exacto del último mensaje.
 
-Cada pasada avanza hacia delante y se detiene tras una racha de fallos consecutivos (10 por defecto), que es lo que le permite saltar huecos de borrado: en la pasada de 1k puede cruzar un hueco de hasta ~10.000 mensajes borrados, en la de 100 unos ~1.000, y así sucesivamente. Las sondas se ejecutan en lotes paralelos de 3. Un botón Detener aborta la búsqueda en cualquier momento; se guarda el ID más alto verificado hasta el momento, y la siguiente búsqueda de ese canal continúa desde él en lugar de empezar de cero.
+Cada pasada avanza hacia delante y se detiene tras una racha de fallos consecutivos (10 por defecto), que es lo que le permite saltar huecos de borrado: en la pasada de 1k puede cruzar un hueco de hasta ~10.000 mensajes borrados, en la de 100 unos ~1.000, y así sucesivamente. Las sondas se ejecutan en lotes paralelos de 5. Un botón Detener aborta la búsqueda en cualquier momento; se guarda el ID más alto verificado hasta el momento, y la siguiente búsqueda de ese canal continúa desde él en lugar de empezar de cero.
 
 #### Por qué la búsqueda puede ser lenta
 

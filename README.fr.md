@@ -56,7 +56,7 @@ Une fois la détection d'existence en place, la recherche procède par passes de
 3. Raffinement – des passes successives à 10k, 1k, 100 puis 10 resserrent la région.
 4. Scan final – un scan de résolution 1 détermine exactement l'ID du dernier message.
 
-Chaque passe avance vers l'avant et s'arrête après une série d'échecs consécutifs (10 par défaut), ce qui lui permet de franchir les trous de suppression : à la passe 1k elle peut traverser un trou d'environ 10 000 messages supprimés, à la passe 100 environ 1 000, et ainsi de suite. Les sondes tournent en lots parallèles de 3. Un bouton Stop interrompt la recherche à tout moment ; l'ID le plus élevé vérifié est enregistré, et la recherche suivante de ce canal reprend depuis cet ID au lieu de repartir de zéro.
+Chaque passe avance vers l'avant et s'arrête après une série d'échecs consécutifs (10 par défaut), ce qui lui permet de franchir les trous de suppression : à la passe 1k elle peut traverser un trou d'environ 10 000 messages supprimés, à la passe 100 environ 1 000, et ainsi de suite. Les sondes tournent en lots parallèles de 5. Un bouton Stop interrompt la recherche à tout moment ; l'ID le plus élevé vérifié est enregistré, et la recherche suivante de ce canal reprend depuis cet ID au lieu de repartir de zéro.
 
 #### Pourquoi la recherche peut être lente
 

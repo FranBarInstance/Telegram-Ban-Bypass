@@ -56,7 +56,7 @@ Gdy wykrywanie istnienia jest gotowe, szukanie działa w przebiegach o malejące
 3. Doprecyzowanie – kolejne przebiegi dla 10k, 1k, 100 i 10 zawężają obszar.
 4. Skan końcowy – skan z rozdzielczością 1 ustala dokładne ID ostatniej wiadomości.
 
-Każdy przebieg idzie do przodu i zatrzymuje się po serii kolejnych nieobecności (domyślnie 10) — to właśnie pozwala przeskakiwać luki po usunięciach: w przebiegu 1k może pokonać lukę do ~10 000 usuniętych wiadomości, w przebiegu 100 około ~1000 i tak dalej. Sondy działają w równoległych partiach po 3. Przycisk Stop przerywa szukanie w każdej chwili; najwyższe dotąd zweryfikowane ID jest zapisywane i kolejne szukanie tego kanału kontynuuje od niego, zamiast zaczynać od nowa.
+Każdy przebieg idzie do przodu i zatrzymuje się po serii kolejnych nieobecności (domyślnie 10) — to właśnie pozwala przeskakiwać luki po usunięciach: w przebiegu 1k może pokonać lukę do ~10 000 usuniętych wiadomości, w przebiegu 100 około ~1000 i tak dalej. Sondy działają w równoległych partiach po 5. Przycisk Stop przerywa szukanie w każdej chwili; najwyższe dotąd zweryfikowane ID jest zapisywane i kolejne szukanie tego kanału kontynuuje od niego, zamiast zaczynać od nowa.
 
 #### Dlaczego szukanie może być powolne
 

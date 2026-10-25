@@ -56,7 +56,7 @@ Ottenuta la rilevazione dell'esistenza, la ricerca procede in passate a risoluzi
 3. Raffinamento – passate successive a 10k, 1k, 100 e 10 restringono la regione.
 4. Scansione finale – una scansione a risoluzione 1 fissa l'ID esatto dell'ultimo messaggio.
 
-Ogni passata avanza in avanti e si ferma dopo una serie di errori consecutivi (10 per impostazione predefinita), ed è questo che le permette di saltare i buchi di eliminazione: alla passata da 1k può attraversare un buco di fino a ~10.000 messaggi eliminati, alla passata da 100 circa ~1.000, e così via. Le sonde girano in batch paralleli da 3. Un pulsante Stop interrompe la ricerca in qualsiasi momento; l'ID più alto verificato fin lì viene salvato, e la ricerca successiva di quel canale riparte da lì invece di ricominciare da capo.
+Ogni passata avanza in avanti e si ferma dopo una serie di errori consecutivi (10 per impostazione predefinita), ed è questo che le permette di saltare i buchi di eliminazione: alla passata da 1k può attraversare un buco di fino a ~10.000 messaggi eliminati, alla passata da 100 circa ~1.000, e così via. Le sonde girano in batch paralleli da 5. Un pulsante Stop interrompe la ricerca in qualsiasi momento; l'ID più alto verificato fin lì viene salvato, e la ricerca successiva di quel canale riparte da lì invece di ricominciare da capo.
 
 #### Perché la ricerca può essere lenta
 

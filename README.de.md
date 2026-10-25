@@ -56,7 +56,7 @@ Mit der Existenz-Erkennung arbeitet die Suche in Durchläufen mit absteigender A
 3. Verfeinerung – aufeinanderfolgende Durchläufe mit 10k, 1k, 100 und 10 engen den Bereich ein.
 4. Endscan – ein Scan mit Auflösung 1 nagelt die exakte letzte Nachrichten-ID fest.
 
-Jeder Durchlauf läuft vorwärts und stoppt nach einer Serie aufeinanderfolgender Fehlschläge (standardmäßig 10) — genau das erlaubt es, Löschungs-Lücken zu überspringen: im 1k-Durchlauf kann er eine Lücke von bis zu ~10.000 gelöschten Nachrichten überqueren, im 100-Durchlauf ~1.000, und so weiter. Sonden laufen in parallelen Batches von 3. Ein Stop-Button bricht die Suche jederzeit ab; die höchste bislang verifizierte ID wird gespeichert, und die nächste Suche dieses Kanals setzt dort fort, statt von vorn zu beginnen.
+Jeder Durchlauf läuft vorwärts und stoppt nach einer Serie aufeinanderfolgender Fehlschläge (standardmäßig 10) — genau das erlaubt es, Löschungs-Lücken zu überspringen: im 1k-Durchlauf kann er eine Lücke von bis zu ~10.000 gelöschten Nachrichten überqueren, im 100-Durchlauf ~1.000, und so weiter. Sonden laufen in parallelen Batches von 5. Ein Stop-Button bricht die Suche jederzeit ab; die höchste bislang verifizierte ID wird gespeichert, und die nächste Suche dieses Kanals setzt dort fort, statt von vorn zu beginnen.
 
 #### Warum die Suche langsam sein kann
 

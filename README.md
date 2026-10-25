@@ -56,7 +56,7 @@ With existence detection in place, the search works in passes of decreasing reso
 3. Refinement – Successive passes at 10k, 1k, 100 and 10 narrow the region.
 4. Final scan – A resolution-1 scan pins down the exact last message ID.
 
-Each pass walks forward and stops after a streak of consecutive misses (10 by default), which is what lets it jump over deletion gaps: at the 1k pass it can cross a gap of up to ~10,000 deleted messages, at the 100 pass ~1,000, and so on. Probes run in parallel batches of 3. A Stop button aborts the search at any moment; the highest ID verified so far is saved, and the next search of that channel continues from it instead of starting over.
+Each pass walks forward and stops after a streak of consecutive misses (10 by default), which is what lets it jump over deletion gaps: at the 1k pass it can cross a gap of up to ~10,000 deleted messages, at the 100 pass ~1,000, and so on. Probes run in parallel batches of 5. A Stop button aborts the search at any moment; the highest ID verified so far is saved, and the next search of that channel continues from it instead of starting over.
 
 #### Why the Search Can Be Slow
 

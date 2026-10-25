@@ -56,7 +56,7 @@ Com a detecção de existência resolvida, a busca avança em passagens de resol
 3. Refinamento – passagens sucessivas de 10k, 1k, 100 e 10 estreitam a região.
 4. Varredura final – uma varredura de resolução 1 fixa o ID exato da última mensagem.
 
-Cada passagem avança para frente e para após uma sequência de falhas consecutivas (10 por padrão), e é isso que permite saltar lacunas de exclusão: na passagem de 1k ela pode cruzar uma lacuna de até ~10.000 mensagens apagadas, na de 100 cerca de ~1.000, e assim por diante. As sondas rodam em lotes paralelos de 3. Um botão Parar interrompe a busca a qualquer momento; o maior ID verificado até então é salvo, e a próxima busca desse canal continua a partir dele em vez de começar do zero.
+Cada passagem avança para frente e para após uma sequência de falhas consecutivas (10 por padrão), e é isso que permite saltar lacunas de exclusão: na passagem de 1k ela pode cruzar uma lacuna de até ~10.000 mensagens apagadas, na de 100 cerca de ~1.000, e assim por diante. As sondas rodam em lotes paralelos de 5. Um botão Parar interrompe a busca a qualquer momento; o maior ID verificado até então é salvo, e a próxima busca desse canal continua a partir dele em vez de começar do zero.
 
 #### Por que a busca pode ser lenta
 

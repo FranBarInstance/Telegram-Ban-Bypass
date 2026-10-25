@@ -663,10 +663,16 @@
             AUTO_SCROLL_WINDOW: 10000,
             SEARCH_GRID_STEP: 100000,
             SEARCH_GAP_STREAK: 10,
-            SEARCH_PARALLEL: 3,
+            SEARCH_PARALLEL: 5,
             SEARCH_LEVELS: [10000, 1000, 100, 10],
             SEARCH_FINAL_WINDOW: 1000,
-            SEARCH_FINAL_STREAK: 100,
+            // Confirmation depth above the found top at resolution 1.
+            // Every point here is a probe burned on a dead ID, so the
+            // value trades orphan-hunting reach (a live post above a
+            // 51-100 wide deletion gap stays out of reach) for ~50 fewer
+            // requests on every search; wider gaps defeat 100 just the
+            // same, and the re-search and the extended check cover the rest
+            SEARCH_FINAL_STREAK: 50,
             SEARCH_STREAK_ESCALATION: 3,
             SEARCH_MAX_ID: 3000000,
             SEARCH_PROGRESS_KEY: 'tgSearchProgress:',

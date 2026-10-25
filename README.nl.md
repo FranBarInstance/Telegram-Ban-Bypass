@@ -56,7 +56,7 @@ Met existentiedetectie op zijn plaats werkt de zoektocht in passes met afnemende
 3. Verfijning – opeenvolgende passes op 10k, 1k, 100 en 10 verkleinen het gebied.
 4. Eindscan – een scan met resolutie 1 bepaalt het exacte laatste bericht-ID.
 
-Elke pass loopt vooruit en stopt na een reeks opeenvolgende misses (standaard 10), en dat is wat het toestaat over verwijderingsgaten te springen: in de 1k-pass kan het een gat van tot ~10.000 verwijderde berichten oversteken, in de 100-pass ~1.000, en ga zo maar door. Sondes draaien in parallelle batches van 3. Een Stop-knop breekt de zoektocht op elk moment af; het hoogste tot dan toe geverifieerde ID wordt opgeslagen, en de volgende zoektocht van dat kanaal gaat vanaf daar verder in plaats van opnieuw te beginnen.
+Elke pass loopt vooruit en stopt na een reeks opeenvolgende misses (standaard 10), en dat is wat het toestaat over verwijderingsgaten te springen: in de 1k-pass kan het een gat van tot ~10.000 verwijderde berichten oversteken, in de 100-pass ~1.000, en ga zo maar door. Sondes draaien in parallelle batches van 5. Een Stop-knop breekt de zoektocht op elk moment af; het hoogste tot dan toe geverifieerde ID wordt opgeslagen, en de volgende zoektocht van dat kanaal gaat vanaf daar verder in plaats van opnieuw te beginnen.
 
 #### Waarom de zoektocht traag kan zijn
 
