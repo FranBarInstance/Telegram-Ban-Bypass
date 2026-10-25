@@ -615,6 +615,21 @@ iframe[src*="t.me"] {
     color: var(--note-text);
     font-size: 0.95em;
 }
+/* Numbered strategies under the intro paragraph; the extra class level
+   keeps the .tips checkmark styling (✓, 26px pad) away from them */
+.search-info ol {
+    margin: 10px 0 12px;
+    padding-left: 22px;
+}
+.search-info ol li {
+    margin: 0 0 6px;
+    padding-left: 0;
+    color: var(--note-text);
+    font-size: 0.95em;
+}
+.search-info ol li::before {
+    content: none;
+}
 .tips ul {
     list-style: none;
     padding: 0;
@@ -806,6 +821,7 @@ iframe[src*="t.me"] {
                 <p id="quickGuideDescription"></p>
                 <div class="search-info" id="searchInfo">
                     <p id="searchInfoText"></p>
+                    <ol id="searchInfoSteps"></ol>
                     <p id="deepCheckInfoText"></p>
                 </div>
                 <ul id="featuresList"></ul>
@@ -865,7 +881,12 @@ iframe[src*="t.me"] {
                 invalidChannel: "Please enter a valid channel name",
                 quickGuideTitle: "Quick Guide: View Banned Channels:",
                 quickGuideDescription: "Allows you to access blocked Telegram channels or groups. You can read the messages of a channel without appearing in the history, no one knows if you have read it.",
-                searchInfoText: "Automatic search fails in channels where many messages have been deleted. In that case enable \"Manual, start ID\" in Preferences and enter the last message ID, which you must find yourself.",
+                searchInfoText: "Automatic search can fail in channels where many messages have been deleted: it may stop below the real last message. Three ways to reach the newest post:",
+                searchInfoSteps: [
+                    "Press \"Search again\": each press probes different message IDs, so what one search misses the next one may find",
+                    "Read the last ID in a post's link: every message link ends in its number (t.me/channel/123), so open the newest post you know and copy it",
+                    "Enter that number in \"Manual, start ID\" (Preferences) and load; if the feed looks short, try higher and lower IDs until you find the newest post"
+                ],
                 features: [
                     "No login required. No Telegram account needed to read channels",
                     "Use channel names (e.g., \"telegram\")",
@@ -927,7 +948,12 @@ iframe[src*="t.me"] {
                 invalidChannel: "Introduce un nombre de canal válido",
                 quickGuideTitle: "Guía Rápida: Ver Canales Bloqueados:",
                 quickGuideDescription: "Permite acceder a canales o grupos bloqueados de Telegram. Puedes leer los mensajes de un canal sin aparecer en el historial, nadie sabe si lo has leído.",
-                searchInfoText: "La búsqueda automática falla en canales donde se han borrado muchos mensajes. En ese caso activa \"Manual, start ID\" en Preferencias e introduce el ID del último mensaje, que debes encontrar tú.",
+                searchInfoText: "La búsqueda automática puede fallar en canales donde se han borrado muchos mensajes: puede quedarse por debajo del último real. Tres formas de llegar a la publicación más nueva:",
+                searchInfoSteps: [
+                    "Pulsa \"Buscar de nuevo\": cada pulsación sondea IDs de mensaje distintos, así que lo que una búsqueda no encuentra, la siguiente puede encontrarlo",
+                    "Lee el último ID en el enlace de una publicación: todo enlace de mensaje termina en su número (t.me/canal/123); abre la publicación más nueva que conozcas y cópialo",
+                    "Introduce ese número en \"Manual, start ID\" (Preferencias) y carga; si el feed se queda corto, prueba IDs mayores y menores hasta dar con la publicación más nueva"
+                ],
                 features: [
                     "Sin inicio de sesión. No necesitas cuenta de Telegram para leer canales",
                     "Usa nombres de canal (ej: \"telegram\")",
@@ -989,7 +1015,12 @@ iframe[src*="t.me"] {
                 invalidChannel: "Укажите корректное имя канала",
                 quickGuideTitle: "Кратко: просмотр заблокированных каналов:",
                 quickGuideDescription: "Позволяет читать заблокированные каналы и группы Telegram. Сообщения читаются без следа в истории, никто не узнает, что вы их читали.",
-                searchInfoText: "Автопоиск не работает в каналах с множеством удалённых сообщений. Включите \"Manual, start ID\" в Настройках и укажите ID последнего сообщения, который нужно найти самому.",
+                searchInfoText: "Автопоиск может не справиться с каналом, где удалено много сообщений: он может остановиться ниже реальной последней записи. Три способа добраться до самой новой записи:",
+                searchInfoSteps: [
+                    "Нажмите \"Искать заново\": каждое нажатие проверяет другие ID сообщений — то, что пропустил один поиск, может найти следующий",
+                    "Прочитайте последний ID в ссылке записи: каждая ссылка на сообщение заканчивается его номером (t.me/канал/123) — откройте самую новую известную запись и скопируйте номер",
+                    "Введите это число в \"Manual, start ID\" (Настройки) и загрузите; если лента выглядит короткой, пробуйте большие и меньшие ID, пока не найдёте самую новую запись"
+                ],
                 features: [
                     "Без входа. Аккаунт Telegram не нужен для чтения каналов",
                     "Используйте имя канала (напр. \"telegram\")",
@@ -1051,7 +1082,12 @@ iframe[src*="t.me"] {
                 invalidChannel: "Digite um nome de canal válido",
                 quickGuideTitle: "Guia Rápido: Ver Canais Bloqueados:",
                 quickGuideDescription: "Permite acessar canais ou grupos bloqueados do Telegram. Você lê as mensagens de um canal sem aparecer no histórico, ninguém sabe que você leu.",
-                searchInfoText: "A busca automática falha em canais com muitas mensagens apagadas. Nesse caso ative \"Manual, start ID\" em Preferências e digite o ID da última mensagem, que você deve encontrar.",
+                searchInfoText: "A busca automática pode falhar em canais com muitas mensagens apagadas: ela pode parar abaixo da última real. Três maneiras de chegar à publicação mais nova:",
+                searchInfoSteps: [
+                    "Pressione \"Buscar novamente\": cada pressionada sonda IDs de mensagem diferentes, então o que uma busca não encontra, a próxima pode encontrar",
+                    "Leia o último ID no link de uma publicação: todo link de mensagem termina no seu número (t.me/canal/123); abra a publicação mais nova que você conhecer e copie-o",
+                    "Digite esse número em \"Manual, start ID\" (Preferências) e carregue; se o feed parecer curto, teste IDs maiores e menores até achar a publicação mais nova"
+                ],
                 features: [
                     "Sem login. Não precisa de conta do Telegram para ler canais",
                     "Use nomes de canal (ex.: \"telegram\")",
@@ -1113,7 +1149,12 @@ iframe[src*="t.me"] {
                 invalidChannel: "Bitte gültigen Kanalnamen eingeben",
                 quickGuideTitle: "Kurzanleitung: Gesperrte Kanäle:",
                 quickGuideDescription: "Ermöglicht Zugriff auf gesperrte Telegram-Kanäle oder -Gruppen. Du liest Kanalnachrichten ohne in der Historie aufzutauchen, niemand sieht, dass du gelesen hast.",
-                searchInfoText: "Die Automatik scheitert in Kanälen mit vielen gelöschten Nachrichten. Aktiviere dann \"Manual, start ID\" in den Einstellungen und gib die letzte Nachrichten-ID ein, die du selbst finden musst.",
+                searchInfoText: "Die automatische Suche kann in Kanälen mit vielen gelöschten Nachrichten scheitern: Sie bleibt womöglich unter der echten letzten zurück. Drei Wege zum neuesten Beitrag:",
+                searchInfoSteps: [
+                    "Drücke \"Erneut suchen\": jeder Klick testet andere Nachrichten-IDs — was eine Suche verpasst, findet vielleicht die nächste",
+                    "Lies die letzte ID im Link eines Beitrags: jeder Nachrichten-Link endet auf seiner Nummer (t.me/kanal/123) — öffne den neuesten Beitrag, den du kennst, und kopiere sie",
+                    "Gib diese Zahl unter \"Manual, start ID\" (Einstellungen) ein und lade; wirkt der Feed zu kurz, probiere höhere und niedrigere IDs, bis du den neuesten Beitrag findest"
+                ],
                 features: [
                     "Kein Login. Kein Telegram-Konto zum Lesen nötig",
                     "Kanalnamen nutzen (z. B. \"telegram\")",
@@ -1175,7 +1216,12 @@ iframe[src*="t.me"] {
                 invalidChannel: "Saisissez un nom de canal valide",
                 quickGuideTitle: "Guide rapide: voir les canaux bannis:",
                 quickGuideDescription: "Permet d'accéder aux canaux ou groupes Telegram bloqués. Vous lisez les messages sans apparaître dans l'historique, personne ne sait que vous avez lu.",
-                searchInfoText: "La recherche échoue dans les canaux avec beaucoup de messages supprimés. Activez alors \"Manual, start ID\" dans Préférences et saisissez l'ID du dernier message, que vous devez trouver.",
+                searchInfoText: "La recherche automatique peut échouer dans les canaux où beaucoup de messages ont été supprimés : elle peut s'arrêter en dessous du vrai dernier. Trois façons d'atteindre la publication la plus récente :",
+                searchInfoSteps: [
+                    "Appuyez sur \"Chercher à nouveau\" : chaque appui sonde des ID de messages différents, ce qu'une recherche manque, la suivante peut le trouver",
+                    "Lisez le dernier ID dans le lien d'une publication : chaque lien de message se termine par son numéro (t.me/canal/123) — ouvrez la publication la plus récente que vous connaissiez et copiez-le",
+                    "Saisissez ce nombre dans \"Manual, start ID\" (Préférences) et chargez ; si le fil paraît court, essayez des ID plus grands et plus petits jusqu'à trouver la publication la plus récente"
+                ],
                 features: [
                     "Sans connexion. Aucun compte Telegram requis",
                     "Utilisez les noms de canal (ex. \"telegram\")",
@@ -1237,7 +1283,12 @@ iframe[src*="t.me"] {
                 invalidChannel: "Inserisci un nome canale valido",
                 quickGuideTitle: "Guida rapida: canali bannati:",
                 quickGuideDescription: "Permette di accedere a canali o gruppi Telegram bloccati. Leggi i messaggi senza comparire nella cronologia, nessuno sa che hai letto.",
-                searchInfoText: "La ricerca automatica fallisce nei canali con molti messaggi eliminati. Attiva \"Manual, start ID\" in Preferenze e inserisci l'ID dell'ultimo messaggio, che devi trovare tu.",
+                searchInfoText: "La ricerca automatica può fallire nei canali con molti messaggi eliminati: può fermarsi sotto l'ultimo reale. Tre modi per arrivare al post più recente:",
+                searchInfoSteps: [
+                    "Premi \"Cerca di nuovo\": ogni pressione sonda ID di messaggio diversi, così ciò che una ricerca manca, la successiva può trovarlo",
+                    "Leggi l'ultimo ID nel link di un post: ogni link di messaggio termina con il suo numero (t.me/canale/123); apri il post più recente che conosci e copialo",
+                    "Inserisci quel numero in \"Manual, start ID\" (Preferenze) e carica; se il feed sembra corto, prova ID più alti e più bassi finché non trovi il post più recente"
+                ],
                 features: [
                     "Senza login. Nessun account Telegram per leggere",
                     "Usa i nomi dei canali (es. \"telegram\")",
@@ -1299,7 +1350,12 @@ iframe[src*="t.me"] {
                 invalidChannel: "Podaj poprawną nazwę kanału",
                 quickGuideTitle: "Krótki poradnik: zbanowane kanały:",
                 quickGuideDescription: "Umożliwia dostęp do zablokowanych kanałów i grup Telegram. Czytasz wiadomości bez śladu w historii, nikt nie wie, że czytałeś.",
-                searchInfoText: "Wyszukiwanie auto zawodzi w kanałach z wieloma usuniętymi wiadomościami. Włącz wtedy \"Manual, start ID\" w Preferencjach i podaj ID ostatniej wiadomości, które musisz znaleźć sam.",
+                searchInfoText: "Automatyczne szukanie może zawieść w kanałach z wieloma usuniętymi wiadomościami: może zatrzymać się poniżej prawdziwej ostatniej. Trzy sposoby, by dotrzeć do najnowszego posta:",
+                searchInfoSteps: [
+                    "Naciśnij \"Szukaj ponownie\": każde kliknięcie sonduje inne ID wiadomości — to, co jedna próba przegapi, kolejna może znaleźć",
+                    "Odczytaj ostatnie ID z linku posta: każdy link do wiadomości kończy się jej numerem (t.me/kanal/123) — otwórz najnowszy znany post i skopiuj numer",
+                    "Wpisz ten numer w \"Manual, start ID\" (Preferencje) i wczytaj; jeśli feed wydaje się krótki, próbuj wyższych i niższych ID, aż znajdziesz najnowszy post"
+                ],
                 features: [
                     "Bez logowania. Konto Telegram niepotrzebne do czytania",
                     "Używaj nazw kanałów (np. \"telegram\")",
@@ -1361,7 +1417,12 @@ iframe[src*="t.me"] {
                 invalidChannel: "Voer een geldige kanaalnaam in",
                 quickGuideTitle: "Snelle gids: gebandeerde kanalen:",
                 quickGuideDescription: "Geeft toegang tot geblokkeerde Telegramkanalen of -groepen. Je leest berichten zonder in de geschiedenis te verschijnen, niemand weet dat je las.",
-                searchInfoText: "Automatisch zoeken faalt in kanalen met veel verwijderde berichten. Schakel dan \"Manual, start ID\" in bij Voorkeuren en voer de laatste bericht-ID in, die je zelf moet vinden.",
+                searchInfoText: "Automatisch zoeken kan falen in kanalen waar veel berichten zijn verwijderd: het kan onder de echte laatste blijven steken. Drie manieren om bij het nieuwste bericht te komen:",
+                searchInfoSteps: [
+                    "Druk op \"Opnieuw zoeken\": elke klik sondeert andere bericht-ID's, dus wat de ene zoektocht mist, kan de volgende vinden",
+                    "Lees het laatste ID in de link van een bericht: elke berichtlink eindigt op zijn nummer (t.me/kanaal/123) — open het nieuwste bericht dat je kent en kopieer het nummer",
+                    "Voer dat nummer in bij \"Manual, start ID\" (Voorkeuren) en laad; als de feed kort lijkt, probeer dan hogere en lagere ID's tot je het nieuwste bericht vindt"
+                ],
                 features: [
                     "Geen login. Geen Telegram-account nodig om te lezen",
                     "Gebruik kanaalnamen (bijv. \"telegram\")",
@@ -2734,6 +2795,8 @@ iframe[src*="t.me"] {
                 document.getElementById('quickGuideTitle').textContent = t.quickGuideTitle;
                 document.getElementById('quickGuideDescription').textContent = t.quickGuideDescription;
                 document.getElementById('searchInfoText').textContent = t.searchInfoText;
+                document.getElementById('searchInfoSteps').innerHTML =
+                    t.searchInfoSteps.map(step => `<li>${step}</li>`).join('');
                 document.getElementById('prefsTitle').textContent = t.prefs;
                 document.getElementById('prefCookiesLabel').textContent = t.allowCookies;
                 document.getElementById('prefStartIdLabel').textContent = t.manualMode;

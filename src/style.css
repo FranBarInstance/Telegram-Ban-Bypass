@@ -575,6 +575,21 @@ iframe[src*="t.me"] {
     color: var(--note-text);
     font-size: 0.95em;
 }
+/* Numbered strategies under the intro paragraph; the extra class level
+   keeps the .tips checkmark styling (✓, 26px pad) away from them */
+.search-info ol {
+    margin: 10px 0 12px;
+    padding-left: 22px;
+}
+.search-info ol li {
+    margin: 0 0 6px;
+    padding-left: 0;
+    color: var(--note-text);
+    font-size: 0.95em;
+}
+.search-info ol li::before {
+    content: none;
+}
 .tips ul {
     list-style: none;
     padding: 0;
