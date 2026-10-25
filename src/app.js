@@ -678,7 +678,11 @@
             SEARCH_PROGRESS_KEY: 'tgSearchProgress:',
             // How far below a dead saved ID "Search again" scans before
             // falling back to the from-zero search (IDs, not probes)
-            RESEARCH_DESCEND_WINDOW: 300
+            RESEARCH_DESCEND_WINDOW: 300,
+            // How long a new-message check may drag on before the Stop
+            // button is revealed in view: fast checks (every auto-check
+            // tick) never show it, a stuck one gets an abort
+            CHECK_STOP_DELAY: 3000
         };
         const state = {
             countInterval: 0,
@@ -1799,6 +1803,7 @@
                 elements.checkNewButton.textContent = t.checking;
                 const base = state.lastPostId;
                 const startedAt = Date.now();
+                let slowCheckTimer = null;
                 try {
                     // The next CHECK_NEW_BLOCK IDs are appended to the feed
                     // right away: new posts show up instantly while the scan
@@ -1815,12 +1820,24 @@
                     // reachable while it does, or the whole app locks with no
                     // way out. Stop keeps the partial result — the IDs
                     // confirmed so far are saved, the rest is retried on the
-                    // next check
+                    // next check. The flag is cleared for every check, not
+                    // just the ones showing the button: a stopped deep scan
+                    // must not leave a stale true that silently aborts the
+                    // short checks that follow, the auto-check included.
+                    // Any check still running after CHECK_STOP_DELAY gets
+                    // the Stop button revealed in view: fast checks never
+                    // show it, a stuck one gets an abort without the user
+                    // hunting for a button parked above the feed
+                    autoSearch.stopRequested = false;
                     if (max > shown) {
-                        autoSearch.stopRequested = false;
                         elements.stopSearchBtn.disabled = false;
                         elements.stopSearchBtn.style.display = 'block';
                     }
+                    slowCheckTimer = setTimeout(() => {
+                        elements.stopSearchBtn.disabled = false;
+                        elements.stopSearchBtn.style.display = 'block';
+                        elements.stopSearchBtn.scrollIntoView({ block: 'nearest' });
+                    }, CONFIG.CHECK_STOP_DELAY);
                     let highest = base;
                     let fails = 0;
                     widgetLoader.appendRange(base + 1, base + shown);
@@ -1890,6 +1907,7 @@
                 } catch (error) {
                     console.error('Error checking new messages:', error);
                 } finally {
+                    clearTimeout(slowCheckTimer);
                     elements.stopSearchBtn.style.display = 'none';
                     elements.stopSearchBtn.disabled = false;
                     state.isLoading = false;
